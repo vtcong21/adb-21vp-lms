@@ -1,0 +1,101 @@
+.ant-table-thead .ant-table-cell {
+    background-color: #CAE1FF !important;
+    color: #1577FF !important;
+}
+.ant-table-cell {
+    font-size: small;
+    font-family: Montserrat !important;
+}
+
+.ant-btn {
+    font-weight: 600 !important;
+}
+.ant-btn-primary {
+    color: white;
+    background-color: #1577FF;
+}
+.ant-btn-primary:hover {
+    background-color: #296dcd !important;
+}
+
+.ant-input-number {
+    width: 100% !important;
+}
+.ant-select-selector {
+    height: 117% !important;
+}
+.ant-input-disabled {
+    margin-bottom: 0.75em !important;
+}
+.ant-picker {
+    width: 100% !important;
+}
+.ant-modal-content {
+    margin: 16px !important;
+    padding: 10px 36px 1px 36px !important;
+    font-family: Montserrat !important;
+}
+.ant-form-item-required {
+    font-family: Montserrat !important;
+    font-weight: 600 !important;
+}
+.ant-form-item-label {
+    padding: 2px !important;
+}
+.ant-form-item {
+    margin-top: 0 !important;
+    margin-bottom: 22px !important;
+}
+.ant-input, .ant-select-selection-placeholder, 
+.ant-input-number-input, .ant-picker-input>input, .ant-select-selection-item
+.ant-select-selection-search-input, .ant-select-dropdown, .ant-select-selection-item {
+    font-family: Montserrat !important;
+    font-size: medium !important;
+    font-weight: 640 !important;
+}
+.ant-form-item-label, .ant-form-item-required, .ant-form-item {
+    font-family: Montserrat !important;
+    font-size: medium !important;
+    font-weight: 640 !important;
+}
+:where(.css-dev-only-do-not-override-p7e5j5).ant-form-item .ant-form-item-label >label {
+    font-family: Montserrat !important;
+    font-size: medium !important;
+    font-weight: 640 !important;
+}
+.ant-dropdown-menu-title-content {
+    font-family: Montserrat !important;
+    font-size: medium !important;
+    font-weight: 600 !important;
+    color: black;
+}
+.ant-input-disabled , .ant-select-disable {
+    color: #adadad !important;
+}
+
+.ant-input-search, .ant-empty-description {
+    border-radius: 10px !important;
+    font-family: Montserrat !important;
+    font-size: medium;
+}
+
+.ant-message, .ant-message-top {
+    font-family: Montserrat !important;
+    font-size: medium !important;
+}
+
+.ant-btn-danger {
+    background-color: white;
+    outline: 2.5px solid #adadad;
+    border-radius: 0.45rem;
+    color: #adadad;
+    font-family: Montserrat !important;
+    font-weight: 640 !important;
+    font-size: small;
+    padding: 0 1.5rem;
+    /* padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;*/
+    margin-top: 0.5rem; 
+    height: 35.5px !important;
+}

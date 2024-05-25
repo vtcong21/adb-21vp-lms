@@ -1,0 +1,35 @@
+.ant-table-thead .ant-table-cell {
+    background-color: #EFEFEF !important;
+    color: #000000 !important;
+}
+.ant-table-cell {
+    font-size: small;
+    font-family: Montserrat !important;
+}
+
+.ant-btn-danger {
+    background-color: white;
+    outline: 2.5px solid #adadad;
+    border-radius: 0.45rem;
+    color: #adadad;
+    font-family: Montserrat !important;
+    font-weight: 640 !important;
+    font-size: small;
+    padding: 0 1.5rem;
+    /* padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;*/
+    margin-top: 0.5rem; 
+    height: 35.5px !important;
+}
+
+.ant-btn {
+    font-weight: 600 !important;
+}
+.ant-btn-primary {
+    color: white;
+    background-color: #1577FF;
+}
+.ant-btn-primary:hover {
+    background-color: #296dcd !important;
+}

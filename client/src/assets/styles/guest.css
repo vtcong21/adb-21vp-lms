@@ -1,0 +1,71 @@
+.ant-table-thead .ant-table-cell {
+  background-color: #CAE1FF !important;
+  color: #1577FF !important;
+}
+
+th.ant-table-cell::before{
+  visibility: hidden;
+}
+
+.ant-table-tbody{
+  border-bottom: 1px solid #ACACAC;
+}
+
+.ant-table-wrapper .ant-table-container table>thead>tr:first-child >*:first-child {
+  border-start-start-radius: 0 !important;
+}
+
+.ant-table  
+{ 
+  font-family: 'Montserrat' !important; 
+}
+
+.custom-button-accept:hover{
+  background-color: rgb(225 29 72) !important
+}
+.custom-button-cancel{
+  color: #fff;
+}
+.custom-button-cancel:hover{
+  background-color:  rgb(156 163 175) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.ant-input-number {
+  width: 140px;
+}
+.ant-select-selector {
+  height: 117% !important;
+}
+.ant-picker {
+  width: 100% !important;
+}
+.ant-modal-content {
+  margin: 16px !important;
+  padding: 10px 36px 1px 36px !important;
+  font-family: Montserrat !important;
+}
+.ant-form-item-required {
+  font-family: Montserrat !important;
+  font-weight: 600 !important;
+}
+.ant-form-item-label {
+  padding: 2px !important;
+}
+.ant-form-item {
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+}
+.ant-input, .ant-select-selection-placeholder, 
+.ant-input-number-input, .ant-picker-input>input, .ant-select-selection-item
+.ant-select-selection-search-input, .ant-select-dropdown, .ant-select-selection-item {
+  font-family: Montserrat !important;
+  font-size: medium !important;
+  font-weight: 640 !important;
+}
+.ant-form-item-label, .ant-form-item-required, .ant-form-item {
+  font-family: Montserrat !important;
+  font-size: medium !important;
+  font-weight: 640 !important;
+}
