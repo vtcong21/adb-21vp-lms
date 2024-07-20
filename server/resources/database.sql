@@ -1,1 +1,576 @@
--- Write the database script here
+-- Create database
+USE master
+GO
+
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'LMS')
+    DROP DATABASE LMS
+GO
+
+CREATE DATABASE LMS
+GO
+
+USE LMS
+GO
+
+-- Create tables
+
+CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole CHAR(2))
+RETURNS BIT
+AS
+BEGIN
+    IF (EXISTS(SELECT id FROM [user] WHERE id = @userId AND role = @userRole))
+        RETURN 1
+
+    RETURN 0
+END
+GO
+
+-- Table user
+IF OBJECT_ID('user', 'U') IS NOT NULL
+    DROP TABLE [user]
+GO
+
+CREATE TABLE [user]
+(
+    id NVARCHAR(128) NOT NULL,
+    email VARCHAR(256) NOT NULL,
+    name NVARCHAR(128) NOT NULL,
+    password VARCHAR(128) NOT NULL,
+    profilePhoto NVARCHAR(256) NOT NULL,
+    role CHAR(2) NOT NULL,
+
+	CONSTRAINT [User id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [User email format is invalid.] CHECK(email LIKE '_%@_%._%'),
+	CONSTRAINT [User name is required.] CHECK(LEN(name) > 0),
+	CONSTRAINT [User password must be at least 5 characters long.] CHECK(LEN(password) > 4),
+	CONSTRAINT [User profile photo is required.] CHECK(LEN(profilePhoto) > 0),
+	CONSTRAINT [User role is invalid.] CHECK (role IN ('AD', 'CM')),
+    
+    CONSTRAINT [PK_user] PRIMARY KEY (id)
+);
+GO
+
+-- Table admin
+IF OBJECT_ID('admin', 'U') IS NOT NULL
+    DROP TABLE [admin]
+GO
+
+CREATE TABLE [admin]
+(
+    id NVARCHAR(128) NOT NULL,
+    
+	CONSTRAINT [Admin id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [Admin id is invalid.] CHECK([dbo].isValidUser(id, 'AD') = 1),
+    
+    CONSTRAINT [PK_admin] PRIMARY KEY (id),
+
+	CONSTRAINT [FK_admin_user] FOREIGN KEY (id) REFERENCES [user](id) ON DELETE CASCADE
+																	  ON UPDATE CASCADE
+);
+GO
+
+CREATE FUNCTION isValidCourseMember(@courseMemberId VARCHAR(128), @courseMemberRole VARCHAR(3))
+RETURNS BIT
+AS
+BEGIN
+    IF (EXISTS(SELECT id FROM [courseMember] WHERE id = @courseMemberId AND role = @courseMemberRole))
+        RETURN 1
+
+    RETURN 0
+END
+GO
+-- Table course member
+IF OBJECT_ID('courseMember', 'U') IS NOT NULL
+    DROP TABLE [courseMember]
+GO
+
+CREATE TABLE [courseMember]
+(
+    id NVARCHAR(128) NOT NULL,
+	role VARCHAR(3) NOT NULL,
+    
+	CONSTRAINT [Course member id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [Course member id is invalid.] CHECK([dbo].isValidUser(id, 'CM') = 1),
+    CONSTRAINT [Course member role is invalid.] CHECK (role IN ('LN', 'INS')),
+
+    CONSTRAINT [PK_courseMember] PRIMARY KEY (id),
+
+	CONSTRAINT [FK_courseMember_user] FOREIGN KEY (id) REFERENCES [user](id) ON DELETE CASCADE
+																	         ON UPDATE CASCADE
+);
+GO
+
+-- Table learner
+IF OBJECT_ID('learner', 'U') IS NOT NULL
+    DROP TABLE [learner]
+GO
+
+CREATE TABLE [learner]
+(
+    id NVARCHAR(128) NOT NULL,
+    
+	CONSTRAINT [Learner id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [Learner id is invalid.] CHECK([dbo].isValidCourseMember(id, 'LN') = 1),
+
+    CONSTRAINT [PK_learner] PRIMARY KEY (id),
+
+	CONSTRAINT [FK_learner_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id) ON DELETE CASCADE
+																						ON UPDATE CASCADE
+);
+GO
+
+-- Table instructor
+IF OBJECT_ID('instructor', 'U') IS NOT NULL
+    DROP TABLE [instructor]
+GO
+
+CREATE TABLE [instructor]
+(
+    id NVARCHAR(128) NOT NULL,
+    gender CHAR(1) NOT NULL ,
+    phone VARCHAR(11) NOT NULL ,
+    DOB DATE NOT NULL,
+    address NVARCHAR(256) NOT NULL,
+    degrees NVARCHAR(512) NOT NULL,
+    workplace NVARCHAR(256) NOT NULL,
+    scientificBackground NVARCHAR(512),
+    isPremium BIT NOT NULL DEFAULT 0,
+    isVerified BIT NOT NULL DEFAULT 0,
+    revenueByMonth DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    
+	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [Instructor id is invalid.] CHECK([dbo].isValidCourseMember(id, 'INS') = 1),
+	CONSTRAINT [Instructor gender is invalid.] CHECK(gender IN ('M', 'F')),
+	CONSTRAINT [Instructor phone number must be 10 to 11 digits long.] CHECK(LEN(phone) BETWEEN 10 AND 11 AND ISNUMERIC(phone) = 1),
+	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
+	CONSTRAINT [Instructor degrees is required.] CHECK(LEN(degrees) > 0),
+	CONSTRAINT [Instructor scientific background is required.] CHECK(LEN(scientificBackground) > 0),
+	CONSTRAINT [Instructor revenue by month must be non-negative.] CHECK(revenueByMonth >= 0),
+	CONSTRAINT [Instructor total revenue must be non-negative.] CHECK(totalRevenue >= 0),
+
+    CONSTRAINT [PK_instructor] PRIMARY KEY (id),
+
+	CONSTRAINT [FK_instructor_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id) ON DELETE CASCADE
+																						   ON UPDATE CASCADE
+);
+GO
+
+CREATE FUNCTION isValidVipInstructor(@vipInstructorId VARCHAR(128))
+RETURNS BIT
+AS
+BEGIN
+    IF (EXISTS(SELECT id FROM [instructor] WHERE id = @vipInstructorId AND isVerified = 1 AND isPremium = 1))
+        RETURN 1
+
+    RETURN 0
+END
+GO
+
+-- Table payment card
+IF OBJECT_ID('paymentCard', 'U') IS NOT NULL
+    DROP TABLE [paymentCard]
+GO
+
+CREATE TABLE [paymentCard]
+(
+    cardNumber VARCHAR(16) NOT NULL,
+    cardType VARCHAR(50) NOT NULL,
+    cardName NVARCHAR(128) NOT NULL,
+    cardCVC CHAR(3) NOT NULL,
+    cardExpireDate DATE NOT NULL,
+    
+	CONSTRAINT [Card number is required.] CHECK(LEN(cardNumber) > 0),
+    CONSTRAINT [Card number must be 16 digits long.] CHECK(cardNumber LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+    CONSTRAINT [Card CVC must be 3 digits long.] CHECK(cardCVC LIKE '[0-9][0-9][0-9]'),
+	CONSTRAINT [Card type is invalid.] CHECK(cardType IN ('Debit', 'Credit')),
+	CONSTRAINT [Card name is required.] CHECK(LEN(cardName) > 0),
+    CONSTRAINT [Expiration date must be on or after today.] CHECK(cardExpireDate >= GETDATE()),
+    
+    CONSTRAINT [PK_paymentCard] PRIMARY KEY(cardNumber)
+);
+GO
+
+-- Table vip instructor
+IF OBJECT_ID('vipInstructor', 'U') IS NOT NULL
+    DROP TABLE [vipInstructor]
+GO
+
+CREATE TABLE [vipInstructor]
+(
+    id NVARCHAR(128) NOT NULL,
+    paymentCardNumber VARCHAR(16) NOT NULL,
+    
+	CONSTRAINT [VIP instructor id is required.] CHECK(LEN(id) > 0),
+	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1),
+
+    CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
+
+	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id) ON DELETE CASCADE
+																						  ON UPDATE CASCADE,
+	CONSTRAINT [FK_vipInstructor_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](cardNumber)
+);
+GO
+
+-- Table tax form
+IF OBJECT_ID('taxForm', 'U') IS NOT NULL
+    DROP TABLE [taxForm]
+GO
+
+CREATE TABLE [taxForm]
+(
+    submissionDate DATE NOT NULL,
+    fullName NVARCHAR(128) NOT NULL,
+    address NVARCHAR(256) NOT NULL,
+    phone VARCHAR(11) NOT NULL,
+    taxCode VARCHAR(50) NOT NULL,
+    idNumber CHAR(12) NOT NULL,
+    postCode CHAR(5) NOT NULL,
+    vipInstructorId NVARCHAR(128) NOT NULL,
+    
+	CONSTRAINT [Submission date must be before today.] CHECK(submissionDate <= GETDATE()),
+    CONSTRAINT [Full name is required.] CHECK(LEN(fullName) > 0),
+    CONSTRAINT [Address is required.] CHECK(LEN(address) > 0),
+	CONSTRAINT [Phone number must be 10 to 11 digits long.] CHECK(LEN(phone) BETWEEN 10 AND 11 AND ISNUMERIC(phone) = 1),
+    CONSTRAINT [Tax code must be 10 to 13 digits long.] CHECK(LEN(taxCode) BETWEEN 10 AND 13 AND ISNUMERIC(taxCode) = 1),
+    CONSTRAINT [ID number must be 12 digits long.] CHECK(LEN(idNumber) = 12 AND ISNUMERIC(idNumber) = 1),
+    CONSTRAINT [Postal code must be 5 digits long.] CHECK(LEN(postCode) = 5 AND ISNUMERIC(idNumber) = 1),
+
+    CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
+
+    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) ON DELETE CASCADE 
+																									   ON UPDATE CASCADE
+);
+GO
+
+-- Table category
+IF OBJECT_ID('category', 'U') IS NOT NULL
+    DROP TABLE [category]
+GO
+
+CREATE TABLE [category]
+(
+    id INT IDENTITY(1,1) NOT NULL,
+	name NVARCHAR(128) NOT NULL,
+    
+    CONSTRAINT [Category name is required.] CHECK(LEN(name) > 0),
+
+    CONSTRAINT [PK_category] PRIMARY KEY(id)
+);
+GO
+
+-- Table sub category
+IF OBJECT_ID('subCategory', 'U') IS NOT NULL
+    DROP TABLE [subCategory]
+GO
+
+CREATE TABLE [subCategory]
+(
+    id INT IDENTITY(1,1) NOT NULL,
+	parentCategoryId INT NOT NULL,
+    numberOfLearners INT NOT NULL DEFAULT 0,
+    averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    numberOfCourses INT NOT NULL DEFAULT 0,
+    name NVARCHAR(128) NOT NULL CHECK(LEN(name) > 0),
+    
+	CONSTRAINT [Number of learners must be non-negative.] CHECK(numberOfLearners >= 0),
+	CONSTRAINT [Average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
+	CONSTRAINT [Number of courses must be non-negative.] CHECK(numberOfCourses >= 0),
+    CONSTRAINT [Sub categoryname is required.] CHECK(LEN(name) > 0),
+
+    CONSTRAINT [PK_subCategory] PRIMARY KEY(id),
+
+	CONSTRAINT [FK_subCategory_category] FOREIGN KEY (parentCategoryId) REFERENCES [category](id)
+);
+GO
+
+-- Table sub category
+IF OBJECT_ID('subCategory', 'U') IS NOT NULL
+    DROP TABLE [subCategory]
+GO
+
+CREATE TABLE [subCategory]
+(
+    id INT IDENTITY(1,1) NOT NULL,
+	parentCategoryId INT NOT NULL,
+    numberOfLearners INT NOT NULL DEFAULT 0,
+    averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    numberOfCourses INT NOT NULL DEFAULT 0,
+    name NVARCHAR(128) NOT NULL CHECK(LEN(name) > 0),
+    
+	CONSTRAINT [Number of learners must be non-negative.] CHECK(numberOfLearners >= 0),
+	CONSTRAINT [Sub Category rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
+	CONSTRAINT [Number of courses must be non-negative.] CHECK(numberOfCourses >= 0),
+    CONSTRAINT [Sub categoryname is required.] CHECK(LEN(name) > 0),
+
+    CONSTRAINT [PK_subCategory] PRIMARY KEY(id),
+
+	CONSTRAINT [FK_subCategory_category] FOREIGN KEY (parentCategoryId) REFERENCES [category](id)
+);
+GO
+
+-- Table course
+IF OBJECT_ID('course', 'U') IS NOT NULL
+    DROP TABLE [course]
+GO
+
+CREATE TABLE [course]
+(
+    id INT NOT NULL IDENTITY(1,1),
+    title NVARCHAR(256) NOT NULL,
+    subTitle NVARCHAR(256) NOT NULL,
+    description NVARCHAR(MAX) NOT NULL,
+    image NVARCHAR(256) NOT NULL,
+    video NVARCHAR(256) NOT NULL,
+    state NVARCHAR(15),
+    numberOfStudents INT NOT NULL DEFAULT 0,
+    numberOfLectures INT NOT NULL DEFAULT 0,
+    totalTime DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    subCategoryId INT NOT NULL,
+    categoryId INT NOT NULL,
+    totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    revenueByMonth DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    language NVARCHAR(50) NOT NULL,
+    price DECIMAL(18, 2) NOT NULL,
+    lastUpdateTime DATETIME NOT NULL DEFAULT GETDATE(),
+    
+	CONSTRAINT [Course title is required.] CHECK(LEN(title) > 0),
+	CONSTRAINT [Course sub title is required.] CHECK(LEN(subTitle) > 0),
+	CONSTRAINT [Course description is required.] CHECK(LEN(description) > 0),
+	CONSTRAINT [Course image is required.] CHECK(LEN(image) > 0),
+	CONSTRAINT [Course video is required.] CHECK(LEN(video) > 0),
+	CONSTRAINT [Course state is invalid.] CHECK(state IN ('draft', 'pendingReview', 'public')),
+	CONSTRAINT [Number of students must be non-negative.] CHECK(numberOfStudents >= 0),
+	CONSTRAINT [Number of lectures must be non-negative.] CHECK(numberOfLectures >= 0),
+	CONSTRAINT [Course total time must be non-negative.]  CHECK(totalTime >= 0),
+	CONSTRAINT [Course average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
+	CONSTRAINT [Course total revenue must be non-negative.]  CHECK(totalRevenue >= 0),
+	CONSTRAINT [Course revenue by month must be non-negative.]  CHECK(revenueByMonth >= 0),
+	CONSTRAINT [Course language is required.] CHECK(LEN(language) > 0),
+	CONSTRAINT [Course price must be non-negative.]  CHECK(price >= 0),
+	CONSTRAINT [Course last update time must be before today.]  CHECK(lastUpdateTime <= GETDATE()),
+
+    CONSTRAINT [PK_course] PRIMARY KEY(id),
+
+    CONSTRAINT [FK_course_subCategory] FOREIGN KEY (subCategoryId) REFERENCES [subCategory](id),
+    CONSTRAINT [FK_course_category] FOREIGN KEY (categoryId) REFERENCES [category](id)
+);
+GO
+
+-- Table course intended learners
+IF OBJECT_ID('courseIntendedLearners', 'U') IS NOT NULL
+    DROP TABLE [courseIntendedLearners]
+GO	
+
+CREATE TABLE [courseIntendedLearners]
+(
+    courseId INT NOT NULL,
+    intendedLearner NVARCHAR(256) NOT NULL,
+ 
+	CONSTRAINT [Course intended leaner is required.] CHECK(LEN(intendedLearner) > 0),
+
+    CONSTRAINT [PK_courseIntendedLearners] PRIMARY KEY(courseId, intendedLearner),
+
+    CONSTRAINT [FK_courseIntendedLearners_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+);
+GO
+
+-- Table course requirements
+IF OBJECT_ID('courseRequirements', 'U') IS NOT NULL
+    DROP TABLE [courseRequirements]
+GO	
+
+CREATE TABLE [courseRequirements]
+(
+    courseId INT NOT NULL,
+    requirement NVARCHAR(256) NOT NULL,
+ 
+	CONSTRAINT [Course requirement is required.] CHECK(LEN(requirement) > 0),
+
+    CONSTRAINT [PK_courseRequirements] PRIMARY KEY(courseId, requirement),
+
+    CONSTRAINT [FK_courseRequirements_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+);
+GO
+
+-- Table course objectives
+IF OBJECT_ID('courseObjectives', 'U') IS NOT NULL
+    DROP TABLE [courseObjectives]
+GO	
+
+CREATE TABLE [courseObjectives]
+(
+    courseId INT NOT NULL,
+    objective NVARCHAR(256) NOT NULL,
+ 
+	CONSTRAINT [Course objective is required.] CHECK(LEN(objective) > 0),
+
+    CONSTRAINT [PK_courseObjectives] PRIMARY KEY(courseId, objective),
+
+    CONSTRAINT [FK_courseObjectives_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+);
+GO
+
+-- Table coupon
+IF OBJECT_ID('coupon', 'U') IS NOT NULL
+    DROP TABLE [coupon]
+GO	
+
+CREATE TABLE [coupon]
+(
+    couponCode VARCHAR(20) NOT NULL,
+    discount DECIMAL(5, 2) NOT NULL CHECK(discount >= 0 AND discount <= 100),
+    quantity INT NOT NULL CHECK(quantity >= 0),
+    startDate DATE NOT NULL,
+    adminCreatedCoupon NVARCHAR(128) NOT NULL,
+    
+    CONSTRAINT [Coupon code is required.] CHECK(LEN(couponCode) > 0),
+	CONSTRAINT [Coupon discount must be between 0% and 100%.] CHECK(discount >= 0 AND discount <= 100),
+	CONSTRAINT [Coupon quantity must be non-negative.] CHECK(LEN(discount) > 0),
+    CONSTRAINT [Admin created coupon is required.] CHECK(LEN(AdminCreatedCoupon) > 0),
+
+    CONSTRAINT [PK_coupon] PRIMARY KEY(couponCode),
+
+    CONSTRAINT [FK_coupon_admin] FOREIGN KEY (adminCreatedCoupon) REFERENCES [admin](id) ON UPDATE CASCADE
+);
+GO
+
+-- Table section
+IF OBJECT_ID('section', 'U') IS NOT NULL
+    DROP TABLE [section]
+GO	
+
+CREATE TABLE [section]
+(
+    id INT NOT NULL,
+    courseId INT NOT NULL,
+    title NVARCHAR(256) NOT NULL,
+    learnTime DECIMAL(5, 2) NOT NULL DEFAULT 0,
+
+	CONSTRAINT [Secion title is required.] CHECK(LEN(title) > 0),
+	CONSTRAINT [Secion learn time must be non-negative.] CHECK(learnTime >= 0),
+    
+    CONSTRAINT [PK_section] PRIMARY KEY(id, courseId),
+
+    CONSTRAINT [FK_section_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+GO
+
+-- Table lesson
+IF OBJECT_ID('lesson', 'U') IS NOT NULL
+    DROP TABLE [lesson]
+GO	
+
+CREATE TABLE [lesson]
+(
+    id INT NOT NULL,
+	sectionId INT NOT NULL,
+    courseId INT NOT NULL,
+    title NVARCHAR(256) NOT NULL,
+    learnTime DECIMAL(5, 2) NOT NULL DEFAULT 0,
+	type VARCHAR(10) CHECK (type IN ('lecture', 'exercise')),
+
+	CONSTRAINT [Lesson title is required.] CHECK(LEN(title) > 0),
+	CONSTRAINT [Lesson learn time must be non-negative.] CHECK(learnTime >= 0),
+    
+    CONSTRAINT [PK_lesson] PRIMARY KEY(id, sectionId, courseId),
+
+    CONSTRAINT [FK_lesson_section] FOREIGN KEY (sectionId, courseId) REFERENCES [section](id, courseId) ON DELETE CASCADE ON UPDATE CASCADE
+);
+GO
+
+CREATE FUNCTION isValidLesson(@lessonId VARCHAR(128), @lessonType VARCHAR(10))
+RETURNS BIT
+AS
+BEGIN
+    IF (EXISTS(SELECT id FROM [lesson] WHERE id = @lessonId AND type = @lessonType))
+        RETURN 1
+
+    RETURN 0
+END
+GO
+
+-- Table lecture
+IF OBJECT_ID('lecture', 'U') IS NOT NULL
+    DROP TABLE [lecture]
+GO	
+
+CREATE TABLE [lecture]
+(
+    lessonId INT NOT NULL,
+	sectionId INT NOT NULL,
+    courseId INT NOT NULL,
+    resource NVARCHAR(256) NOT NULL,
+
+	CONSTRAINT [Lecture resource is required.] CHECK(LEN(resource) > 0),
+	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(lessonId, 'lecture') = 1),
+    
+    CONSTRAINT [PK_lecture] PRIMARY KEY(lessonId, sectionId, courseId),
+
+    CONSTRAINT [FK_lecture_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId) ON DELETE CASCADE
+);
+GO
+
+-- Table excercise
+IF OBJECT_ID('excercise', 'U') IS NOT NULL
+    DROP TABLE [excercise]
+GO	
+
+CREATE TABLE [excercise]
+(
+    lessonId INT NOT NULL,
+	sectionId INT NOT NULL,
+    courseId INT NOT NULL,
+
+	CONSTRAINT [Excercise id is invalid.] CHECK([dbo].isValidLesson(lessonId, 'exercise') = 1),
+    
+    CONSTRAINT [PK_excercise] PRIMARY KEY(lessonId, sectionId, courseId),
+
+    CONSTRAINT [FK_excercise_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId) ON DELETE CASCADE
+);
+GO
+
+-- Table excercise
+IF OBJECT_ID('question', 'U') IS NOT NULL
+    DROP TABLE [question]
+GO	
+
+CREATE TABLE [question]
+(
+	id INT NOT NULL,
+    lessonId INT NOT NULL,
+	sectionId INT NOT NULL,
+    courseId INT NOT NULL,
+	question NVARCHAR(2000) NOT NULL,
+    correctAnswer INT NOT NULL,
+
+	CONSTRAINT [Question is required.] CHECK(LEN(question) > 0),
+    
+    CONSTRAINT [PK_question] PRIMARY KEY(id, lessonId, sectionId, courseId),
+
+    CONSTRAINT [FK_question_excercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [excercise](lessonId, sectionId, courseId) ON DELETE CASCADE
+);
+GO
+
+-- Table excercise
+IF OBJECT_ID('questionAnswer', 'U') IS NOT NULL
+    DROP TABLE [questionAnswer]
+GO	
+
+CREATE TABLE [questionAnswer]
+(
+	id INT NOT NULL,
+	questionId INT NOT NULL,
+    lessonId INT NOT NULL,
+	sectionId INT NOT NULL,
+    courseId INT NOT NULL,
+	questionAnswers NVARCHAR(2000) NOT NULL,
+
+	CONSTRAINT [Question answers are required.] CHECK(LEN(questionAnswers) > 0),
+    
+    CONSTRAINT [PK_questionAnswer] PRIMARY KEY(id, questionId, lessonId, sectionId, courseId),
+
+    CONSTRAINT [FK_questionAnswer_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId) ON DELETE CASCADE
+);
+GO
