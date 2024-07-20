@@ -259,29 +259,6 @@ CREATE TABLE [category]
 );
 GO
 
--- Table sub category
-IF OBJECT_ID('subCategory', 'U') IS NOT NULL
-    DROP TABLE [subCategory]
-GO
-
-CREATE TABLE [subCategory]
-(
-    id INT IDENTITY(1,1) NOT NULL,
-	parentCategoryId INT NOT NULL,
-    numberOfLearners INT NOT NULL DEFAULT 0,
-    averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
-    numberOfCourses INT NOT NULL DEFAULT 0,
-    name NVARCHAR(128) NOT NULL CHECK(LEN(name) > 0),
-    
-	CONSTRAINT [Number of learners must be non-negative.] CHECK(numberOfLearners >= 0),
-	CONSTRAINT [Average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
-	CONSTRAINT [Number of courses must be non-negative.] CHECK(numberOfCourses >= 0),
-    CONSTRAINT [Sub categoryname is required.] CHECK(LEN(name) > 0),
-
-    CONSTRAINT [PK_subCategory] PRIMARY KEY(id),
-
-	CONSTRAINT [FK_subCategory_category] FOREIGN KEY (parentCategoryId) REFERENCES [category](id)
-);
 GO
 
 -- Table sub category
@@ -299,7 +276,7 @@ CREATE TABLE [subCategory]
     name NVARCHAR(128) NOT NULL CHECK(LEN(name) > 0),
     
 	CONSTRAINT [Number of learners must be non-negative.] CHECK(numberOfLearners >= 0),
-	CONSTRAINT [Sub Category rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
+	CONSTRAINT [Sub Category average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
 	CONSTRAINT [Number of courses must be non-negative.] CHECK(numberOfCourses >= 0),
     CONSTRAINT [Sub categoryname is required.] CHECK(LEN(name) > 0),
 
