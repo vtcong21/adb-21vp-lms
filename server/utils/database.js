@@ -1,4 +1,4 @@
-const sql = require('mssql-plus');
+import sql from 'mssql-plus';
 
 const PORT = Number(process.env.MSSQL_PORT);
 
@@ -103,4 +103,4 @@ const initializePools = async () => {
 
 initializePools();
 
-module.exports = { getPool };
+export default { getPool };
