@@ -942,3 +942,4 @@ CREATE TABLE [commentNotification]
 	CONSTRAINT [FK_commentNotification__courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id)
 );
 GO
+
