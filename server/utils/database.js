@@ -1,8 +1,10 @@
 import sql from 'mssql-plus';
+require("dotenv").config();
 
 const PORT = Number(process.env.MSSQL_PORT);
 
-let pools = {};
+const pools = {};
+
 const config = {
     server: process.env.MSSQL_SERVER,
     port: PORT,
@@ -23,11 +25,11 @@ const createPool = async (loginType) => {
         let user, password, database, logMessage;
 
         switch (loginType) {
-            case "QTV":
-                user = process.env.MSSQL_USERNAME_QTV;
-                password = process.env.MSSQL_PASSWORD_QTV;
+            case "LMS":
+                user = process.env.MSSQL_USERNAME;
+                password = process.env.MSSQL_PASSWORD;
                 database = process.env.MSSQL_DATABASE;
-                logMessage = "Login as QTV";
+                logMessage = "Login to db";
                 break;
             default:
                 console.error(`Unsupported login type: ${loginType}`);
@@ -41,21 +43,20 @@ const createPool = async (loginType) => {
             database,
         };
 
-        let pool = new sql.ConnectionPool(connectionConfig);
-        if (!pool.connected) {
-            try {
-                await pool.connect();
-            } catch (error) {
-                console.error(`Error connecting to SQL Server: ${error.message}`);
-                return null;
-            }
+       
+        const pool = new sql.ConnectionPool(connectionConfig);
+        
+        try {
+            await pool.connect();
+        } catch (error) {
+            console.error(`Error connecting to SQL Server: ${error.message}`);
+            return null;
         }
+
         pool.executeSP = async (procedureName, params) => {
             const request = await pool.request();
-            for (const paramName in params) {
-                if (params.hasOwnProperty(paramName)) {
-                    request.input(paramName, params[paramName]);
-                }
+            for (const [paramName, paramValue] of Object.entries(params)) {
+                request.input(paramName, paramValue);
             }
             try {
                 const result = await request.execute(procedureName);
@@ -66,41 +67,38 @@ const createPool = async (loginType) => {
         };
 
         console.log(`🔥 SQL Server pool connection successful!!! ${logMessage}\n`);
-
         return pool;
     } catch (error) {
-        console.log(error);
-        console.error(`🔥 createPool connection error !!!!!\n`);
+        console.error(`🔥 createPool connection error: ${error.message}\n`);
         return null;
     }
 };
 
 const getPool = (loginType) => {
     const pool = pools[loginType];
-
     if (!pool) {
         console.error(`No pool found for login type: ${loginType}`);
         return null;
     }
-
     return pool;
 };
 
 const initializePools = async () => {
     try {
-        const loginTypes = ["QTV"];
-        const poolPromises = loginTypes.map(async (loginType) => {
-            const pool = await createPool(loginType);
-            if (pool) {
-                pools[loginType] = pool;
+        const loginTypes = ["LMS"];
+        const poolPromises = loginTypes.map((loginType) => createPool(loginType));
+        const results = await Promise.all(poolPromises);
+        
+        loginTypes.forEach((loginType, index) => {
+            if (results[index]) {
+                pools[loginType] = results[index];
             }
         });
-        await Promise.all(poolPromises);
     } catch (error) {
-        console.error('Error initializing pools', error);
+        console.error('Error initializing pools:', error);
     }
 };
 
 initializePools();
 
-export default { getPool };
+export default getPool;

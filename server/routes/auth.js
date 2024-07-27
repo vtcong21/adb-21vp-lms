@@ -10,9 +10,7 @@ import {
   register,
   login,
   logout,
-  currentUser,
-  forgotPassword,
-  resetPassword,
+  currentUser
 } from "../controllers/auth";
 
 router.post("/register", register);
