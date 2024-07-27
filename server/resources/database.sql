@@ -64,8 +64,7 @@ CREATE TABLE [admin]
     
     CONSTRAINT [PK_admin] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_admin_user] FOREIGN KEY (id) REFERENCES [user](id) ON DELETE CASCADE
-																	  ON UPDATE CASCADE
+	CONSTRAINT [FK_admin_user] FOREIGN KEY (id) REFERENCES [user](id)
 );
 GO
 
@@ -95,8 +94,8 @@ CREATE TABLE [courseMember]
 
     CONSTRAINT [PK_courseMember] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_courseMember_user] FOREIGN KEY (id) REFERENCES [user](id) ON DELETE CASCADE
-																	         ON UPDATE CASCADE
+	CONSTRAINT [FK_courseMember_user] FOREIGN KEY (id) REFERENCES [user](id)
+																	         
 );
 GO
 
@@ -114,8 +113,8 @@ CREATE TABLE [learner]
 
     CONSTRAINT [PK_learner] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_learner_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id) ON DELETE CASCADE
-																						ON UPDATE CASCADE
+	CONSTRAINT [FK_learner_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id)
+																						
 );
 GO
 
@@ -149,8 +148,8 @@ CREATE TABLE [instructor]
 
     CONSTRAINT [PK_instructor] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_instructor_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id) ON DELETE CASCADE
-																						   ON UPDATE CASCADE
+	CONSTRAINT [FK_instructor_courseMember] FOREIGN KEY (id) REFERENCES [courseMember](id)
+																						   
 );
 GO
 
@@ -183,7 +182,7 @@ CREATE TABLE [instructorRevenueByMonth]
 
     CONSTRAINT [PK_instructorRevenueByMonth] PRIMARY KEY(instructorId, year, month),
 
-    CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
 );
 GO
 
@@ -226,8 +225,8 @@ CREATE TABLE [vipInstructor]
 
     CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id) ON DELETE CASCADE
-																						  ON UPDATE CASCADE,
+	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)
+																						  ,
 	CONSTRAINT [FK_vipInstructor_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number)
 );
 GO
@@ -258,8 +257,8 @@ CREATE TABLE [taxForm]
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
 
-    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) ON DELETE CASCADE 
-																									   ON UPDATE CASCADE
+    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) 
+																									   
 );
 GO
 
@@ -374,7 +373,7 @@ CREATE TABLE [courseRevenueByMonth]
 
     CONSTRAINT [PK_courseRevenueByMonth] PRIMARY KEY(courseId, year, month),
 
-    CONSTRAINT [FK_courseRevenueByMonth_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_courseRevenueByMonth_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -392,7 +391,7 @@ CREATE TABLE [courseIntendedLearners]
 
     CONSTRAINT [PK_courseIntendedLearners] PRIMARY KEY(courseId, intendedLearner),
 
-    CONSTRAINT [FK_courseIntendedLearners_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_courseIntendedLearners_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -410,7 +409,7 @@ CREATE TABLE [courseRequirements]
 
     CONSTRAINT [PK_courseRequirements] PRIMARY KEY(courseId, requirement),
 
-    CONSTRAINT [FK_courseRequirements_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_courseRequirements_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -428,7 +427,7 @@ CREATE TABLE [courseObjectives]
 
     CONSTRAINT [PK_courseObjectives] PRIMARY KEY(courseId, objective),
 
-    CONSTRAINT [FK_courseObjectives_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_courseObjectives_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -447,8 +446,8 @@ CREATE TABLE [instructorOwnCourse]
     
 	CONSTRAINT [PK_instructorOwnCourse] PRIMARY KEY(courseId, instructorId),
 
-    CONSTRAINT [FK_instructorOwnCourse_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
-	CONSTRAINT [FK_instructorOwnCourse_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_instructorOwnCourse_course] FOREIGN KEY (courseId) REFERENCES [course](id),
+	CONSTRAINT [FK_instructorOwnCourse_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
 );
 GO
 
@@ -472,7 +471,7 @@ CREATE TABLE [coupon]
 
     CONSTRAINT [PK_coupon] PRIMARY KEY(code),
 
-    CONSTRAINT [FK_coupon_admin] FOREIGN KEY (adminCreatedCoupon) REFERENCES [admin](id) ON UPDATE CASCADE
+    CONSTRAINT [FK_coupon_admin] FOREIGN KEY (adminCreatedCoupon) REFERENCES [admin](id) 
 );
 GO
 
@@ -493,7 +492,7 @@ CREATE TABLE [section]
     
     CONSTRAINT [PK_section] PRIMARY KEY(id, courseId),
 
-    CONSTRAINT [FK_section_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT [FK_section_course] FOREIGN KEY (courseId) REFERENCES [course](id) 
 );
 GO
 
@@ -516,7 +515,7 @@ CREATE TABLE [lesson]
     
     CONSTRAINT [PK_lesson] PRIMARY KEY(id, sectionId, courseId),
 
-    CONSTRAINT [FK_lesson_section] FOREIGN KEY (sectionId, courseId) REFERENCES [section](id, courseId) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT [FK_lesson_section] FOREIGN KEY (sectionId, courseId) REFERENCES [section](id, courseId) 
 );
 GO
 
@@ -548,7 +547,7 @@ CREATE TABLE [lecture]
     
     CONSTRAINT [PK_lecture] PRIMARY KEY(lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_lecture_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId) ON DELETE CASCADE
+    CONSTRAINT [FK_lecture_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
 );
 GO
 
@@ -567,7 +566,7 @@ CREATE TABLE [exercise]
     
     CONSTRAINT [PK_exercise] PRIMARY KEY(lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_exercise_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId) ON DELETE CASCADE
+    CONSTRAINT [FK_exercise_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
 );
 GO
 
@@ -589,7 +588,7 @@ CREATE TABLE [question]
     
     CONSTRAINT [PK_question] PRIMARY KEY(id, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_question_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId) ON DELETE CASCADE
+    CONSTRAINT [FK_question_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId)
 );
 GO
 
@@ -611,7 +610,7 @@ CREATE TABLE [questionAnswer]
     
     CONSTRAINT [PK_questionAnswer] PRIMARY KEY(id, questionId, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_questionAnswer_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId) ON DELETE CASCADE
+    CONSTRAINT [FK_questionAnswer_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId)
 );
 GO
 
@@ -631,8 +630,8 @@ CREATE TABLE [learnerAnswerQuestion]
 
     CONSTRAINT [PK_learnerAnswerQuestion] PRIMARY KEY(learnerId, questionId, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerAnswerQuestion_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId) ON DELETE CASCADE,
-	CONSTRAINT [FK_learnerAnswerQuestion_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE
+    CONSTRAINT [FK_learnerAnswerQuestion_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId),
+	CONSTRAINT [FK_learnerAnswerQuestion_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
 
@@ -651,8 +650,8 @@ CREATE TABLE [learnerParticipateLesson]
 
     CONSTRAINT [PK_learnerParticipateLesson] PRIMARY KEY(learnerId, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerParticipateLesson_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId) ON DELETE CASCADE,
-	CONSTRAINT [FK_learnerParticipateLesson_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE
+    CONSTRAINT [FK_learnerParticipateLesson_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId),
+	CONSTRAINT [FK_learnerParticipateLesson_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
 
@@ -673,8 +672,8 @@ CREATE TABLE [learnerDoExercise]
 
 	CONSTRAINT [PK_learnerDoExercise] PRIMARY KEY(learnerId, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerDoExercise_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId) ON DELETE CASCADE,
-	CONSTRAINT [FK_learnerDoExercise_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE
+    CONSTRAINT [FK_learnerDoExercise_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId),
+	CONSTRAINT [FK_learnerDoExercise_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
 
@@ -694,8 +693,8 @@ CREATE TABLE [learnerParticipateSection]
 
     CONSTRAINT [PK_learnerParticipateSection] PRIMARY KEY(learnerId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerParticipateSection_section] FOREIGN KEY (sectionId, courseId) REFERENCES [section](id, courseId) ON DELETE CASCADE,
-	CONSTRAINT [FK_learnerParticipateSection_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE
+    CONSTRAINT [FK_learnerParticipateSection_section] FOREIGN KEY (sectionId, courseId) REFERENCES [section](id, courseId),
+	CONSTRAINT [FK_learnerParticipateSection_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
 
@@ -717,8 +716,8 @@ CREATE TABLE [adminResponse]
 
     CONSTRAINT [PK_adminResponse] PRIMARY KEY(id, adminId, courseId),
 
-    CONSTRAINT [FK_adminResponse_admin] FOREIGN KEY (adminId) REFERENCES [admin](id) ON DELETE CASCADE,
-	CONSTRAINT [FK_adminResponse_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE
+    CONSTRAINT [FK_adminResponse_admin] FOREIGN KEY (adminId) REFERENCES [admin](id),
+	CONSTRAINT [FK_adminResponse_course] FOREIGN KEY (courseId) REFERENCES [course](id)
 );
 GO
 
@@ -734,8 +733,8 @@ CREATE TABLE [cardDetail]
 
     CONSTRAINT [PK_cardDetail] PRIMARY KEY(learnerId, courseId),
 
-    CONSTRAINT [FK_cardDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE,
-	CONSTRAINT [FK_cardDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE
+    CONSTRAINT [FK_cardDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
+	CONSTRAINT [FK_cardDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id)
 );
 GO
 
@@ -755,7 +754,7 @@ CREATE TABLE [message]
 
 	CONSTRAINT [Message sent time must be before today.] CHECK(sentTime <= GETDATE()),
     
-    CONSTRAINT [PK_message] PRIMARY KEY(id),
+    CONSTRAINT [PK_message] PRIMARY KEY(id, senderId, receiverId),
 
 	CONSTRAINT [FK_messageSender_courseMember] FOREIGN KEY (senderId) REFERENCES [courseMember](id),
 	CONSTRAINT [FK_messageReceiver_courseMember] FOREIGN KEY (receiverId) REFERENCES [courseMember](id)
@@ -780,7 +779,7 @@ CREATE TABLE [order]
 
     CONSTRAINT [PK_order] PRIMARY KEY(id),
     
-    CONSTRAINT [FK_order_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_order_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_order_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
     CONSTRAINT [FK_order_coupon] FOREIGN KEY (couponCode) REFERENCES [coupon](code)
 );
@@ -801,8 +800,8 @@ CREATE TABLE [orderDetail]
 
     CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id),
     
-    CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE,
-    CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id) ON DELETE CASCADE,
+    CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
+    CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -818,8 +817,8 @@ CREATE TABLE [learnerPaymentCard]
     
     CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY(learnerId, paymentCardNumber),
     
-    CONSTRAINT [FK_learnerPaymentCard_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id) ON DELETE CASCADE,
-    CONSTRAINT [FK_learnerPaymentCard_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number) ON DELETE CASCADE,
+    CONSTRAINT [FK_learnerPaymentCard_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
+    CONSTRAINT [FK_learnerPaymentCard_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
 );
 GO
 
