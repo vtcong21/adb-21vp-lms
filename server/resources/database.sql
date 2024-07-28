@@ -41,6 +41,7 @@ CREATE TABLE [user]
 
 	CONSTRAINT [User id is required.] CHECK(LEN(id) > 0),
 	CONSTRAINT [User email format is invalid.] CHECK(email LIKE '_%@_%._%'),
+	CONSTRAINT [A user with this email already exists.] UNIQUE(email),
 	CONSTRAINT [User name is required.] CHECK(LEN(name) > 0),
 	CONSTRAINT [User password must be at least 5 characters long.] CHECK(LEN(password) > 4),
 	CONSTRAINT [User profile photo is required.] CHECK(LEN(profilePhoto) > 0),
@@ -132,7 +133,7 @@ CREATE TABLE [instructor]
     address NVARCHAR(256) NOT NULL,
     degrees NVARCHAR(512) NOT NULL,
     workplace NVARCHAR(256) NOT NULL,
-    scientificBackground NVARCHAR(512),
+    scientificBackground NVARCHAR(512) NOT NULL,
     isPremium BIT NOT NULL DEFAULT 0,
     isVerified BIT NOT NULL DEFAULT 0,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
@@ -194,7 +195,7 @@ GO
 CREATE TABLE [paymentCard]
 (
     number VARCHAR(16) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    type VARCHAR(6) NOT NULL,
     name NVARCHAR(128) NOT NULL,
     CVC CHAR(3) NOT NULL,
     expireDate DATE NOT NULL,
@@ -456,18 +457,18 @@ IF OBJECT_ID('coupon', 'U') IS NOT NULL
     DROP TABLE [coupon]
 GO	
 
-CREATE TABLE [coupon]
+CREATE TABLE [coupon]	
 (
     code VARCHAR(20) NOT NULL,
-    discount DECIMAL(5, 2) NOT NULL CHECK(discount >= 0 AND discount <= 100),
-    quantity INT NOT NULL CHECK(quantity >= 0),
+    discountPercent DECIMAL(5, 2) NOT NULL,
+    quantity INT NOT NULL,
     startDate DATE NOT NULL,
     adminCreatedCoupon NVARCHAR(128) NOT NULL,
     
     CONSTRAINT [Coupon code is required.] CHECK(LEN(code) > 0),
-	CONSTRAINT [Coupon discount must be between 0% and 100%.] CHECK(discount >= 0 AND discount <= 100),
-	CONSTRAINT [Coupon quantity must be non-negative.] CHECK(LEN(discount) > 0),
-    CONSTRAINT [Admin created coupon is required.] CHECK(LEN(AdminCreatedCoupon) > 0),
+	CONSTRAINT [Coupon discount percent must be between 0% and 100%.] CHECK(discountPercent >= 0 AND discountPercent <= 100),
+	CONSTRAINT [Coupon quantity must be non-negative.] CHECK(quantity >= 0),
+    CONSTRAINT [Admin created coupon is required.] CHECK(LEN(adminCreatedCoupon) > 0),
 
     CONSTRAINT [PK_coupon] PRIMARY KEY(code),
 
@@ -754,7 +755,7 @@ CREATE TABLE [message]
 
 	CONSTRAINT [Message sent time must be before today.] CHECK(sentTime <= GETDATE()),
     
-    CONSTRAINT [PK_message] PRIMARY KEY(id, senderId, receiverId),
+    CONSTRAINT [PK_message] PRIMARY KEY(senderId, receiverId, id),
 
 	CONSTRAINT [FK_messageSender_courseMember] FOREIGN KEY (senderId) REFERENCES [courseMember](id),
 	CONSTRAINT [FK_messageReceiver_courseMember] FOREIGN KEY (receiverId) REFERENCES [courseMember](id)
@@ -777,7 +778,7 @@ CREATE TABLE [order]
 
 	CONSTRAINT [Date created order must be before today.] CHECK(dateCreated <= GETDATE()),
 
-    CONSTRAINT [PK_order] PRIMARY KEY(id),
+    CONSTRAINT [PK_order] PRIMARY KEY(learnerId, id),
     
     CONSTRAINT [FK_order_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_order_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
@@ -942,4 +943,3 @@ CREATE TABLE [commentNotification]
 	CONSTRAINT [FK_commentNotification__courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id)
 );
 GO
-
