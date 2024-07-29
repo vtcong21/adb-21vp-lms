@@ -30,6 +30,8 @@ IF OBJECT_ID('user', 'U') IS NOT NULL
     DROP TABLE [user]
 GO
 
+admin
+
 CREATE TABLE [user]
 (
     id NVARCHAR(128) NOT NULL,
@@ -61,9 +63,7 @@ CREATE TABLE [admin]
     
 	CONSTRAINT [Admin id is required.] CHECK(LEN(id) > 0),
 	CONSTRAINT [Admin id is invalid.] CHECK([dbo].isValidUser(id, 'AD') = 1),
-    
     CONSTRAINT [PK_admin] PRIMARY KEY (id),
-
 	CONSTRAINT [FK_admin_user] FOREIGN KEY (id) REFERENCES [user](id)
 );
 GO
@@ -163,6 +163,8 @@ BEGIN
     RETURN 0
 END
 GO
+-- SỬA Xem VipInstructor
+-- Này nên kiểm tra coi isVerified thôi nhỉ
 
 -- Table instructor revenue by month
 IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
@@ -185,6 +187,7 @@ CREATE TABLE [instructorRevenueByMonth]
     CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
 );
 GO
+-- SỬA InstructorRevenueByMonth này nên là view
 
 -- Table payment card
 IF OBJECT_ID('paymentCard', 'U') IS NOT NULL
@@ -221,15 +224,18 @@ CREATE TABLE [vipInstructor]
     paymentCardNumber VARCHAR(16) NOT NULL,
     
 	CONSTRAINT [VIP instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1),
+	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1), -- Hơi có vấn đề, xem SỬA
 
     CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)
-																						  ,
+	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)														  ,
 	CONSTRAINT [FK_vipInstructor_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number)
 );
 GO
+-- SỬA isPremium là thuộc tính sau khi giảng viên đã có liên kết tài khoản ngân hàng
+-- Nhưng mà VipInstructor lại kiểm tra coi Instructor có isPremium không??? 
+-- Kiểm tra coi giảng viên có VIP không trước khi thêm tài khoản ngân hàng của giảng viên?
+-- Không hợp lý lắm nha
 
 -- Table tax form
 IF OBJECT_ID('taxForm', 'U') IS NOT NULL
@@ -317,7 +323,7 @@ CREATE TABLE [course]
     id INT NOT NULL IDENTITY(1,1),
     title NVARCHAR(256) NOT NULL,
     subTitle NVARCHAR(256) NOT NULL,
-    description NVARCHAR(MAX) NOT NULL,
+    description NVARCHAR(MAX) NOT NULL, -- SỬA chỉnh thành TEXT
     image NVARCHAR(256) NOT NULL,
     video NVARCHAR(256) NOT NULL,
     state NVARCHAR(15) NOT NULL DEFAULT 'draft',
@@ -474,6 +480,7 @@ CREATE TABLE [coupon]
     CONSTRAINT [FK_coupon_admin] FOREIGN KEY (adminCreatedCoupon) REFERENCES [admin](id) 
 );
 GO
+CREATE TRIGGER ON INSERT
 
 -- Table section
 IF OBJECT_ID('section', 'U') IS NOT NULL
@@ -709,7 +716,7 @@ CREATE TABLE [adminResponse]
 	adminId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
 	dateResponse DATE NOT NULL DEFAULT GETDATE(),
-	responseText NVARCHAR(MAX) NOT NULL,
+	responseText NVARCHAR(MAX) NOT NULL, -- SỬA chỉnh thành TEXT
 
 	CONSTRAINT [Admin response text is required.] CHECK(LEN(responseText) > 0),
 	CONSTRAINT [Admin date response must be before today.] CHECK(dateResponse <= GETDATE()),
@@ -746,7 +753,7 @@ GO
 CREATE TABLE [message]	
 (
 	id INT NOT NULL,
-    content NVARCHAR(MAX) NOT NULL,
+    content NVARCHAR(MAX) NOT NULL, -- SỬA chỉnh thành TEXT
     isRead BIT NOT NULL DEFAULT 0,
     senderId NVARCHAR(128) NOT NULL,
     receiverId NVARCHAR(128) NOT NULL,
@@ -776,14 +783,19 @@ CREATE TABLE [order]
     couponCode VARCHAR(20),
 
 	CONSTRAINT [Date created order must be before today.] CHECK(dateCreated <= GETDATE()),
-
+    CONSTRAINT [Date created order must be before today.] CHECK(dateCreated <= GETDATE()),
     CONSTRAINT [PK_order] PRIMARY KEY(id),
     
     CONSTRAINT [FK_order_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_order_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
+    -- SỬA FK này nên reference LearnerPaymentCard vì học viên phải dùng thẻ của mình để thanh toán order của mình
     CONSTRAINT [FK_order_coupon] FOREIGN KEY (couponCode) REFERENCES [coupon](code)
 );
 GO
+-- SỬA order kiểm tra paymentCard còn hạn sử dụng không khi insert order mới (1)
+-- KIỂM TRA order lúc insert paymentCard còn nhiều tiền hơn total, nên kiểm tra ntn? (4)
+-- SỬA order kiểm tra coupon còn quantity không khi insert order mới và kiểm tra coi coupon tới ngày startDate chưa (2)
+-- SỬA viết trigger để kiểm tra total (trigger hay view?) (3)
 
 -- Table order
 IF OBJECT_ID('orderDetail', 'U') IS NOT NULL
@@ -815,8 +827,7 @@ CREATE TABLE [learnerPaymentCard]
     learnerId NVARCHAR(128) NOT NULL,
     paymentCardNumber VARCHAR(16) NOT NULL,
     
-    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY(learnerId, paymentCardNumber),
-    
+    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY (learnerId, paymentCardNumber),
     CONSTRAINT [FK_learnerPaymentCard_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_learnerPaymentCard_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
 );
@@ -831,7 +842,7 @@ CREATE TABLE [learnerEnrollCourse]
 (
     courseId INT NOT NULL,
     learnerId NVARCHAR(128) NOT NULL,
-    learnerReviewCourse NVARCHAR(MAX),
+    learnerReviewCourse NVARCHAR(MAX), -- SỬA chỉnh thành TEXT
     learnerRatingCourse DECIMAL(3, 2),
     dateReview DATE,
     learnerScore DECIMAL(3, 1),
@@ -863,7 +874,7 @@ CREATE TABLE [post]
     date DATETIME NOT NULL DEFAULT GETDATE(),
     courseId INT NOT NULL,
     publisher NVARCHAR(128) NOT NULL,
-    content NVARCHAR(MAX) NOT NULL,
+    content NVARCHAR(MAX) NOT NULL, -- SỬA chỉnh thành TEXT
 
 	CONSTRAINT [Post date must be before today.] CHECK(date <= GETDATE()),
 	CONSTRAINT [Post content is required.] CHECK(LEN(content) > 0),
@@ -908,7 +919,7 @@ CREATE TABLE [comment]
     courseId INT NOT NULL,
     postPublisher NVARCHAR(128) NOT NULL,
 	commenter NVARCHAR(128) NOT NULL,	
-    content NVARCHAR(MAX) NOT NULL,
+    content NVARCHAR(MAX) NOT NULL, -- SỬA chỉnh thành TEXT
 
 	CONSTRAINT [Comment date must be before today.] CHECK(date <= GETDATE()),
 	CONSTRAINT [Comment content is required.] CHECK(LEN(content) > 0),
