@@ -165,6 +165,7 @@ END
 GO
 -- SỬA Xem VipInstructor
 -- Này nên kiểm tra coi isVerified thôi nhỉ
+-- Với, tạo trigger để update isPremium ngay khi giảng viên vừa thêm thẻ nhận tiền
 
 -- Table instructor revenue by month
 IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
@@ -249,7 +250,7 @@ CREATE TABLE [taxForm]
     address NVARCHAR(256) NOT NULL,
     phone VARCHAR(11) NOT NULL,
     taxCode VARCHAR(50) NOT NULL,
-    idNumber CHAR(12) NOT NULL,
+    idNumber CHAR(12) NOT NULL, -- SỬA chỉnh thành IdentityNumber cho rõ ràng, vì này không phải là Identifier trong database
     postCode CHAR(5) NOT NULL,
     vipInstructorId NVARCHAR(128) NOT NULL,
     
@@ -262,11 +263,12 @@ CREATE TABLE [taxForm]
     CONSTRAINT [Postal code must be 5 digits long.] CHECK(LEN(postCode) = 5 AND ISNUMERIC(idNumber) = 1),
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
-
     CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) 
 																									   
 );
 GO
+-- SỬA nếu muốn taxform được tự động duyệt ngay khi giảng viên vừa thêm taxform thì tạo trigger để update isVerified?
+-- còn muốn admin duyệt thì khỏi
 
 -- Table category
 IF OBJECT_ID('category', 'U') IS NOT NULL
@@ -285,7 +287,6 @@ CREATE TABLE [category]
 );
 GO
 
-GO
 
 -- Table sub category
 IF OBJECT_ID('subCategory', 'U') IS NOT NULL
@@ -312,6 +313,8 @@ CREATE TABLE [subCategory]
 	CONSTRAINT [FK_subCategory_category] FOREIGN KEY (parentCategoryId) REFERENCES [category](id)
 );
 GO
+-- SỬA phần numberOfLearners với averageRating nên dùng view thay vì trigger ha
+-- nhưng này chắc physical mới sửa nên cứ để đây đẻ nhớ
 
 -- Table course
 IF OBJECT_ID('course', 'U') IS NOT NULL
@@ -446,9 +449,9 @@ CREATE TABLE [instructorOwnCourse]
 (
     courseId INT NOT NULL,
 	instructorId NVARCHAR(128) NOT NULL,
-	percentageInCome DECIMAL(5, 2) NOT NULL,
+	percentageIncome DECIMAL(5, 2) NOT NULL,
  
-	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome > 0 AND percentageInCome <= 100),
+	CONSTRAINT [Instructor percentage in come must be between 1 and 100.] CHECK(percentageInCome > 0 AND percentageInCome <= 100),
     
 	CONSTRAINT [PK_instructorOwnCourse] PRIMARY KEY(courseId, instructorId),
 
@@ -456,6 +459,7 @@ CREATE TABLE [instructorOwnCourse]
 	CONSTRAINT [FK_instructorOwnCourse_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
 );
 GO
+-- SỬA tạo cái gì để đảm bảo tổng phần trăm ăn chia cho các giảng viên là 100%
 
 -- Table coupon
 IF OBJECT_ID('coupon', 'U') IS NOT NULL
@@ -547,7 +551,7 @@ CREATE TABLE [lecture]
     lessonId INT NOT NULL,
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
-    resource NVARCHAR(256) NOT NULL,
+    resource NVARCHAR(256) NOT NULL, -- SỬA nên là TEXT để nếu là bài đọc hay ghi chú thì sao
 
 	CONSTRAINT [Lecture resource is required.] CHECK(LEN(resource) > 0),
 	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(lessonId, 'lecture') = 1),
