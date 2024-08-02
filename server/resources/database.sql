@@ -871,7 +871,6 @@ CREATE TABLE [learnerReviewCourse]
 );
 GO
 
-
 -- Table post
 IF OBJECT_ID('post', 'U') IS NOT NULL
     DROP TABLE [post]

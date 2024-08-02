@@ -1,7 +1,8 @@
 -- Write the SPs here
 Use LMS 
 GO
--- Doanh thu hàng ngày của 1 khóa học
+
+-- AD - Get Daily Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetDailyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetDailyRevenueOfACourse]
 GO
@@ -35,11 +36,11 @@ BEGIN
     END CATCH
 END;
 
--- Doanh thu hàng tháng của 1 khóa học
-IF OBJECT_ID('sp_AD_INS_GetDailyRevenueOfACourse', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_AD_INS_GetDailyRevenueOfACourse]
+-- AD - Get Monthly Revenue Of A Course
+IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_AD_INS_GetMonthlyRevenueOfACourse]
 GO
-CREATE PROCEDURE sp_AD_INS_GetDailyRevenueOfACourse
+CREATE PROCEDURE sp_AD_INS_GetMonthlyRevenueOfACourse
     @courseId INT,
     @duration INT
 AS
@@ -73,11 +74,11 @@ BEGIN
     END CATCH
 END;
 
--- Doanh thu hàng năm của 1 khóa học
-IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_AD_INS_GetMonthlyRevenueOfACourse]
+-- AD - Get Yearly Revenue Of A Course
+IF OBJECT_ID('sp_AD_INS_GetYearlyRevenueOfACourse', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_AD_INS_GetYearlyRevenueOfACourse]
 GO
-CREATE PROCEDURE sp_AD_INS_GetMonthlyRevenueOfACourse
+CREATE PROCEDURE sp_AD_INS_GetYearlyRevenueOfACourse
     @courseId INT,
     @duration INT
 AS
@@ -105,7 +106,7 @@ BEGIN
     END CATCH
 END;
 
--- Top 50 khóa học có doanh thu cao nhất
+-- AD - Get Top 50 Courses By Revenue
 IF OBJECT_ID('sp_AD_GetTop50CoursesByRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_GetTop50CoursesByRevenue]
 GO
@@ -129,7 +130,7 @@ BEGIN
 END;
 GO
 
--- Tạo mã giảm giá
+-- AD - Insert Coupon
 IF OBJECT_ID('sp_AD_InsertCoupon', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_InsertCoupon]
 GO
@@ -143,9 +144,15 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
+        IF @discountPercent >= 30 
+        BEGIN
+            RAISERROR ('Discount percent must be less than 30.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
         INSERT INTO [coupon]
         (code, discountPercent, quantity, startDate, adminCreatedCoupon)
-    VALUES
+        VALUES
         (@code, @discountPercent, @quantity, @startDate, @adminCreatedCoupon);
         COMMIT TRANSACTION;
     END TRY
@@ -158,7 +165,7 @@ BEGIN
 END;
 GO
 
--- Tạo tài khoản học viên
+-- LN - Create Learner
 IF OBJECT_ID('sp_LN_CreateLearner', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_CreateLearner]
 GO
@@ -174,7 +181,6 @@ BEGIN
     BEGIN TRY
         INSERT INTO [user] (id, email, name, password, profilePhoto, role)
         VALUES (@userId, @email, @name, @password, @profilePhoto, 'LN');
-        
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -186,7 +192,7 @@ BEGIN
 END;
 GO
 
--- Cập nhật thông tin Thanh toán
+-- LN - Update Learner Payment Card
 IF OBJECT_ID('sp_LN_UpdateLearnerPaymentCard', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UpdateLearnerPaymentCard]
 GO
@@ -224,7 +230,7 @@ BEGIN
 END;
 GO
 
--- Thêm 1 khóa học vào giỏ hàng
+-- Ln - Add A Course To Cart
 IF OBJECT_ID('sp_LN_AddCourseToCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_AddCourseToCart]
 GO
@@ -263,7 +269,7 @@ BEGIN
 END;
 GO
 
--- Xóa 1 khóa học khỏi giỏ hàng
+-- LN - Remove A Course From Cart
 IF OBJECT_ID('sp_LN_RemoveCourseFromCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_RemoveCourseFromCart]
 GO
@@ -301,7 +307,7 @@ BEGIN
 END;
 GO
 
--- Xem danh sách các khóa học trong giỏ hàng
+-- LN - Get Cart Details
 IF OBJECT_ID('sp_LN_GetCartDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_GetCartDetails]
 GO
@@ -313,7 +319,7 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         SELECT
-            cd.learnerId, cd.courseId, c.title AS courseTitle, c.price AS coursePrice
+            cd.learnerId, cd.courseId, c.title, c.price
         FROM
             [cartDetail] cd
         JOIN
@@ -331,7 +337,7 @@ BEGIN
 END;
 GO
 
--- Thanh toán giỏ hàng 
+-- LN - Make Order
 IF OBJECT_ID('sp_LN_MakeOrder', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_MakeOrder]
 GO
@@ -363,7 +369,7 @@ BEGIN
 
         SET @totalAmount = @totalAmount * (1 - @discountPercent / 100);
 
-        -- insert to order
+        -- insert into order
         DECLARE @newOrderId INT;
         SET @newOrderId = (SELECT ISNULL(MAX(id), 0) + 1 FROM [order]);
 
@@ -372,7 +378,7 @@ BEGIN
 
         DECLARE @nextOrderDetailId INT;
         
-        -- insert to order details and delete from cart details
+        -- insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR FOR
         SELECT courseId
         FROM [cartDetail]
@@ -383,17 +389,45 @@ BEGIN
         
         WHILE @@FETCH_STATUS = 0
         BEGIN
+            -- insert into orderDetails
             SET @nextOrderDetailId = (SELECT ISNULL(MAX(id), 0) + 1 FROM [orderDetail]);
-            -- insert order details
             INSERT INTO [orderDetail] (id, orderId, learnerId, courseId, coursePrice)
             VALUES (@nextOrderDetailId, @newOrderId, @learnerId, @courseId, 
                     (SELECT price FROM [course] WHERE id = @courseId));
-            -- del cart details
+            
+            -- enroll course
+            INSERT INTO [learnerEnrollCourse] (courseId, learnerId, learnerScore, completionPercentInCourse)
+            SELECT cd.courseId, @learnerId, 0, 0
+            FROM [cartDetail] cd
+            WHERE cd.learnerId = @learnerId;
+            
+            -- participate section
+            INSERT INTO [learnerParticipateSection] (learnerId, courseId, sectionId, completionPercentSection)
+            SELECT @learnerId, cd.courseId, s.id, 0
+            FROM [cartDetail] cd
+            JOIN [section] s ON cd.courseId = s.courseId
+            WHERE cd.learnerId = @learnerId;
+            
+            -- participate lesson
+            INSERT INTO [learnerParticipateLesson] (learnerId, courseId, sectionId, lessonId, isCompletedLesson)
+            SELECT @learnerId, s.courseId, s.id, l.id, 0
+            FROM [cartDetail] cd
+            JOIN [section] s ON cd.courseId = s.courseId
+            JOIN [lesson] l ON s.id = l.sectionId
+            WHERE cd.learnerId = @learnerId;
+            
+            -- participate exercise
+            INSERT INTO [learnerDoExercise] (learnerId, courseId, sectionId, lessonId, learnerScore)
+            SELECT @learnerId, s.courseId, s.id, e.id, 0
+            FROM [cartDetail] cd
+            JOIN [section] s ON cd.courseId = s.courseId
+            JOIN [exercise] e ON s.id = e.sectionId
+            WHERE cd.learnerId = @learnerId;
+            
+            -- del cartDetails
             DELETE FROM [cartDetail]
             WHERE learnerId = @learnerId AND courseId = @courseId;
-            -- insert learner enroll course
-            INSERT INTO [learnerEnrollCourse] (courseId, learnerId)
-            VALUES (@courseId, @learnerId);
+
             FETCH NEXT FROM cart_cursor INTO @courseId;
         END
         
@@ -411,7 +445,7 @@ BEGIN
 END;
 GO
 
--- Xem danh sách các hóa đơn
+-- LN - View Orders
 IF OBJECT_ID('sp_LN_ViewOrders', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrders]
 GO
@@ -451,7 +485,7 @@ BEGIN
 END;
 GO
 
--- Xem chi tiết 1 hóa đơn
+-- LN - View An Order's Details
 IF OBJECT_ID('sp_LN_ViewOrderDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrderDetails]
 GO
@@ -501,7 +535,7 @@ BEGIN
 END;
 GO
 
--- Hủy tham gia 1 khóa học
+-- LN - Unenroll
 IF OBJECT_ID('sp_LN_UnenrollLearnerFromCourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UnenrollLearnerFromCourse]
 GO
@@ -513,6 +547,7 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
+        -- del from learnerEnrollCourse
         DELETE FROM [learnerEnrollCourse]
         WHERE courseId = @courseId
           AND learnerId = @learnerId;
@@ -520,8 +555,29 @@ BEGIN
         IF @@ROWCOUNT = 0
         BEGIN
             RAISERROR ('No enrollment record found for the given course and learner.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
         END
+        -- del from learnerAnswerQuestion
+        DELETE FROM [learnerAnswerQuestion]
+        WHERE courseId = @courseId
+          AND learnerId = @learnerId;
 
+        -- del from learnerDoExercise
+        DELETE FROM [learnerDoExercise]
+        WHERE courseId = @courseId
+          AND learnerId = @learnerId;
+
+        -- del from learnerParticipateLesson
+        DELETE FROM [learnerParticipateLesson]
+        WHERE courseId = @courseId
+          AND learnerId = @learnerId;
+
+        -- del from learnerParticipateSection
+        DELETE FROM [learnerParticipateSection]
+        WHERE courseId = @courseId
+          AND learnerId = @learnerId;
+          
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -533,8 +589,319 @@ BEGIN
 END;
 GO
 
--- Học 1 bài học
+-- LN - Complete A Lesson
+IF OBJECT_ID('sp_LN_CompleteLesson', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_CompleteLesson]
+GO
 
--- Làm bài test
+CREATE PROCEDURE sp_LN_CompleteLesson
+    @learnerId NVARCHAR(128),
+    @courseId INT,
+    @sectionId INT,
+    @lessonId INT
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- update learnerParticipateLesson
+        UPDATE learnerParticipateLesson
+        SET isCompletedLesson = 1
+        WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND lessonId = @lessonId;
 
--- Đánh giá khóa học
+        -- update learnerParticipateSection
+        DECLARE @totalLessonsInSection INT;
+        DECLARE @completedLessonsInSection INT;
+        DECLARE @newSectionCompletionPercent DECIMAL(5, 2);
+
+        SELECT @totalLessonsInSection = COUNT(*)
+        FROM lesson
+        WHERE sectionId = @sectionId AND courseId = @courseId;
+
+        SELECT @completedLessonsInSection = COUNT(*)
+        FROM learnerParticipateLesson
+        WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND isCompletedLesson = 1;
+
+        SET @newSectionCompletionPercent = CAST(@completedLessonsInSection AS DECIMAL(5, 2)) / @totalLessonsInSection * 100;
+
+        UPDATE learnerParticipateSection
+        SET completionPercentSection = @newSectionCompletionPercent
+        WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId;
+
+        -- update learnerEnrollCourse
+        DECLARE @totalSectionsInCourse INT;
+        DECLARE @totalCompletionPercentSections DECIMAL(5, 2);
+        DECLARE @newCourseCompletionPercent DECIMAL(5, 2);
+
+        SELECT @totalSectionsInCourse = COUNT(*)
+        FROM section
+        WHERE courseId = @courseId;
+
+        SELECT @totalCompletionPercentSections = SUM(completionPercentSection)
+        FROM learnerParticipateSection
+        WHERE learnerId = @learnerId AND courseId = @courseId;
+
+        SET @newCourseCompletionPercent = @totalCompletionPercentSections / @totalSectionsInCourse;
+
+        UPDATE learnerEnrollCourse
+        SET completionPercentInCourse = @newCourseCompletionPercent
+        WHERE learnerId = @learnerId AND courseId = @courseId;
+    
+
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR ('Error occurred while completing the lesson: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
+
+-- LN - View Test
+IF OBJECT_ID('sp_LN_ViewTest', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_ViewTest]
+GO
+CREATE PROCEDURE sp_LN_ViewTest
+    @exerciseId INT,
+    @sectionId INT,
+    @courseId INT
+AS
+BEGIN
+    
+    IF NOT EXISTS (
+        SELECT 1
+        FROM exercise
+        WHERE id = @exerciseId AND sectionId = @sectionId AND courseId = @courseId
+    )
+    BEGIN
+        RAISERROR ('Exercise not found.', 16, 1);
+        RETURN;
+    END
+
+    DECLARE @lessonTitle NVARCHAR(256);
+    DECLARE @lessonLearnTime DECIMAL(5, 2);
+
+    SELECT @lessonTitle = l.title,
+           @lessonLearnTime = l.learnTime
+    FROM lesson l
+    WHERE l.id = @exerciseId AND l.sectionId = @sectionId AND l.courseId = @courseId;
+
+    SELECT q.id AS QuestionId, 
+           q.question AS QuestionText,
+           qa.id AS AnswerId,
+           qa.questionAnswers AS AnswerText
+    INTO #QuestionsAndAnswers
+    FROM question q
+    LEFT JOIN questionAnswer qa
+      ON q.id = qa.questionId
+    WHERE q.exerciseId = @exerciseId 
+      AND q.sectionId = @sectionId 
+      AND q.courseId = @courseId;
+
+    -- construct the JSON result
+    SELECT 
+        @lessonTitle AS LessonTitle,
+        @lessonLearnTime AS LessonLearnTime,
+        (
+            SELECT 
+                QuestionId,
+                QuestionText,
+                JSON_QUERY(
+                    '[' + STRING_AGG(
+                        JSON_OBJECT('AnswerId', AnswerId, 'AnswerText', AnswerText), ','
+                    ) + ']'
+                ) AS Answers
+            FROM #QuestionsAndAnswers
+            GROUP BY QuestionId, QuestionText
+            FOR JSON PATH
+        ) AS Questions
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+
+    DROP TABLE #QuestionsAndAnswers;
+END;
+GO
+
+-- LN -Take The Test
+IF OBJECT_ID('sp__LN_AddLearnerAnswersOfExercise', 'P') IS NOT NULL
+    DROP PROCEDURE [sp__LN_AddLearnerAnswersOfExercise]
+GO
+
+CREATE PROCEDURE sp__LN_AddLearnerAnswersOfExercise
+    @learnerId NVARCHAR(128),
+    @exerciseId INT,
+    @sectionId INT,
+    @courseId INT,
+    @learnerAnswers NVARCHAR(MAX) -- Format: "questionId,learnerAnswer|questionId,learnerAnswer|..."
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+       
+        DECLARE @AnswerTable TABLE
+        (
+            questionId INT,
+            learnerAnswer INT
+        );
+
+        INSERT INTO @AnswerTable (questionId, learnerAnswer)
+        SELECT 
+            CAST(PARSENAME(value, 2) AS INT) AS questionId,
+            CAST(PARSENAME(value, 1) AS INT) AS learnerAnswer
+        FROM STRING_SPLIT(@learnerAnswers, '|')
+        CROSS APPLY (SELECT 
+            PARSENAME(value, 2) AS value
+            ) AS a;
+
+        -- insert answers
+        INSERT INTO learnerAnswerQuestion (learnerId, questionId, exerciseId, sectionId, courseId, learnerAnswer)
+        SELECT @learnerId, questionId, @exerciseId, @sectionId, @courseId, learnerAnswer
+        FROM @AnswerTable;
+
+        -- calculate score
+        DECLARE @totalQuestions INT;
+        DECLARE @correctAnswers INT;
+        DECLARE @learnerScore DECIMAL(5, 2);
+
+        SELECT @totalQuestions = COUNT(*)
+        FROM question
+        WHERE exerciseId = @exerciseId;
+
+        SELECT @correctAnswers = COUNT(*)
+        FROM @AnswerTable a
+        JOIN question q ON a.questionId = q.id AND a.learnerAnswer = q.correctAnswer;
+
+        IF @totalQuestions > 0
+        BEGIN
+            SET @learnerScore = (@correctAnswers * 10.0) / @totalQuestions;
+        END
+        ELSE
+        BEGIN
+            SET @learnerScore = 0;
+        END
+
+        -- update score to learnerDoExercise
+        UPDATE learnerDoExercise
+        SET learnerScore = @learnerScore
+        WHERE learnerId = @learnerId AND exerciseId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
+
+        -- update lesson, section, and course completion
+        EXEC sp_LN_CompleteLesson @learnerId, @courseId, @sectionId, @exerciseId
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR ('Cannot complete the operation. Error: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
+
+-- LN - View Test With Results
+IF OBJECT_ID('sp_LN_GetLearnerAnswersOfExercise', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_GetLearnerAnswersOfExercise]
+GO
+
+CREATE PROCEDURE sp_LN_GetLearnerAnswersOfExercise
+    @learnerId NVARCHAR(128),
+    @exerciseId INT,
+    @sectionId INT,
+    @courseId INT
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- get score
+        DECLARE @learnerScore DECIMAL(5, 2);
+
+        SELECT @learnerScore = learnerScore
+        FROM learnerDoExercise
+        WHERE learnerId = @learnerId AND exerciseId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
+
+        -- get question with correct answer and learner's answer 
+        SELECT 
+            q.id AS questionId,
+            q.questionText,
+            q.correctAnswer,
+            a.learnerAnswer
+        FROM question q
+        LEFT JOIN learnerAnswerQuestion a 
+            ON q.id = a.questionId 
+            AND a.learnerId = @learnerId 
+            AND a.exerciseId = @exerciseId
+        WHERE q.exerciseId = @exerciseId
+        FOR JSON PATH, INCLUDE_NULL_VALUES, ROOT('results');
+        
+        
+        SELECT 
+            @learnerScore AS score
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR ('Cannot retrieve the results. Error: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
+
+
+-- LN - Add Review
+IF OBJECT_ID('sp_LN_AddLearnerReview', 'P') IS NOT NULL
+    DROP PROCEDURE sp_LN_AddLearnerReview;
+GO
+
+CREATE PROCEDURE sp_LN_AddLearnerReview
+    @learnerId NVARCHAR(128),
+    @courseId INT,
+    @review NVARCHAR(MAX),
+    @rating DECIMAL(3, 2)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        
+        IF NOT EXISTS (
+            SELECT 1 
+            FROM learnerEnrollCourse 
+            WHERE learnerId = @learnerId AND courseId = @courseId
+        )
+        BEGIN
+            RAISERROR('Learner is not enrolled in this course.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- learner complete percentage must be over 25% to leave a review 
+        DECLARE @completionPercent DECIMAL(5, 2);
+        SELECT @completionPercent = completionPercentInCourse 
+        FROM learnerEnrollCourse 
+        WHERE learnerId = @learnerId AND courseId = @courseId;
+
+        IF @completionPercent <= 25.00
+        BEGIN
+            RAISERROR('Learner has not completed enough of the course to leave a review. Must complete at least 25%%.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        INSERT INTO learnerReviewCourse (courseId, learnerId, review, rating)
+        VALUES (@courseId, @learnerId, @review, @rating);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR('An error occurred while adding the review: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
+
