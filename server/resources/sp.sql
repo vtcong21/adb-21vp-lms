@@ -14,27 +14,27 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         SELECT
-        c.id AS courseId,
-        c.title AS courseName,
-        SUM(od.coursePrice) AS revenue
-    FROM
-        [orderDetail] od
-        JOIN
-        [course] c ON od.courseId = c.id
-    WHERE
+            o.dateCreated AS [date], 
+            SUM(od.coursePrice) AS revenue
+        FROM
+            [orderDetail] od
+            JOIN [order] o ON od.orderId = o.id
+        WHERE
             od.courseId = @courseId
-        AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
-        AND o.dateCreated < GETDATE()
-    GROUP BY
-            c.id,
-            c.title;
+            AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
+            AND o.dateCreated < GETDATE()
+        GROUP BY
+            o.dateCreated
+        ORDER BY
+            o.dateCreated;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
-        RAISERROR ('Cannot get course revenue by dates.', 16, 1);
+        RAISERROR ('Cannot get daily revenue of the course.', 16, 1);
     END CATCH
 END;
+GO
 
 -- AD - Get Monthly Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
@@ -47,25 +47,21 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
+    
+        DECLARE @startDate DATE = DATEADD(MONTH, -@duration, GETDATE());
+        DECLARE @endDate DATE = GETDATE();
         SELECT
-        c.id AS courseId,
-        c.title AS courseName,
-        SUM(od.coursePrice) AS revenue,
-        CAST(o.dateCreated As DATE) As revenueDate
-    FROM
-        [orderDetail] od
-        JOIN
-        [course] c ON od.courseId = c.id
-        JOIN
-        [order] o ON od.orderId = o.id
-    WHERE
-            od.courseId = @courseId
-        AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
-        AND o.dateCreated < GETDATE()
-    GROUP BY
-            c.id,
-            c.title,
-            revenueDate;
+            year, month, revenue
+        FROM
+            courseRevenueByMonth
+        WHERE
+            courseId = @courseId
+            AND DATEFROMPARTS(year, month, 1) >= @startDate
+            AND DATEFROMPARTS(year, month, 1) < @endDate
+        ORDER BY
+            year,
+            month;
+
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -85,20 +81,20 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
-        DECLARE @endDate DATE = DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1);
-        DECLARE @startDate DATE = DATEADD(MONTH, -@duration, @endDate);
+        DECLARE @startYear INT = YEAR(DATEADD(YEAR, -@duration, GETDATE()));
+        DECLARE @endYear INT = YEAR(GETDATE());
         SELECT
-        courseId, year, month, revenue
-    FROM
-        courseRevenueByMonth
-    WHERE
+            year, SUM(revenue) AS totalRevenue
+        FROM
+            courseRevenueByMonth
+        WHERE
             courseId = @courseId
-        AND DATEFROMPARTS(year, month, 1) >= @startDate
-        AND DATEFROMPARTS(year, month, 1) < @endDate
-    ORDER BY
-            year,
-            month;
-        COMMIT TRANSACTION;
+            AND year >= @startYear
+            AND year <= @endYear
+        GROUP BY
+            year
+        ORDER BY
+            year;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
@@ -139,7 +135,7 @@ CREATE PROCEDURE sp_AD_InsertCoupon
     @discountPercent DECIMAL(5, 2),
     @quantity INT,
     @startDate DATE,
-    @adminCreatedCoupon NVARCHAR(128)
+    @adminId NVARCHAR(128)
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -151,9 +147,9 @@ BEGIN
             RETURN;
         END
         INSERT INTO [coupon]
-        (code, discountPercent, quantity, startDate, adminCreatedCoupon)
+        (code, discountPercent, quantity, startDate, adminId)
         VALUES
-        (@code, @discountPercent, @quantity, @startDate, @adminCreatedCoupon);
+        (@code, @discountPercent, @quantity, @startDate, @adminId);
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -199,11 +195,11 @@ GO
 
 CREATE PROCEDURE sp_LN_UpdateLearnerPaymentCard
     @learnerId NVARCHAR(128),
-    @paymentCardNumber VARCHAR(16),
-    @paymentCardType VARCHAR(6),
-    @paymentCardName NVARCHAR(128),
-    @paymentCardCVC CHAR(3),
-    @paymentCardExpireDate DATE
+    @number VARCHAR(16),
+    @type VARCHAR(6),
+    @name NVARCHAR(128),
+    @CVC CHAR(3),
+    @expireDate DATE
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -211,14 +207,14 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1
             FROM [paymentCard]
-            WHERE number = @paymentCardNumber
+            WHERE number = @number
         )
         BEGIN
             INSERT INTO [paymentCard] (number, type, name, CVC, expireDate)
-            VALUES (@paymentCardNumber, @paymentCardType, @paymentCardName, @paymentCardCVC, @paymentCardExpireDate);
+            VALUES (@number, @type, @name, @CVC, @expireDate);
         END
-        INSERT INTO [learnerPaymentCard] (learnerId, paymentCardNumber)
-        VALUES (@learnerId, @paymentCardNumber);
+        INSERT INTO [learnerPaymentCard] (learnerId, number)
+        VALUES (@learnerId, @number);
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -451,6 +447,7 @@ IF OBJECT_ID('sp_LN_ViewOrders', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_LN_ViewOrders
+    @learnerId NVARCHAR(128)
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -463,7 +460,7 @@ BEGIN
             o.dateCreated,
             o.total,
             o.paymentCardNumber,
-            o.couponCode AS CouponCode,
+            o.couponCode,
             c.discountPercent
         FROM
             [order] o
@@ -472,7 +469,9 @@ BEGIN
         JOIN
             [paymentCard] p ON o.paymentCardNumber = p.number
         LEFT JOIN
-            [coupon] c ON o.couponCode = c.code;
+            [coupon] c ON o.couponCode = c.code
+        WHERE l.id = @learnerId
+        ORDER BY dateCreated DESC
 
         COMMIT TRANSACTION;
     END TRY
@@ -541,8 +540,8 @@ IF OBJECT_ID('sp_LN_UnenrollLearnerFromCourse', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_LN_UnenrollLearnerFromCourse
-    @courseId INT,
-    @learnerId NVARCHAR(128)
+    @learnerId NVARCHAR(128),
+    @courseId INT
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -665,9 +664,9 @@ IF OBJECT_ID('sp_LN_ViewTest', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewTest]
 GO
 CREATE PROCEDURE sp_LN_ViewTest
-    @exerciseId INT,
+    @courseId INT,
     @sectionId INT,
-    @courseId INT
+    @exerciseId INT
 AS
 BEGIN
     
@@ -703,15 +702,15 @@ BEGIN
 
     -- construct the JSON result
     SELECT 
-        @lessonTitle AS LessonTitle,
-        @lessonLearnTime AS LessonLearnTime,
+        @lessonTitle AS title,
+        @lessonLearnTime AS learnTime,
         (
             SELECT 
-                QuestionId,
-                QuestionText,
+                questionId,
+                questionText,
                 JSON_QUERY(
                     '[' + STRING_AGG(
-                        JSON_OBJECT('AnswerId', AnswerId, 'AnswerText', AnswerText), ','
+                        JSON_OBJECT('answerId', AnswerId, 'answerText', AnswerText), ','
                     ) + ']'
                 ) AS Answers
             FROM #QuestionsAndAnswers
@@ -731,9 +730,9 @@ GO
 
 CREATE PROCEDURE sp__LN_AddLearnerAnswersOfExercise
     @learnerId NVARCHAR(128),
-    @exerciseId INT,
-    @sectionId INT,
     @courseId INT,
+    @sectionId INT,
+    @exerciseId INT,
     @learnerAnswers NVARCHAR(MAX) -- Format: "questionId,learnerAnswer|questionId,learnerAnswer|..."
 AS
 BEGIN
@@ -808,9 +807,9 @@ GO
 
 CREATE PROCEDURE sp_LN_GetLearnerAnswersOfExercise
     @learnerId NVARCHAR(128),
-    @exerciseId INT,
+    @courseId INT,
     @sectionId INT,
-    @courseId INT
+    @exerciseId INT
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -821,6 +820,14 @@ BEGIN
         SELECT @learnerScore = learnerScore
         FROM learnerDoExercise
         WHERE learnerId = @learnerId AND exerciseId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
+
+        -- get test title 
+        DECLARE @testTitle NVARCHAR(256);
+
+        SELECT @testTitle = e.title
+        FROM lesson l
+        WHERE l.id = @exerciseId AND l.sectionId = @sectionId AND l.courseId = @courseId;
+
 
         -- get question with correct answer and learner's answer 
         SELECT 
@@ -838,6 +845,7 @@ BEGIN
         
         
         SELECT 
+            @testTitle AS title,
             @learnerScore AS score
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
@@ -880,7 +888,7 @@ BEGIN
 
         -- learner complete percentage must be over 25% to leave a review 
         DECLARE @completionPercent DECIMAL(5, 2);
-        SELECT @completionPercent = completionPercentInCourse 
+        SELECT @completionPercent = completePercent 
         FROM learnerEnrollCourse 
         WHERE learnerId = @learnerId AND courseId = @courseId;
 
