@@ -419,6 +419,7 @@ GO
 
 
 -------------------------------------------------------------------
+-- TẠO KHÓA HỌC
 -- Tạo course
 IF OBJECT_ID('sp_INS_CreateCourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_INS_CreateCourse]
@@ -653,14 +654,14 @@ BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
 
-		-- tạo bảng tạm để lưu trữ ID của section được chèn
+		-- tạo bảng tạm để lưu trữ ID của lesson được chèn
 		DECLARE @OutputTable TABLE (id INT);
 
 		INSERT INTO lesson(courseId, sectionId, title, learnTime, type)
 		OUTPUT inserted.id INTO @OutputTable
 		VALUES (@courseId, @sectionId, @title, @learnTime, @type);
 
-		-- lấy ID của section vừa được chèn từ bảng tạm
+		-- lấy ID của lesson vừa được chèn từ bảng tạm
 		SELECT @courseId as courseId, @sectionId as sectionId, id as lessonId FROM @OutputTable;
 
 		COMMIT TRANSACTION;
@@ -704,31 +705,207 @@ END
 GO
 
 
+-- Tạo question
+IF OBJECT_ID('sp_INS_CreateQuestion', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_INS_CreateQuestion]
+GO
+CREATE PROCEDURE sp_INS_CreateQuestion
+    @courseId INT,
+	@sectionId INT,
+    @exerciseId INT,
+	@question NVARCHAR(2000)
+AS
+BEGIN
+	BEGIN TRANSACTION;
+	BEGIN TRY
+		
+		-- tạo bảng tạm để lưu trữ ID của question được chèn
+		DECLARE @OutputTable TABLE (id INT);
+
+		INSERT INTO question(courseId, sectionId, exerciseId, question)
+		OUTPUT inserted.id INTO @OutputTable
+		VALUES (@courseId, @sectionId, @exerciseId, @question);
+
+		-- lấy ID của question vừa được chèn từ bảng tạm
+		SELECT @courseId as courseId, @sectionId as sectionId, 
+				@exerciseId as exerciseId, id as questionId FROM @OutputTable;
+
+		COMMIT TRANSACTION;
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRANSACTION;
+		DECLARE @errorMessage NVARCHAR(4000);
+		SET @errorMessage = ERROR_MESSAGE();
+		RAISERROR ('Error adding question. Details: %s', 16, 1, @errorMessage);
+	END CATCH
+END
+GO
+
+
+IF OBJECT_ID('sp_INS_CreateQuestionAnswer', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_INS_CreateQuestionAnswer]
+GO
+CREATE PROCEDURE sp_INS_CreateQuestionAnswer
+    @courseId INT,
+	@sectionId INT,
+    @exerciseId INT,
+	@questionId INT,
+	@questionAnswers NVARCHAR(2000),
+	@isCorrect BIT
+AS
+BEGIN
+	BEGIN TRANSACTION;
+	BEGIN TRY
+		
+		INSERT INTO questionAnswer(courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect)
+		VALUES (@courseId, @sectionId, @exerciseId, @questionId, @questionAnswers, @isCorrect);
+
+		COMMIT TRANSACTION;
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRANSACTION;
+		DECLARE @errorMessage NVARCHAR(4000);
+		SET @errorMessage = ERROR_MESSAGE();
+		RAISERROR ('Error adding question answer. Details: %s', 16, 1, @errorMessage);
+	END CATCH
+END
+GO
+
+-- CẬP NHẬT KHÓA HỌC
+-- Cập nhật Course
+IF OBJECT_ID('sp_INS_UpdateCourse', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_INS_UpdateCourse]
+GO
+CREATE PROCEDURE sp_INS_UpdateCourse
+    @courseId INT,
+    @title NVARCHAR(256),
+    @subTitle NVARCHAR(256),
+    @description NVARCHAR(MAX),
+    @image NVARCHAR(256),
+    @video NVARCHAR(256),
+    @subCategoryId INT,
+    @categoryId INT,
+    @language NVARCHAR(50),
+    @price DECIMAL(18, 2)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+		IF (@price IS NOT NULL)
+        BEGIN
+            DECLARE @countNonVIP INT;
+
+            -- Đếm số giảng viên không phải VIP
+            SELECT @countNonVIP = COUNT(*)
+            FROM instructorOwnCourse ioc
+            LEFT JOIN vipInstructor vi ON ioc.instructorId = vi.id
+            WHERE ioc.courseId = @courseId AND vi.id IS NULL;
+
+            -- Nếu có ít nhất 1 giảng viên không phải VIP, báo lỗi
+            IF (@countNonVIP > 0)
+            BEGIN
+                RAISERROR ('All instructors for the course must be VIP if the course is priced.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END
+        END
+
+        UPDATE course
+        SET title = @title,
+            subTitle = @subTitle,
+            description = @description,
+            image = @image,
+            video = @video,
+            subCategoryId = @subCategoryId,
+            categoryId = @categoryId,
+            language = @language,
+            price = @price
+        WHERE id = @courseId;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR ('Error updating course. Details: %s', 16, 1, @errorMessage);
+    END CATCH
+END
+GO
+
+
+
 ---------------------------------------------------------------------
 ---------------------------------------------------------------------
 -- TRIGGER
--- Tạo exercise
-IF OBJECT_ID('trg_Insert_InsertLessenAsExercise', 'TR') IS NOT NULL
-    DROP TRIGGER trg_Insert_InsertLessenAsExercise
+-- Tự động thay đổi trạng thái vipState sau khi tạo tax form
+IF OBJECT_ID('trg_AfterInsertTaxForm_UpdateInstructor', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertTaxForm_UpdateInstructor
 GO
-CREATE TRIGGER trg_Insert_InsertLessenAsExercise
-ON lesson
+CREATE TRIGGER trg_AfterInsertTaxForm_UpdateInstructor
+ON taxForm
 AFTER INSERT
 AS
 BEGIN
-    INSERT INTO exercise(id, courseId, sectionId)
-    SELECT id, courseId, sectionId
-    FROM inserted
-    WHERE type = 'exercise';
+	UPDATE instructor
+	SET vipState = 'pending'
+	WHERE id IN (SELECT vipInstructorId FROM inserted);
+END
+GO
+
+
+-- Tự động cập nhật totalTime và numOfLesson trong course khi thêm hoặc xóa lesson
+IF OBJECT_ID('trg_AfterChangeLesson_UpdateCourseAndSection', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterChangeLesson_UpdateCourseAndSection
+GO
+CREATE TRIGGER trg_AfterChangeLesson_UpdateCourseAndSection
+ON lesson
+AFTER INSERT, DELETE
+AS
+BEGIN
+    -- Cập nhật learnTime cho section khi chèn hoặc xóa lesson
+    UPDATE s
+    SET s.learnTime = s.learnTime + COALESCE(i.TotalLearnTime, 0) - COALESCE(d.TotalLearnTime, 0)
+    FROM section s
+    LEFT JOIN (
+        SELECT sectionId, courseId, SUM(learnTime) AS TotalLearnTime
+        FROM inserted
+        GROUP BY sectionId, courseId
+    ) i ON s.id = i.sectionId AND s.courseId = i.courseId
+    LEFT JOIN (
+        SELECT sectionId, courseId, SUM(learnTime) AS TotalLearnTime
+        FROM deleted
+        GROUP BY sectionId, courseId
+    ) d ON s.id = d.sectionId AND s.courseId = d.courseId;
+
+    -- Cập nhật tổng thời gian và tổng số bài học cho mỗi khóa học khi thêm hoặc xóa lesson
+    UPDATE c
+    SET c.totalTime = c.totalTime + COALESCE(i.TotalLearnTime, 0) - COALESCE(d.TotalLearnTime, 0),
+        c.numberOfLectures = c.numberOfLectures + COALESCE(i.LessonCount, 0) - COALESCE(d.LessonCount, 0)
+    FROM course c
+    LEFT JOIN (
+        SELECT courseId, 
+               SUM(learnTime) AS TotalLearnTime,
+               COUNT(*) AS LessonCount
+        FROM inserted
+        GROUP BY courseId
+    ) i ON c.id = i.courseId
+    LEFT JOIN (
+        SELECT courseId, 
+               SUM(learnTime) AS TotalLearnTime,
+               COUNT(*) AS LessonCount
+        FROM deleted
+        GROUP BY courseId
+    ) d ON c.id = d.courseId;
 END
 GO
 
 
 -- Kiểm tra paymentCard nếu dư thừa thì xóa
 IF OBJECT_ID('trg_AfterUpdateVipInstructor_DeletePaymentCard', 'TR') IS NOT NULL
-    DROP TRIGGER trg_Update_UpdateVipInstructor
+    DROP TRIGGER trg_AfterUpdateVipInstructor_DeletePaymentCard
 GO
-CREATE TRIGGER trg_Update_UpdateVipInstructor
+CREATE TRIGGER trg_AfterUpdateVipInstructor_DeletePaymentCard
 ON vipInstructor
 AFTER UPDATE
 AS
@@ -744,17 +921,18 @@ END
 GO
 
 
--- Tự động thay đổi trạng thái vipState sau khi tạo tax form
-IF OBJECT_ID('trg_Insert_InsertTaxForm', 'TR') IS NOT NULL
-    DROP TRIGGER trg_Insert_InsertTaxForm
+-- Tạo exercise
+IF OBJECT_ID('trg_Insert_InsertLessenAsExercise', 'TR') IS NOT NULL
+    DROP TRIGGER trg_Insert_InsertLessenAsExercise
 GO
-CREATE TRIGGER trg_Insert_InsertTaxForm
-ON taxForm
+CREATE TRIGGER trg_Insert_InsertLessenAsExercise
+ON lesson
 AFTER INSERT
 AS
 BEGIN
-	UPDATE instructor
-	SET vipState = 'pending'
-	WHERE id IN (SELECT vipInstructorId FROM inserted);
+    INSERT INTO exercise(id, courseId, sectionId)
+    SELECT id, courseId, sectionId
+    FROM inserted
+    WHERE type = 'exercise';
 END
 GO
