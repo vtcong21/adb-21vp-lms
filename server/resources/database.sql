@@ -606,7 +606,7 @@ CREATE TABLE [questionAnswer]
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	questionAnswers NVARCHAR(2000) NOT NULL,
-	isCorrect BIT NOT NULL
+	isCorrect BIT NOT NULL,
 
 	CONSTRAINT [Question answers are required.] CHECK(LEN(questionAnswers) > 0),
     
