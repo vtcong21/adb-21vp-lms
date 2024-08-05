@@ -333,6 +333,89 @@ BEGIN
 END;
 GO
 
+-- update the total revenue of a course and course revenue by month
+IF OBJECT_ID('sp_UpdateCourseRevenueAndInstructorRevenue', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_UpdateCourseRevenueAndInstructorRevenue]
+GO
+
+CREATE PROCEDURE sp_UpdateCourseRevenueAndInstructorRevenue
+    @courseId INT,
+    @amount DECIMAL(18, 2)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+
+        DECLARE @currentDate DATE;
+        SET @currentDate = CONVERT(DATE, GETDATE());
+
+        -- update course total revenue
+        UPDATE [course]
+        SET totalRevenue = totalRevenue + @amount
+        WHERE id = @courseId;
+
+        -- update  course revenue by month
+        DECLARE @year INT = YEAR(@currentDate);
+        DECLARE @month INT = MONTH(@currentDate);
+        
+        IF EXISTS (SELECT 1 FROM [courseRevenueByMonth] WHERE courseId = @courseId AND year = @year AND month = @month)
+        BEGIN
+            UPDATE [courseRevenueByMonth]
+            SET revenue = revenue + @amount
+            WHERE courseId = @courseId AND year = @year AND month = @month;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO [courseRevenueByMonth] (courseId, year, month, revenue)
+            VALUES (@courseId, @year, @month, @amount);
+        END
+
+        -- update  instructor revenue by month
+        DECLARE @instructorId NVARCHAR(128);
+        DECLARE @percentageInCome DECIMAL(5, 2);
+        DECLARE @instructorRevenue DECIMAL(18, 2);
+        
+        DECLARE instructor_cursor CURSOR FOR
+        SELECT instructorId, percentageInCome
+        FROM [instructorOwnCourse]
+        WHERE courseId = @courseId;
+
+        OPEN instructor_cursor;
+        FETCH NEXT FROM instructor_cursor INTO @instructorId, @percentageInCome;
+
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            SET @instructorRevenue = @amount * @percentageInCome / 100;
+
+            IF EXISTS (SELECT 1 FROM [instructorRevenueByMonth] WHERE instructorId = @instructorId AND year = @year AND month = @month)
+            BEGIN
+                UPDATE [instructorRevenueByMonth]
+                SET revenue = revenue + @instructorRevenue
+                WHERE instructorId = @instructorId AND year = @year AND month = @month;
+            END
+            ELSE
+            BEGIN
+                INSERT INTO [instructorRevenueByMonth] (instructorId, year, month, revenue)
+                VALUES (@instructorId, @year, @month, @instructorRevenue);
+            END
+            
+            FETCH NEXT FROM instructor_cursor INTO @instructorId, @percentageInCome;
+        END
+        
+        CLOSE instructor_cursor;
+        DEALLOCATE instructor_cursor;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR ('Error updating course and instructor revenue. Error: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
+
 -- LN - Make Order
 IF OBJECT_ID('sp_LN_MakeOrder', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_MakeOrder]
@@ -363,17 +446,15 @@ BEGIN
         JOIN [course] c ON cd.courseId = c.id
         WHERE cd.learnerId = @learnerId;
 
-        SET @totalAmount = @totalAmount * (1 - @discountPercent / 100);
+        SET @totalAmount = @totalAmount/70*(100 - @discountPercent);
 
         -- insert into order
         DECLARE @newOrderId INT;
-        SET @newOrderId = (SELECT ISNULL(MAX(id), 0) + 1 FROM [order]);
-
-        INSERT INTO [order] (id, learnerId, total, paymentCardNumber, couponCode)
-        VALUES (@newOrderId, @learnerId, @totalAmount, @paymentCardNumber, @couponCode);
-
-        DECLARE @nextOrderDetailId INT;
         
+        INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
+        OUTPUT INSERTED.id INTO @newOrderId
+        VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+
         -- insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR FOR
         SELECT courseId
@@ -385,11 +466,12 @@ BEGIN
         
         WHILE @@FETCH_STATUS = 0
         BEGIN
+            -- get the course price
+            SELECT @coursePrice = price FROM [course] WHERE id = @courseId;
             -- insert into orderDetails
-            SET @nextOrderDetailId = (SELECT ISNULL(MAX(id), 0) + 1 FROM [orderDetail]);
-            INSERT INTO [orderDetail] (id, orderId, learnerId, courseId, coursePrice)
-            VALUES (@nextOrderDetailId, @newOrderId, @learnerId, @courseId, 
-                    (SELECT price FROM [course] WHERE id = @courseId));
+            INSERT INTO [orderDetail] (orderId, learnerId, courseId, coursePrice)
+            VALUES (@newOrderId, @learnerId, @courseId, 
+                    (SELECT price = [course].price/70 * 100 FROM [course] WHERE id = @courseId));
             
             -- enroll course
             INSERT INTO [learnerEnrollCourse] (courseId, learnerId, learnerScore, completionPercentInCourse)
@@ -423,6 +505,9 @@ BEGIN
             -- del cartDetails
             DELETE FROM [cartDetail]
             WHERE learnerId = @learnerId AND courseId = @courseId;
+
+            -- update course total revenue, course revenue by month, instructor revenue by month
+            EXEC sp_UpdateCourseAndInstructorRevenue @courseId = @courseId, @amount = @coursePrice;
 
             FETCH NEXT FROM cart_cursor INTO @courseId;
         END
