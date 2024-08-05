@@ -15,10 +15,11 @@ BEGIN
     BEGIN TRY
         SELECT
             o.dateCreated AS [date], 
-            SUM(od.coursePrice) AS revenue
+            SUM(c.price) AS revenue
         FROM
             [orderDetail] od
             JOIN [order] o ON od.orderId = o.id
+            JOIN [course] c ON od.courseId = c.id
         WHERE
             od.courseId = @courseId
             AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
@@ -26,7 +27,7 @@ BEGIN
         GROUP BY
             o.dateCreated
         ORDER BY
-            o.dateCreated;
+            o.dateCreated DESC;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -69,11 +70,13 @@ BEGIN
         RAISERROR ('Cannot get course revenue by date.', 16, 1);
     END CATCH
 END;
+GO
 
 -- AD - Get Yearly Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetYearlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetYearlyRevenueOfACourse]
 GO
+
 CREATE PROCEDURE sp_AD_INS_GetYearlyRevenueOfACourse
     @courseId INT,
     @duration INT
@@ -95,12 +98,14 @@ BEGIN
             year
         ORDER BY
             year;
+		COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
-        RAISERROR ('Cannot get course revenue by month.', 16, 1);
+        RAISERROR ('Cannot get course revenue by year.', 16, 1);
     END CATCH
 END;
+GO
 
 -- AD - Get Top 50 Courses By Revenue
 IF OBJECT_ID('sp_AD_GetTop50CoursesByRevenue', 'P') IS NOT NULL
@@ -140,14 +145,14 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
-        IF @discountPercent >= 30 
+        IF @discountPercent > 30 
         BEGIN
             RAISERROR ('Discount percent must be less than 30.', 16, 1);
             ROLLBACK TRANSACTION;
             RETURN;
         END
         INSERT INTO [coupon]
-        (code, discountPercent, quantity, startDate, adminId)
+        (code, discountPercent, quantity, startDate, adminCreatedCoupon)
         VALUES
         (@code, @discountPercent, @quantity, @startDate, @adminId);
         COMMIT TRANSACTION;
@@ -213,7 +218,7 @@ BEGIN
             INSERT INTO [paymentCard] (number, type, name, CVC, expireDate)
             VALUES (@number, @type, @name, @CVC, @expireDate);
         END
-        INSERT INTO [learnerPaymentCard] (learnerId, number)
+        INSERT INTO [learnerPaymentCard] (learnerId, paymentCardNumber)
         VALUES (@learnerId, @number);
         COMMIT TRANSACTION;
     END TRY
@@ -238,7 +243,17 @@ AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
-    
+		IF EXISTS (
+            SELECT 1
+            FROM [learnerEnrollCourse]
+            WHERE learnerId = @learnerId AND courseId = @courseId
+        )
+        BEGIN
+            RAISERROR ('The learner is already enrolled in the course.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
         IF EXISTS (
             SELECT 1
             FROM [cartDetail]
@@ -315,7 +330,7 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         SELECT
-            cd.learnerId, cd.courseId, c.title, c.price
+            cd.learnerId, cd.courseId, c.title, c.price / 70 *100 AS salePrice
         FROM
             [cartDetail] cd
         JOIN
@@ -375,7 +390,7 @@ BEGIN
         DECLARE @percentageInCome DECIMAL(5, 2);
         DECLARE @instructorRevenue DECIMAL(18, 2);
         
-        DECLARE instructor_cursor CURSOR FOR
+        DECLARE instructor_cursor CURSOR LOCAL FOR
         SELECT instructorId, percentageInCome
         FROM [instructorOwnCourse]
         WHERE courseId = @courseId;
@@ -430,8 +445,14 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
 
-        -- check discount percent
+        -- Declare variables
         DECLARE @discountPercent DECIMAL(5, 2) = 0;
+        DECLARE @totalAmount DECIMAL(18, 2) = 0;
+        DECLARE @newOrderId INT;
+        DECLARE @courseId INT;
+        DECLARE @coursePrice DECIMAL(18, 2);
+        
+        -- Check discount percent
         IF @couponCode IS NOT NULL
         BEGIN
             SELECT @discountPercent = discountPercent
@@ -439,24 +460,28 @@ BEGIN
             WHERE code = @couponCode;
         END
 
-        -- compute total amount
-        DECLARE @totalAmount DECIMAL(18, 2);
+        -- Compute total amount
         SELECT @totalAmount = SUM(c.price)
         FROM [cartDetail] cd
         JOIN [course] c ON cd.courseId = c.id
         WHERE cd.learnerId = @learnerId;
 
-        SET @totalAmount = @totalAmount/70*(100 - @discountPercent);
+		IF @totalAmount IS NULL
+        BEGIN
+            RAISERROR ('Cart is empty. No items to process.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
 
-        -- insert into order
-        DECLARE @newOrderId INT;
-        
-        INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
-        OUTPUT INSERTED.id INTO @newOrderId
-        VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+        SET @totalAmount = @totalAmount / 70 * (100 - @discountPercent);
+		SELECT @newOrderId = ISNULL(MAX(id), 0) + 1 FROM [order];
 
-        -- insert into order details and delete from cart details
-        DECLARE cart_cursor CURSOR FOR
+        -- Insert into order
+        INSERT INTO [order] (id,learnerId, total, paymentCardNumber, couponCode)
+        VALUES (@newOrderId, @learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+
+        -- Insert into order details and delete from cart details
+        DECLARE cart_cursor CURSOR LOCAL FOR
         SELECT courseId
         FROM [cartDetail]
         WHERE learnerId = @learnerId;
@@ -466,48 +491,45 @@ BEGIN
         
         WHILE @@FETCH_STATUS = 0
         BEGIN
-            -- get the course price
-            SELECT @coursePrice = price FROM [course] WHERE id = @courseId;
-            -- insert into orderDetails
+            -- Get the course price
+            SELECT @coursePrice = price 
+            FROM [course] 
+            WHERE id = @courseId;
+
+            -- Insert into orderDetails
             INSERT INTO [orderDetail] (orderId, learnerId, courseId, coursePrice)
-            VALUES (@newOrderId, @learnerId, @courseId, 
-                    (SELECT price = [course].price/70 * 100 FROM [course] WHERE id = @courseId));
+            VALUES (@newOrderId, @learnerId, @courseId, @coursePrice/70*100);
             
-            -- enroll course
+            -- Enroll course
             INSERT INTO [learnerEnrollCourse] (courseId, learnerId, learnerScore, completionPercentInCourse)
-            SELECT cd.courseId, @learnerId, 0, 0
-            FROM [cartDetail] cd
-            WHERE cd.learnerId = @learnerId;
-            
-            -- participate section
+            SELECT @courseId, @learnerId, 0, 0;
+
+            -- Participate section
             INSERT INTO [learnerParticipateSection] (learnerId, courseId, sectionId, completionPercentSection)
-            SELECT @learnerId, cd.courseId, s.id, 0
-            FROM [cartDetail] cd
-            JOIN [section] s ON cd.courseId = s.courseId
-            WHERE cd.learnerId = @learnerId;
+            SELECT @learnerId, @courseId, s.id, 0
+            FROM [section] s
+            WHERE s.courseId = @courseId;
             
-            -- participate lesson
+            -- Participate lesson
             INSERT INTO [learnerParticipateLesson] (learnerId, courseId, sectionId, lessonId, isCompletedLesson)
-            SELECT @learnerId, s.courseId, s.id, l.id, 0
-            FROM [cartDetail] cd
-            JOIN [section] s ON cd.courseId = s.courseId
+            SELECT @learnerId, @courseId, s.id, l.id, 0
+            FROM [section] s
             JOIN [lesson] l ON s.id = l.sectionId
-            WHERE cd.learnerId = @learnerId;
+            WHERE s.courseId = @courseId;
             
-            -- participate exercise
+            -- Participate exercise
             INSERT INTO [learnerDoExercise] (learnerId, courseId, sectionId, lessonId, learnerScore)
-            SELECT @learnerId, s.courseId, s.id, e.id, 0
-            FROM [cartDetail] cd
-            JOIN [section] s ON cd.courseId = s.courseId
+            SELECT @learnerId, @courseId, s.id, e.id, 0
+            FROM [section] s
             JOIN [exercise] e ON s.id = e.sectionId
-            WHERE cd.learnerId = @learnerId;
+            WHERE s.courseId = @courseId;
             
-            -- del cartDetails
+            -- Delete from cartDetails
             DELETE FROM [cartDetail]
             WHERE learnerId = @learnerId AND courseId = @courseId;
 
-            -- update course total revenue, course revenue by month, instructor revenue by month
-            EXEC sp_UpdateCourseAndInstructorRevenue @courseId = @courseId, @amount = @coursePrice;
+            -- Update course total revenue, course revenue by month, instructor revenue by month
+            EXEC [sp_UpdateCourseRevenueAndInstructorRevenue] @courseId = @courseId, @amount = @coursePrice;
 
             FETCH NEXT FROM cart_cursor INTO @courseId;
         END
@@ -541,7 +563,7 @@ BEGIN
         SELECT
             o.id,
             o.learnerId,
-            l.name,
+            u.name,
             o.dateCreated,
             o.total,
             o.paymentCardNumber,
@@ -549,13 +571,13 @@ BEGIN
             c.discountPercent
         FROM
             [order] o
-        JOIN
-            [learner] l ON o.learnerId = l.id
+		JOIN
+            [user] u ON o.learnerId = u.id 
         JOIN
             [paymentCard] p ON o.paymentCardNumber = p.number
         LEFT JOIN
             [coupon] c ON o.couponCode = c.code
-        WHERE l.id = @learnerId
+        WHERE u.id = @learnerId
         ORDER BY dateCreated DESC
 
         COMMIT TRANSACTION;
@@ -575,6 +597,7 @@ IF OBJECT_ID('sp_LN_ViewOrderDetails', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_LN_ViewOrderDetails
+	@learnerId NVARCHAR(128),
     @orderId INT
 AS
 BEGIN
@@ -584,7 +607,7 @@ BEGIN
         SELECT
             o.id,
             o.learnerId,
-            l.name,
+            u.name,
             o.dateCreated,
             o.total,
             o.paymentCardNumber,
@@ -596,7 +619,7 @@ BEGIN
         FROM
             [order] o
         JOIN
-            [learner] l ON o.learnerId = l.id
+            [user] u ON o.learnerId = u.id
         JOIN
             [paymentCard] p ON o.paymentCardNumber = p.number
         LEFT JOIN
@@ -606,7 +629,7 @@ BEGIN
         JOIN
             [course] co ON od.courseId = co.id
         WHERE
-            o.id = @orderId;
+            o.learnerId = @learnerId AND o.id = @orderId;
 
         COMMIT TRANSACTION;
     END TRY
@@ -790,15 +813,18 @@ BEGIN
         @lessonTitle AS title,
         @lessonLearnTime AS learnTime,
         (
-            SELECT 
-                questionId,
-                questionText,
-                JSON_QUERY(
-                    '[' + STRING_AGG(
-                        JSON_OBJECT('answerId', AnswerId, 'answerText', AnswerText), ','
-                    ) + ']'
+           SELECT 
+                QuestionId,
+                QuestionText,
+                (
+                    SELECT 
+                        AnswerId,
+                        AnswerText
+                    FROM #QuestionsAndAnswers AS qa
+                    WHERE qa.QuestionId = q.QuestionId
+                    FOR JSON PATH
                 ) AS Answers
-            FROM #QuestionsAndAnswers
+            FROM #QuestionsAndAnswers AS q
             GROUP BY QuestionId, QuestionText
             FOR JSON PATH
         ) AS Questions
@@ -809,11 +835,11 @@ END;
 GO
 
 -- LN -Take The Test
-IF OBJECT_ID('sp__LN_AddLearnerAnswersOfExercise', 'P') IS NOT NULL
-    DROP PROCEDURE [sp__LN_AddLearnerAnswersOfExercise]
+IF OBJECT_ID('sp_LN_AddLearnerAnswersOfExercise', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_AddLearnerAnswersOfExercise]
 GO
 
-CREATE PROCEDURE sp__LN_AddLearnerAnswersOfExercise
+CREATE PROCEDURE sp_LN_AddLearnerAnswersOfExercise
     @learnerId NVARCHAR(128),
     @courseId INT,
     @sectionId INT,
@@ -832,12 +858,10 @@ BEGIN
 
         INSERT INTO @AnswerTable (questionId, learnerAnswer)
         SELECT 
-            CAST(PARSENAME(value, 2) AS INT) AS questionId,
-            CAST(PARSENAME(value, 1) AS INT) AS learnerAnswer
+            CAST(SUBSTRING(value, 1, CHARINDEX(',', value) - 1) AS INT) AS questionId,
+            CAST(SUBSTRING(value, CHARINDEX(',', value) + 1, LEN(value)) AS INT) AS learnerAnswer
         FROM STRING_SPLIT(@learnerAnswers, '|')
-        CROSS APPLY (SELECT 
-            PARSENAME(value, 2) AS value
-            ) AS a;
+        WHERE value LIKE '%,%';
 
         -- insert answers
         INSERT INTO learnerAnswerQuestion (learnerId, questionId, exerciseId, sectionId, courseId, learnerAnswer)
@@ -855,7 +879,13 @@ BEGIN
 
         SELECT @correctAnswers = COUNT(*)
         FROM @AnswerTable a
-        JOIN question q ON a.questionId = q.id AND a.learnerAnswer = q.correctAnswer;
+        JOIN questionAnswer qa
+            ON a.questionId = qa.questionId 
+            AND a.learnerAnswer = qa.id
+        WHERE qa.isCorrect = 1
+        AND qa.exerciseId = @exerciseId
+        AND qa.sectionId = @sectionId
+        AND qa.courseId = @courseId;
 
         IF @totalQuestions > 0
         BEGIN
@@ -869,7 +899,7 @@ BEGIN
         -- update score to learnerDoExercise
         UPDATE learnerDoExercise
         SET learnerScore = @learnerScore
-        WHERE learnerId = @learnerId AND exerciseId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
+        WHERE learnerId = @learnerId AND lessonId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
 
         -- update lesson, section, and course completion
         EXEC sp_LN_CompleteLesson @learnerId, @courseId, @sectionId, @exerciseId
@@ -904,12 +934,12 @@ BEGIN
 
         SELECT @learnerScore = learnerScore
         FROM learnerDoExercise
-        WHERE learnerId = @learnerId AND exerciseId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
+        WHERE learnerId = @learnerId AND lessonId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
 
         -- get test title 
         DECLARE @testTitle NVARCHAR(256);
 
-        SELECT @testTitle = e.title
+        SELECT @testTitle = l.title
         FROM lesson l
         WHERE l.id = @exerciseId AND l.sectionId = @sectionId AND l.courseId = @courseId;
 
@@ -917,18 +947,27 @@ BEGIN
         -- get question with correct answer and learner's answer 
         SELECT 
             q.id AS questionId,
-            q.questionText,
-            q.correctAnswer,
-            a.learnerAnswer
-        FROM question q
-        LEFT JOIN learnerAnswerQuestion a 
-            ON q.id = a.questionId 
-            AND a.learnerId = @learnerId 
-            AND a.exerciseId = @exerciseId
-        WHERE q.exerciseId = @exerciseId
+            q.question,
+            qa.questionAnswers AS correctAnswer,
+            laq.learnerAnswer
+        FROM 
+            question q
+        JOIN 
+            questionAnswer qa 
+            ON q.id = qa.questionId 
+            AND q.exerciseId = qa.exerciseId 
+            AND q.sectionId = qa.sectionId 
+            AND q.courseId = qa.courseId 
+            AND qa.isCorrect = 1 -- Get the correct answer
+        LEFT JOIN 
+            learnerAnswerQuestion laq 
+            ON q.id = laq.questionId 
+            AND laq.learnerId = @learnerId 
+            AND laq.exerciseId = @exerciseId
+        WHERE 
+            q.exerciseId = @exerciseId
         FOR JSON PATH, INCLUDE_NULL_VALUES, ROOT('results');
-        
-        
+
         SELECT 
             @testTitle AS title,
             @learnerScore AS score
@@ -973,7 +1012,7 @@ BEGIN
 
         -- learner complete percentage must be over 25% to leave a review 
         DECLARE @completionPercent DECIMAL(5, 2);
-        SELECT @completionPercent = completePercent 
+        SELECT @completionPercent = completionPercentInCourse
         FROM learnerEnrollCourse 
         WHERE learnerId = @learnerId AND courseId = @courseId;
 
