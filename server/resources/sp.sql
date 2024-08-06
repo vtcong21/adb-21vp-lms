@@ -473,11 +473,12 @@ BEGIN
             RETURN;
         END
 
-        SET @totalAmount = @totalAmount / 70 * (100 - @discountPercent);
-		SELECT @newOrderId = ISNULL(MAX(id), 0) + 1 FROM [order];
+        SET @totalAmount = @totalAmount /100 * (100 - @discountPercent);
+		
 
         -- Insert into order
         INSERT INTO [order] (id,learnerId, total, paymentCardNumber, couponCode)
+        OUTPUT INSERTED.id INTO @newOrderId
         VALUES (@newOrderId, @learnerId, @totalAmount, @paymentCardNumber, @couponCode);
 
         -- Insert into order details and delete from cart details
@@ -498,7 +499,7 @@ BEGIN
 
             -- Insert into orderDetails
             INSERT INTO [orderDetail] (orderId, learnerId, courseId, coursePrice)
-            VALUES (@newOrderId, @learnerId, @courseId, @coursePrice/70*100);
+            VALUES (@newOrderId, @learnerId, @courseId, @coursePrice);
             
             -- Enroll course
             INSERT INTO [learnerEnrollCourse] (courseId, learnerId, learnerScore, completionPercentInCourse)
@@ -529,6 +530,7 @@ BEGIN
             WHERE learnerId = @learnerId AND courseId = @courseId;
 
             -- Update course total revenue, course revenue by month, instructor revenue by month
+            SET @coursePrice = @coursePrice / 100 *(100 - @discountPercent);
             EXEC [sp_UpdateCourseRevenueAndInstructorRevenue] @courseId = @courseId, @amount = @coursePrice;
 
             FETCH NEXT FROM cart_cursor INTO @courseId;
