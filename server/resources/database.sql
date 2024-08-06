@@ -14,7 +14,7 @@ GO
 
 -- Create tables
 
-CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole CHAR(2))
+CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole VARCHAR(3))
 RETURNS BIT
 AS
 BEGIN
@@ -37,14 +37,15 @@ CREATE TABLE [user]
     name NVARCHAR(128) NOT NULL,
     password VARCHAR(128) NOT NULL,
     profilePhoto NVARCHAR(256) NOT NULL,
-    role CHAR(2) NOT NULL,
+    role VARCHAR(3) NOT NULL,
 
 	CONSTRAINT [User id is required.] CHECK(LEN(id) > 0),
 	CONSTRAINT [User email format is invalid.] CHECK(email LIKE '_%@_%._%'),
+	CONSTRAINT [A user with this email already exists.] UNIQUE(email),
 	CONSTRAINT [User name is required.] CHECK(LEN(name) > 0),
 	CONSTRAINT [User password must be at least 5 characters long.] CHECK(LEN(password) > 4),
 	CONSTRAINT [User profile photo is required.] CHECK(LEN(profilePhoto) > 0),
-	CONSTRAINT [User role is invalid.] CHECK (role IN ('AD', 'CM')),
+	CONSTRAINT [User role is invalid.] CHECK (role IN ('AD', 'LN', 'INS')),
     
     CONSTRAINT [PK_user] PRIMARY KEY (id)
 );
@@ -89,7 +90,7 @@ CREATE TABLE [courseMember]
 	role VARCHAR(3) NOT NULL,
     
 	CONSTRAINT [Course member id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [Course member id is invalid.] CHECK([dbo].isValidUser(id, 'CM') = 1),
+	CONSTRAINT [Course member id is invalid.] CHECK([dbo].isValidUser(id, 'LN') = 1 OR [dbo].isValidUser(id, 'INS') = 1),
     CONSTRAINT [Course member role is invalid.] CHECK (role IN ('LN', 'INS')),
 
     CONSTRAINT [PK_courseMember] PRIMARY KEY (id),
@@ -132,9 +133,8 @@ CREATE TABLE [instructor]
     address NVARCHAR(256) NOT NULL,
     degrees NVARCHAR(512) NOT NULL,
     workplace NVARCHAR(256) NOT NULL,
-    scientificBackground NVARCHAR(512),
-    isPremium BIT NOT NULL DEFAULT 0,
-    isVerified BIT NOT NULL DEFAULT 0,
+    scientificBackground NVARCHAR(512) NOT NULL,
+    vipState VARCHAR(7) NOT NULL DEFAULT 'notVip',
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
     
 	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
@@ -144,6 +144,7 @@ CREATE TABLE [instructor]
 	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
 	CONSTRAINT [Instructor degrees is required.] CHECK(LEN(degrees) > 0),
 	CONSTRAINT [Instructor scientific background is required.] CHECK(LEN(scientificBackground) > 0),
+	CONSTRAINT [Instructor vipState is invalid.] CHECK(vipState IN ('notVip', 'vip', 'pending')),
 	CONSTRAINT [Instructor total revenue must be non-negative.] CHECK(totalRevenue >= 0),
 
     CONSTRAINT [PK_instructor] PRIMARY KEY (id),
@@ -157,7 +158,7 @@ CREATE FUNCTION isValidVipInstructor(@vipInstructorId VARCHAR(128))
 RETURNS BIT
 AS
 BEGIN
-    IF (EXISTS(SELECT id FROM [instructor] WHERE id = @vipInstructorId AND isVerified = 1 AND isPremium = 1))
+    IF (EXISTS(SELECT id FROM [instructor] WHERE id = @vipInstructorId AND vipState = 'vip'))
         RETURN 1
 
     RETURN 0
@@ -194,7 +195,7 @@ GO
 CREATE TABLE [paymentCard]
 (
     number VARCHAR(16) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    type VARCHAR(6) NOT NULL,
     name NVARCHAR(128) NOT NULL,
     CVC CHAR(3) NOT NULL,
     expireDate DATE NOT NULL,
@@ -243,7 +244,7 @@ CREATE TABLE [taxForm]
     address NVARCHAR(256) NOT NULL,
     phone VARCHAR(11) NOT NULL,
     taxCode VARCHAR(50) NOT NULL,
-    idNumber CHAR(12) NOT NULL,
+    identityNumber CHAR(12) NOT NULL,
     postCode CHAR(5) NOT NULL,
     vipInstructorId NVARCHAR(128) NOT NULL,
     
@@ -252,8 +253,8 @@ CREATE TABLE [taxForm]
     CONSTRAINT [Address is required.] CHECK(LEN(address) > 0),
 	CONSTRAINT [Phone number must be 10 to 11 digits long.] CHECK(LEN(phone) BETWEEN 10 AND 11 AND ISNUMERIC(phone) = 1),
     CONSTRAINT [Tax code must be 10 to 13 digits long.] CHECK(LEN(taxCode) BETWEEN 10 AND 13 AND ISNUMERIC(taxCode) = 1),
-    CONSTRAINT [ID number must be 12 digits long.] CHECK(LEN(idNumber) = 12 AND ISNUMERIC(idNumber) = 1),
-    CONSTRAINT [Postal code must be 5 digits long.] CHECK(LEN(postCode) = 5 AND ISNUMERIC(idNumber) = 1),
+    CONSTRAINT [ID number must be 12 digits long.] CHECK(LEN(identityNumber) = 12 AND ISNUMERIC(identityNumber) = 1),
+    CONSTRAINT [Postal code must be 5 digits long.] CHECK(LEN(postCode) = 5 AND ISNUMERIC(identityNumber) = 1),
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
 
@@ -277,8 +278,6 @@ CREATE TABLE [category]
 
     CONSTRAINT [PK_category] PRIMARY KEY(id)
 );
-GO
-
 GO
 
 -- Table sub category
@@ -385,11 +384,12 @@ GO
 CREATE TABLE [courseIntendedLearners]
 (
     courseId INT NOT NULL,
+	intendedLearnerId INT NOT NULL,
     intendedLearner NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course intended leaner is required.] CHECK(LEN(intendedLearner) > 0),
 
-    CONSTRAINT [PK_courseIntendedLearners] PRIMARY KEY(courseId, intendedLearner),
+    CONSTRAINT [PK_courseIntendedLearners] PRIMARY KEY(courseId, intendedLearnerId),
 
     CONSTRAINT [FK_courseIntendedLearners_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
@@ -403,11 +403,12 @@ GO
 CREATE TABLE [courseRequirements]
 (
     courseId INT NOT NULL,
+	requirementId INT IDENTITY(1,1) NOT NULL,
     requirement NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course requirement is required.] CHECK(LEN(requirement) > 0),
 
-    CONSTRAINT [PK_courseRequirements] PRIMARY KEY(courseId, requirement),
+    CONSTRAINT [PK_courseRequirements] PRIMARY KEY(courseId, requirementId),
 
     CONSTRAINT [FK_courseRequirements_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
@@ -421,11 +422,12 @@ GO
 CREATE TABLE [courseObjectives]
 (
     courseId INT NOT NULL,
+	objectiveId INT IDENTITY(1,1) NOT NULL,
     objective NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course objective is required.] CHECK(LEN(objective) > 0),
 
-    CONSTRAINT [PK_courseObjectives] PRIMARY KEY(courseId, objective),
+    CONSTRAINT [PK_courseObjectives] PRIMARY KEY(courseId, objectiveId),
 
     CONSTRAINT [FK_courseObjectives_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
@@ -456,18 +458,18 @@ IF OBJECT_ID('coupon', 'U') IS NOT NULL
     DROP TABLE [coupon]
 GO	
 
-CREATE TABLE [coupon]
+CREATE TABLE [coupon]	
 (
     code VARCHAR(20) NOT NULL,
-    discount DECIMAL(5, 2) NOT NULL CHECK(discount >= 0 AND discount <= 100),
-    quantity INT NOT NULL CHECK(quantity >= 0),
+    discountPercent DECIMAL(5, 2) NOT NULL,
+    quantity INT NOT NULL,
     startDate DATE NOT NULL,
     adminCreatedCoupon NVARCHAR(128) NOT NULL,
     
     CONSTRAINT [Coupon code is required.] CHECK(LEN(code) > 0),
-	CONSTRAINT [Coupon discount must be between 0% and 100%.] CHECK(discount >= 0 AND discount <= 100),
-	CONSTRAINT [Coupon quantity must be non-negative.] CHECK(LEN(discount) > 0),
-    CONSTRAINT [Admin created coupon is required.] CHECK(LEN(AdminCreatedCoupon) > 0),
+	CONSTRAINT [Coupon discount percent must be between 0% and 100%.] CHECK(discountPercent >= 0 AND discountPercent <= 100),
+	CONSTRAINT [Coupon quantity must be non-negative.] CHECK(quantity >= 0),
+    CONSTRAINT [Admin created coupon is required.] CHECK(LEN(adminCreatedCoupon) > 0),
 
     CONSTRAINT [PK_coupon] PRIMARY KEY(code),
 
@@ -537,17 +539,17 @@ GO
 
 CREATE TABLE [lecture]
 (
-    lessonId INT NOT NULL,
-	sectionId INT NOT NULL,
+	id INT NOT NULL,
+	sectionId INT  NOT NULL,
     courseId INT NOT NULL,
     resource NVARCHAR(256) NOT NULL,
 
 	CONSTRAINT [Lecture resource is required.] CHECK(LEN(resource) > 0),
-	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(lessonId, 'lecture') = 1),
+	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(id, 'lecture') = 1),
     
-    CONSTRAINT [PK_lecture] PRIMARY KEY(lessonId, sectionId, courseId),
+    CONSTRAINT [PK_lecture] PRIMARY KEY(id, sectionId, courseId),
 
-    CONSTRAINT [FK_lecture_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
+    CONSTRAINT [FK_lecture_lesson] FOREIGN KEY (id, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
 );
 GO
 
@@ -558,15 +560,15 @@ GO
 
 CREATE TABLE [exercise]
 (
-    lessonId INT NOT NULL,
+    id INT NOT NULL,
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 
-	CONSTRAINT [Excercise id is invalid.] CHECK([dbo].isValidLesson(lessonId, 'exercise') = 1),
+	CONSTRAINT [Excercise id is invalid.] CHECK([dbo].isValidLesson(id, 'exercise') = 1),
     
-    CONSTRAINT [PK_exercise] PRIMARY KEY(lessonId, sectionId, courseId),
+    CONSTRAINT [PK_exercise] PRIMARY KEY(id, sectionId, courseId),
 
-    CONSTRAINT [FK_exercise_lesson] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
+    CONSTRAINT [FK_exercise_lesson] FOREIGN KEY (id, sectionId, courseId) REFERENCES [lesson](id, sectionId, courseId)
 );
 GO
 
@@ -578,17 +580,16 @@ GO
 CREATE TABLE [question]
 (
 	id INT NOT NULL,
-    lessonId INT NOT NULL,
+    exerciseId INT NOT NULL,
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	question NVARCHAR(2000) NOT NULL,
-    correctAnswer INT NOT NULL,
 
 	CONSTRAINT [Question is required.] CHECK(LEN(question) > 0),
     
-    CONSTRAINT [PK_question] PRIMARY KEY(id, lessonId, sectionId, courseId),
+    CONSTRAINT [PK_question] PRIMARY KEY(id, exerciseId, sectionId, courseId),
 
-    CONSTRAINT [FK_question_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId)
+    CONSTRAINT [FK_question_exercise] FOREIGN KEY (exerciseId, sectionId, courseId) REFERENCES [exercise](id, sectionId, courseId)
 );
 GO
 
@@ -601,16 +602,17 @@ CREATE TABLE [questionAnswer]
 (
 	id INT NOT NULL,
 	questionId INT NOT NULL,
-    lessonId INT NOT NULL,
+    exerciseId INT NOT NULL,
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	questionAnswers NVARCHAR(2000) NOT NULL,
+	isCorrect BIT NOT NULL,
 
 	CONSTRAINT [Question answers are required.] CHECK(LEN(questionAnswers) > 0),
     
-    CONSTRAINT [PK_questionAnswer] PRIMARY KEY(id, questionId, lessonId, sectionId, courseId),
+    CONSTRAINT [PK_questionAnswer] PRIMARY KEY(id, questionId, exerciseId, sectionId, courseId),
 
-    CONSTRAINT [FK_questionAnswer_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId)
+    CONSTRAINT [FK_questionAnswer_question] FOREIGN KEY (questionId, exerciseId, sectionId, courseId) REFERENCES [question](id, exerciseId, sectionId, courseId)
 );
 GO
 
@@ -623,14 +625,14 @@ CREATE TABLE [learnerAnswerQuestion]
 (
 	learnerId NVARCHAR(128) NOT NULL,
 	questionId INT NOT NULL,
-    lessonId INT NOT NULL,
+    exerciseId INT NOT NULL,
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	learnerAnswer INT NOT NULL,
 
-    CONSTRAINT [PK_learnerAnswerQuestion] PRIMARY KEY(learnerId, questionId, lessonId, sectionId, courseId),
+    CONSTRAINT [PK_learnerAnswerQuestion] PRIMARY KEY(learnerId, questionId, exerciseId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerAnswerQuestion_question] FOREIGN KEY (questionId, lessonId, sectionId, courseId) REFERENCES [question](id, lessonId, sectionId, courseId),
+    CONSTRAINT [FK_learnerAnswerQuestion_question] FOREIGN KEY (questionId, exerciseId, sectionId, courseId) REFERENCES [question](id, exerciseId, sectionId, courseId),
 	CONSTRAINT [FK_learnerAnswerQuestion_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
@@ -672,7 +674,7 @@ CREATE TABLE [learnerDoExercise]
 
 	CONSTRAINT [PK_learnerDoExercise] PRIMARY KEY(learnerId, lessonId, sectionId, courseId),
 
-    CONSTRAINT [FK_learnerDoExercise_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](lessonId, sectionId, courseId),
+    CONSTRAINT [FK_learnerDoExercise_exercise] FOREIGN KEY (lessonId, sectionId, courseId) REFERENCES [exercise](id, sectionId, courseId),
 	CONSTRAINT [FK_learnerDoExercise_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
@@ -687,9 +689,9 @@ CREATE TABLE [learnerParticipateSection]
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
 	sectionId INT NOT NULL,
-	completionPercentSection DECIMAL(5, 2) NOT NULL,
+	completionPercentSection DECIMAL(5, 2) NOT NULL DEFAULT 0,
 
-	CONSTRAINT [Completion percentage section must be between 0 and 100.] CHECK(completionPercentSection > 0 AND completionPercentSection <= 100),
+	CONSTRAINT [Completion percentage section must be between 0 and 100.] CHECK(completionPercentSection BETWEEN 0 AND 100),
 
     CONSTRAINT [PK_learnerParticipateSection] PRIMARY KEY(learnerId, sectionId, courseId),
 
@@ -714,27 +716,27 @@ CREATE TABLE [adminResponse]
 	CONSTRAINT [Admin response text is required.] CHECK(LEN(responseText) > 0),
 	CONSTRAINT [Admin date response must be before today.] CHECK(dateResponse <= GETDATE()),
 
-    CONSTRAINT [PK_adminResponse] PRIMARY KEY(id, adminId, courseId),
+    CONSTRAINT [PK_adminResponse] PRIMARY KEY(courseId, adminId, id),
 
     CONSTRAINT [FK_adminResponse_admin] FOREIGN KEY (adminId) REFERENCES [admin](id),
 	CONSTRAINT [FK_adminResponse_course] FOREIGN KEY (courseId) REFERENCES [course](id)
 );
 GO
 
--- Table card detail
-IF OBJECT_ID('cardDetail', 'U') IS NOT NULL
-    DROP TABLE [cardDetail]
+-- Table cart detail
+IF OBJECT_ID('cartDetail', 'U') IS NOT NULL
+    DROP TABLE [cartDetail]
 GO	
 
-CREATE TABLE [cardDetail]
+CREATE TABLE [cartDetail]
 (
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
 
-    CONSTRAINT [PK_cardDetail] PRIMARY KEY(learnerId, courseId),
+    CONSTRAINT [PK_cartDetail] PRIMARY KEY(learnerId, courseId),
 
-    CONSTRAINT [FK_cardDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
-	CONSTRAINT [FK_cardDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id)
+    CONSTRAINT [FK_cartDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
+	CONSTRAINT [FK_cartDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id)
 );
 GO
 
@@ -754,7 +756,7 @@ CREATE TABLE [message]
 
 	CONSTRAINT [Message sent time must be before today.] CHECK(sentTime <= GETDATE()),
     
-    CONSTRAINT [PK_message] PRIMARY KEY(id, senderId, receiverId),
+    CONSTRAINT [PK_message] PRIMARY KEY(senderId, receiverId, id),
 
 	CONSTRAINT [FK_messageSender_courseMember] FOREIGN KEY (senderId) REFERENCES [courseMember](id),
 	CONSTRAINT [FK_messageReceiver_courseMember] FOREIGN KEY (receiverId) REFERENCES [courseMember](id)
@@ -777,7 +779,7 @@ CREATE TABLE [order]
 
 	CONSTRAINT [Date created order must be before today.] CHECK(dateCreated <= GETDATE()),
 
-    CONSTRAINT [PK_order] PRIMARY KEY(id),
+    CONSTRAINT [PK_order] PRIMARY KEY(learnerId, id),
     
     CONSTRAINT [FK_order_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_order_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
@@ -785,23 +787,23 @@ CREATE TABLE [order]
 );
 GO
 
--- Table order
+-- Table order detail
 IF OBJECT_ID('orderDetail', 'U') IS NOT NULL
-    DROP TABLE [orderDetail]
+	DROP TABLE [orderDetail]
 GO
 
 CREATE TABLE [orderDetail]
 (
-    id INT NOT NULL,
-    orderId INT NOT NULL,
-    learnerId NVARCHAR(128) NOT NULL,
-    courseId INT NOT NULL,
-    coursePrice DECIMAL(18, 2) NOT NULL,
+	id INT NOT NULL,
+	orderId INT NOT NULL,
+	learnerId NVARCHAR(128) NOT NULL,
+	courseId INT NOT NULL,
+	coursePrice DECIMAL(18, 2) NOT NULL,
 
-    CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id),
+	CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id),
     
-    CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
-    CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id),
+	CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
+	CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id),
 );
 GO
 
@@ -831,19 +833,11 @@ CREATE TABLE [learnerEnrollCourse]
 (
     courseId INT NOT NULL,
     learnerId NVARCHAR(128) NOT NULL,
-    learnerReviewCourse NVARCHAR(MAX),
-    learnerRatingCourse DECIMAL(3, 2),
-    dateReview DATE,
     learnerScore DECIMAL(3, 1),
-    completionPercentInCourse DECIMAL(5, 2),
+    completionPercentInCourse DECIMAL(5, 2) DEFAULT 0,
 
-	CONSTRAINT [Learner rating course must be between 0 and  5.] CHECK(learnerRatingCourse BETWEEN 0 AND 5),
 	CONSTRAINT [Learner score  must be from 1 to 10.] CHECK (LearnerScore BETWEEN 0.0 AND 10.0),
 	CONSTRAINT [Conpletion percent in course must be between 0 and 100.] CHECK(completionPercentInCourse BETWEEN 0 AND 100),
-	CONSTRAINT [ReviewFieldsConsistency] CHECK (
-        (learnerReviewCourse IS NULL AND learnerRatingCourse IS NULL AND dateReview IS NULL) OR
-        (learnerReviewCourse IS NOT NULL AND learnerRatingCourse IS NOT NULL AND dateReview IS NOT NULL)
-    ),
 
     CONSTRAINT [PK_learnerEnrollCourse] PRIMARY KEY(CourseId, LearnerId),
     
@@ -851,6 +845,32 @@ CREATE TABLE [learnerEnrollCourse]
     CONSTRAINT [FK_learnerEnrollCourse_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
+
+-- Table learner review course
+IF OBJECT_ID('learnerReviewCourse', 'U') IS NOT NULL
+    DROP TABLE [learnerReviewCourse]
+GO
+
+CREATE TABLE [learnerReviewCourse]
+(
+    courseId INT NOT NULL,
+    learnerId NVARCHAR(128) NOT NULL,
+    review NVARCHAR(MAX) NOT NULL,
+    rating DECIMAL(3, 2) NOT NULL,
+    date DATE NOT NULL DEFAULT GETDATE(),
+
+	CONSTRAINT [Learner reivew course is required.] CHECK(LEN(review) > 0),
+	CONSTRAINT [Learner rating course must be between 0 and  5.] CHECK(rating BETWEEN 0 AND 5),
+	CONSTRAINT [Review date must be before today.] CHECK(date <= GETDATE()),
+
+
+    CONSTRAINT [PK_learnerReviewCourse] PRIMARY KEY(CourseId, LearnerId),
+    
+    CONSTRAINT [FK_learnerReviewCourse_course] FOREIGN KEY (courseId) REFERENCES [course](id),
+    CONSTRAINT [FK_learnerReviewCourse_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
+);
+GO
+
 
 -- Table post
 IF OBJECT_ID('post', 'U') IS NOT NULL
