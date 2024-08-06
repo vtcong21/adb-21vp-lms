@@ -475,11 +475,16 @@ BEGIN
 
         SET @totalAmount = @totalAmount /100 * (100 - @discountPercent);
 		
-
         -- Insert into order
-        INSERT INTO [order] (id,learnerId, total, paymentCardNumber, couponCode)
-        OUTPUT INSERTED.id INTO @newOrderId
-        VALUES (@newOrderId, @learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+         DECLARE @NewOrderOutput TABLE (id INT);
+
+        -- Insert into order and get the new order id
+        INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
+        OUTPUT INSERTED.id INTO @NewOrderOutput(id)
+        VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+
+        -- Assign the captured id to the variable
+        SELECT @newOrderId = id FROM @NewOrderOutput;
 
         -- Insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR LOCAL FOR
