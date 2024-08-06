@@ -1,22 +1,28 @@
--- CREATE OR ALTER PROC sp_CM_proc (
+-- CREATE OR ALTER PROC sp_Role_ProcName (
 -- 	@senderId NVARCHAR(128),
 -- 	@receiverId NVARCHAR(128),
 -- 	@messageContent NVARCHAR(MAX)
 -- )
+-- AS
 -- BEGIN TRAN
 -- 	SET XACT_ABORT ON
--- 	-- SET NOCOUNT ON
+-- 	SET NOCOUNT ON
 -- 	BEGIN TRY
 -- 		IF NOT EXISTS()
 -- 		BEGIN
 -- 			THROW 51000, 'Receiver does not exist', 1;
 -- 		END;
 		
--- 	END TRY;
+-- 	END TRY
 -- 	BEGIN CATCH
--- 		THROW 50000, 'An error occured', 1;
--- 	END CATCH;
--- COMMIT TRAN;
+-- 		ROLLBACK TRAN;
+-- 		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+-- 		THROW 51000, @errorMessage, 1;
+-- 		RETURN
+-- 	END CATCH
+-- COMMIT TRAN
+-- GO
+
 
 
 CREATE OR ALTER PROC sp_AD_createAdmin (
@@ -28,76 +34,132 @@ CREATE OR ALTER PROC sp_AD_createAdmin (
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF (@id IS NULL OR @email IS NULL OR @name IS NULL OR @password IS NULL OR @profilePhoto IS NULL)
 		BEGIN
 			THROW 52000, 'ID, Email, Name, Password and ProfilePhoto is required', 1
-		END;
+		END
 		
 		INSERT INTO [user](id, email, name, password, profilePhoto, role)
 		VALUES (@id, @email, @name, @password, @profilePhoto, 'AD')
 
 		RETURN (SELECT id, email, name, profilePhoto, role FROM [user] WHERE id = @id)
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
 
+
+-- un
 CREATE OR ALTER PROC sp_AD_getVIPInstructorQueue ()
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF NOT EXISTS()
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END;
 		
-	END TRY;
+		SELECT 
+		FROM 
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
 
+
+-- un
 CREATE OR ALTER PROC sp_AD_getTaxForm (
 	@instructorId NVARCHAR(128)
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF NOT EXISTS()
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END;
 		
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
 
-CREATE OR ALTER PROC sp_AD_verifyVIPInstructor (
+
+-- un
+CREATE OR ALTER PROC sp_AD_reviewVIPInstructor (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
 	@messageContent NVARCHAR(MAX)
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF NOT EXISTS()
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END;
 		
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
+
+
+
+-- un
+CREATE OR ALTER PROC sp_Role_ProcName (
+	@senderId NVARCHAR(128),
+	@receiverId NVARCHAR(128),
+	@messageContent NVARCHAR(MAX)
+)
+AS
+BEGIN TRAN
+	SET XACT_ABORT ON
+	SET NOCOUNT ON
+	BEGIN TRY
+		IF NOT EXISTS()
+		BEGIN
+			THROW 51000, 'Receiver does not exist', 1;
+		END;
+		
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
+
+
+
+
+
+
 
 CREATE OR ALTER PROC sp_CM_sendMessage (
 	@senderId NVARCHAR(128),
@@ -106,7 +168,7 @@ CREATE OR ALTER PROC sp_CM_sendMessage (
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF @senderId IS NULL OR @receiverId IS NULL OR @messageContent IS NULL
 		BEGIN
@@ -125,11 +187,17 @@ BEGIN TRAN
 		
 		INSERT INTO [message](senderId, receiverId, content)
 		VALUES (@senderId, @receiverId, @messageContent)
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
+
+
 
 CREATE OR ALTER PROC sp_CM_readMessage (
 	@senderId NVARCHAR(128),
@@ -137,18 +205,22 @@ CREATE OR ALTER PROC sp_CM_readMessage (
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF NOT EXISTS()
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END;
 		
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
 
 CREATE OR ALTER PROC sp_CM_createPost (
 	@senderId NVARCHAR(128),
@@ -156,15 +228,19 @@ CREATE OR ALTER PROC sp_CM_createPost (
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
-	-- SET NOCOUNT ON
+	SET NOCOUNT ON
 	BEGIN TRY
 		IF NOT EXISTS()
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END;
 		
-	END TRY;
+	END TRY
 	BEGIN CATCH
-		THROW 50000, 'An error occured', 1;
-	END CATCH;
-COMMIT TRAN;
+		ROLLBACK TRAN;
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
