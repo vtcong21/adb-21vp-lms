@@ -21,8 +21,8 @@ BEGIN
 
     SELECT @MaxID = ISNULL(MAX(id), 0) FROM subCategory;
 
-    INSERT INTO subCategory (id, parentCategoryId, numberOfLearners, averageRating, numberOfCourses)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, parentCategoryId, numberOfLearners, averageRating, numberOfCourses
+    INSERT INTO subCategory (id, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses)
+    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
     FROM inserted;
 END
 GO
@@ -323,5 +323,23 @@ BEGIN
     SELECT id
     FROM inserted
     WHERE role = 'AD';
+END
+GO
+
+-- 17/ Trigger để chèn người dùng có vai trò Instructor vào bảng courseMember
+IF OBJECT_ID('trg_AfterInsertUser_InsertInstructorToCourseMember', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertUser_InsertInstructorToCourseMember
+GO
+
+CREATE TRIGGER trg_AfterInsertUser_InsertInstructorToCourseMember
+ON [user]
+AFTER INSERT
+AS
+BEGIN
+    -- Chèn người dùng có vai trò 'INS' vào bảng courseMember
+    INSERT INTO courseMember (id, role)
+    SELECT id, 'INS'
+    FROM inserted
+    WHERE role = 'INS';
 END
 GO
