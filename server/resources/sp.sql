@@ -26,7 +26,7 @@ BEGIN
             AND o.dateCreated < GETDATE()
         GROUP BY
             o.dateCreated
-        ORDER BY
+        ORDER BYsq
             o.dateCreated DESC;
         COMMIT TRANSACTION;
     END TRY
@@ -330,7 +330,7 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         SELECT
-            cd.learnerId, cd.courseId, c.title, c.price / 70 *100 AS salePrice
+            cd.learnerId, cd.courseId, c.title, c.price
         FROM
             [cartDetail] cd
         JOIN
@@ -451,15 +451,9 @@ BEGIN
         DECLARE @newOrderId INT;
         DECLARE @courseId INT;
         DECLARE @coursePrice DECIMAL(18, 2);
+        DECLARE @couponQuantity INT;
+        DECLARE @startDate DATETIME;
         
-        -- Check discount percent
-        IF @couponCode IS NOT NULL
-        BEGIN
-            SELECT @discountPercent = discountPercent
-            FROM [coupon]
-            WHERE code = @couponCode;
-        END
-
         -- Compute total amount
         SELECT @totalAmount = SUM(c.price)
         FROM [cartDetail] cd
@@ -473,19 +467,42 @@ BEGIN
             RETURN;
         END
 
+        -- Check discount percent
+        IF @couponCode IS NOT NULL
+        BEGIN
+            SELECT @discountPercent = discountPercent, @couponQuantity = quantity,  @startDate = startDate
+            FROM [coupon]
+            WHERE code = @couponCode;   
+            IF @startDate > GETDATE()
+            BEGIN
+                RAISERROR ('The coupon is not available yet.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END
+            IF @couponQuantity > 0
+            BEGIN
+                UPDATE [coupon] SET quantity = quantity - 1
+            END
+            ELSE 
+            BEGIN
+                RAISERROR ('The coupon is out of quantity.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            RETURN;
+            END
+
+        END
+        
         SET @totalAmount = @totalAmount /100 * (100 - @discountPercent);
 		
-        -- Insert into order
-         DECLARE @NewOrderOutput TABLE (id INT);
-
-        -- Insert into order and get the new order id
+        DECLARE @NewOrderOutput TABLE (id INT);
         INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
-        OUTPUT INSERTED.id INTO @NewOrderOutput(id)
+        OUTPUT inserted.id INTO @NewOrderOutput(id)
         VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
 
-        -- Assign the captured id to the variable
+        -- Check if the insert succeeded
         SELECT @newOrderId = id FROM @NewOrderOutput;
-
+	
         -- Insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR LOCAL FOR
         SELECT courseId
@@ -964,7 +981,7 @@ BEGIN
             ON q.id = qa.questionId 
             AND q.exerciseId = qa.exerciseId 
             AND q.sectionId = qa.sectionId 
-            AND q.courseId = qa.courseId 
+            AND q.courseId = qa.courseId
             AND qa.isCorrect = 1 -- Get the correct answer
         LEFT JOIN 
             learnerAnswerQuestion laq 
