@@ -12,7 +12,7 @@ GO
 USE LMS
 GO
 
--- CREATE OR ALTER TABLEs
+-- CREATE TABLEs
 
 CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole VARCHAR(3))
 RETURNS BIT
@@ -30,9 +30,7 @@ IF OBJECT_ID('user', 'U') IS NOT NULL
     DROP TABLE [user]
 GO
 
-admin
-
-CREATE OR ALTER TABLE [user]
+CREATE TABLE [user]
 (
     id NVARCHAR(128) NOT NULL,
     email VARCHAR(256) NOT NULL,
@@ -58,7 +56,7 @@ IF OBJECT_ID('admin', 'U') IS NOT NULL
     DROP TABLE [admin]
 GO
 
-CREATE OR ALTER TABLE [admin]
+CREATE TABLE [admin]
 (
     id NVARCHAR(128) NOT NULL,
     
@@ -84,7 +82,7 @@ IF OBJECT_ID('courseMember', 'U') IS NOT NULL
     DROP TABLE [courseMember]
 GO
 
-CREATE OR ALTER TABLE [courseMember]
+CREATE TABLE [courseMember]
 (
     id NVARCHAR(128) NOT NULL,
 	role VARCHAR(3) NOT NULL,
@@ -105,7 +103,7 @@ IF OBJECT_ID('learner', 'U') IS NOT NULL
     DROP TABLE [learner]
 GO
 
-CREATE OR ALTER TABLE [learner]
+CREATE TABLE [learner]
 (
     id NVARCHAR(128) NOT NULL,
     
@@ -124,7 +122,7 @@ IF OBJECT_ID('instructor', 'U') IS NOT NULL
     DROP TABLE [instructor]
 GO
 
-CREATE OR ALTER TABLE [instructor]
+CREATE TABLE [instructor]
 (
     id NVARCHAR(128) NOT NULL,
     gender CHAR(1) NOT NULL ,
@@ -170,7 +168,7 @@ IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
     DROP TABLE [instructorRevenueByMonth]
 GO	
 
-CREATE OR ALTER TABLE [instructorRevenueByMonth]
+CREATE TABLE [instructorRevenueByMonth]
 (
     instructorId NVARCHAR(128) NOT NULL,
     year int NOT NULL,
@@ -192,7 +190,7 @@ IF OBJECT_ID('paymentCard', 'U') IS NOT NULL
     DROP TABLE [paymentCard]
 GO
 
-CREATE OR ALTER TABLE [paymentCard]
+CREATE TABLE [paymentCard]
 (
     number VARCHAR(16) NOT NULL,
     type VARCHAR(6) NOT NULL,
@@ -216,7 +214,7 @@ IF OBJECT_ID('vipInstructor', 'U') IS NOT NULL
     DROP TABLE [vipInstructor]
 GO
 
-CREATE OR ALTER TABLE [vipInstructor]
+CREATE TABLE [vipInstructor]
 (
     id NVARCHAR(128) NOT NULL,
     paymentCardNumber VARCHAR(16) NOT NULL,
@@ -236,7 +234,7 @@ IF OBJECT_ID('taxForm', 'U') IS NOT NULL
     DROP TABLE [taxForm]
 GO
 
-CREATE OR ALTER TABLE [taxForm]
+CREATE TABLE [taxForm]
 (
     submissionDate DATE NOT NULL DEFAULT GETDATE(),
     fullName NVARCHAR(128) NOT NULL,
@@ -267,7 +265,7 @@ IF OBJECT_ID('category', 'U') IS NOT NULL
     DROP TABLE [category]
 GO
 
-CREATE OR ALTER TABLE [category]
+CREATE TABLE [category]
 (
     id INT IDENTITY(1,1) NOT NULL,
 	name NVARCHAR(128) NOT NULL,
@@ -284,7 +282,7 @@ IF OBJECT_ID('subCategory', 'U') IS NOT NULL
     DROP TABLE [subCategory]
 GO
 
-CREATE OR ALTER TABLE [subCategory]
+CREATE TABLE [subCategory]
 (
     id INT NOT NULL,
 	parentCategoryId INT NOT NULL,
@@ -310,7 +308,7 @@ IF OBJECT_ID('course', 'U') IS NOT NULL
     DROP TABLE [course]
 GO
 
-CREATE OR ALTER TABLE [course]
+CREATE TABLE [course]
 (
     id INT NOT NULL IDENTITY(1,1),
     title NVARCHAR(256) NOT NULL,
@@ -326,7 +324,7 @@ CREATE OR ALTER TABLE [course]
     subCategoryId INT NOT NULL,
     categoryId INT NOT NULL,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
-    
+    revenueByMonth DECIMAL(18, 2) NOT NULL DEFAULT 0,
     language NVARCHAR(50) NOT NULL,
     price DECIMAL(18, 2) NOT NULL,
     lastUpdateTime DATETIME NOT NULL DEFAULT GETDATE(),
@@ -358,7 +356,7 @@ IF OBJECT_ID('courseRevenueByMonth', 'U') IS NOT NULL
     DROP TABLE [courseRevenueByMonth]
 GO	
 
-CREATE OR ALTER TABLE [courseRevenueByMonth]
+CREATE TABLE [courseRevenueByMonth]
 (
     courseId INT NOT NULL,
     year int NOT NULL,
@@ -380,7 +378,7 @@ IF OBJECT_ID('courseIntendedLearners', 'U') IS NOT NULL
     DROP TABLE [courseIntendedLearners]
 GO	
 
-CREATE OR ALTER TABLE [courseIntendedLearners]
+CREATE TABLE [courseIntendedLearners]
 (
     courseId INT NOT NULL,
 	intendedLearnerId INT NOT NULL,
@@ -399,7 +397,7 @@ IF OBJECT_ID('courseRequirements', 'U') IS NOT NULL
     DROP TABLE [courseRequirements]
 GO	
 
-CREATE OR ALTER TABLE [courseRequirements]
+CREATE TABLE [courseRequirements]
 (
     courseId INT NOT NULL,
 	requirementId INT IDENTITY(1,1) NOT NULL,
@@ -418,7 +416,7 @@ IF OBJECT_ID('courseObjectives', 'U') IS NOT NULL
     DROP TABLE [courseObjectives]
 GO	
 
-CREATE OR ALTER TABLE [courseObjectives]
+CREATE TABLE [courseObjectives]
 (
     courseId INT NOT NULL,
 	objectiveId INT IDENTITY(1,1) NOT NULL,
@@ -437,7 +435,7 @@ IF OBJECT_ID('instructorOwnCourse', 'U') IS NOT NULL
     DROP TABLE [instructorOwnCourse]
 GO	
 
-CREATE OR ALTER TABLE [instructorOwnCourse]
+CREATE TABLE [instructorOwnCourse]
 (
     courseId INT NOT NULL,
 	instructorId NVARCHAR(128) NOT NULL,
@@ -457,7 +455,7 @@ IF OBJECT_ID('coupon', 'U') IS NOT NULL
     DROP TABLE [coupon]
 GO	
 
-CREATE OR ALTER TABLE [coupon]	
+CREATE TABLE [coupon]	
 (
     code VARCHAR(20) NOT NULL,
     discountPercent DECIMAL(5, 2) NOT NULL,
@@ -475,14 +473,13 @@ CREATE OR ALTER TABLE [coupon]
     CONSTRAINT [FK_coupon_admin] FOREIGN KEY (adminCreatedCoupon) REFERENCES [admin](id) 
 );
 GO
-CREATE TRIGGER ON INSERT
 
 -- Table section
 IF OBJECT_ID('section', 'U') IS NOT NULL
     DROP TABLE [section]
 GO	
 
-CREATE OR ALTER TABLE [section]
+CREATE TABLE [section]
 (
     id INT NOT NULL,
     courseId INT NOT NULL,
@@ -503,7 +500,7 @@ IF OBJECT_ID('lesson', 'U') IS NOT NULL
     DROP TABLE [lesson]
 GO	
 
-CREATE OR ALTER TABLE [lesson]
+CREATE TABLE [lesson]
 (
     id INT NOT NULL,
 	sectionId INT NOT NULL,
@@ -537,7 +534,7 @@ IF OBJECT_ID('lecture', 'U') IS NOT NULL
     DROP TABLE [lecture]
 GO	
 
-CREATE OR ALTER TABLE [lecture]
+CREATE TABLE [lecture]
 (
 	id INT NOT NULL,
 	sectionId INT  NOT NULL,
@@ -558,7 +555,7 @@ IF OBJECT_ID('exercise', 'U') IS NOT NULL
     DROP TABLE [exercise]
 GO	
 
-CREATE OR ALTER TABLE [exercise]
+CREATE TABLE [exercise]
 (
     id INT NOT NULL,
 	sectionId INT NOT NULL,
@@ -577,7 +574,7 @@ IF OBJECT_ID('question', 'U') IS NOT NULL
     DROP TABLE [question]
 GO	
 
-CREATE OR ALTER TABLE [question]
+CREATE TABLE [question]
 (
 	id INT NOT NULL,
     exerciseId INT NOT NULL,
@@ -598,7 +595,7 @@ IF OBJECT_ID('questionAnswer', 'U') IS NOT NULL
     DROP TABLE [questionAnswer]
 GO	
 
-CREATE OR ALTER TABLE [questionAnswer]
+CREATE TABLE [questionAnswer]
 (
 	id INT NOT NULL,
 	questionId INT NOT NULL,
@@ -621,7 +618,7 @@ IF OBJECT_ID('learnerAnswerQuestion', 'U') IS NOT NULL
     DROP TABLE [learnerAnswerQuestion]
 GO	
 
-CREATE OR ALTER TABLE [learnerAnswerQuestion]
+CREATE TABLE [learnerAnswerQuestion]
 (
 	learnerId NVARCHAR(128) NOT NULL,
 	questionId INT NOT NULL,
@@ -642,7 +639,7 @@ IF OBJECT_ID('learnerParticipateLesson', 'U') IS NOT NULL
     DROP TABLE [learnerParticipateLesson]
 GO	
 
-CREATE OR ALTER TABLE [learnerParticipateLesson]
+CREATE TABLE [learnerParticipateLesson]
 (
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
@@ -662,7 +659,7 @@ IF OBJECT_ID('learnerDoExercise', 'U') IS NOT NULL
     DROP TABLE [learnerDoExercise]
 GO	
 
-CREATE OR ALTER TABLE [learnerDoExercise]
+CREATE TABLE [learnerDoExercise]
 (
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
@@ -684,7 +681,7 @@ IF OBJECT_ID('learnerParticipateSection', 'U') IS NOT NULL
     DROP TABLE [learnerParticipateSection]
 GO	
 
-CREATE OR ALTER TABLE [learnerParticipateSection]
+CREATE TABLE [learnerParticipateSection]
 (
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
@@ -705,9 +702,9 @@ IF OBJECT_ID('adminResponse', 'U') IS NOT NULL
     DROP TABLE [adminResponse]
 GO	
 
-CREATE OR ALTER TABLE [adminResponse]
+CREATE TABLE [adminResponse]
 (
-	id IDENTITY NOT NULL,
+	id INT NOT NULL IDENTITY(1,1),
 	adminId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
 	dateResponse DATE NOT NULL DEFAULT GETDATE(),
@@ -728,7 +725,7 @@ IF OBJECT_ID('cartDetail', 'U') IS NOT NULL
     DROP TABLE [cartDetail]
 GO	
 
-CREATE OR ALTER TABLE [cartDetail]
+CREATE TABLE [cartDetail]
 (
 	learnerId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
@@ -745,9 +742,9 @@ IF OBJECT_ID('message', 'U') IS NOT NULL
     DROP TABLE [message]
 GO	
 
-CREATE OR ALTER TABLE [message]	
+CREATE TABLE [message]	
 (
-	id IDENTITY NOT NULL,
+	id INT NOT NULL IDENTITY(1,1),
     content NVARCHAR(MAX) NOT NULL,
     isRead BIT NOT NULL DEFAULT 0,
     senderId NVARCHAR(128) NOT NULL,
@@ -768,7 +765,7 @@ IF OBJECT_ID('order', 'U') IS NOT NULL
     DROP TABLE [order]
 GO
 
-CREATE OR ALTER TABLE [order]
+CREATE TABLE [order]
 (
     id INT NOT NULL,
     learnerId NVARCHAR(128) NOT NULL,
@@ -792,7 +789,7 @@ IF OBJECT_ID('orderDetail', 'U') IS NOT NULL
 	DROP TABLE [orderDetail]
 GO
 
-CREATE OR ALTER TABLE [orderDetail]
+CREATE TABLE [orderDetail]
 (
 	id INT NOT NULL,
 	orderId INT NOT NULL,
@@ -812,7 +809,7 @@ IF OBJECT_ID('learnerPaymentCard', 'U') IS NOT NULL
     DROP TABLE [learnerPaymentCard]
 GO
 
-CREATE OR ALTER TABLE [learnerPaymentCard]
+CREATE TABLE [learnerPaymentCard]
 (
     learnerId NVARCHAR(128) NOT NULL,
     paymentCardNumber VARCHAR(16) NOT NULL,
@@ -828,7 +825,7 @@ IF OBJECT_ID('learnerEnrollCourse', 'U') IS NOT NULL
     DROP TABLE [learnerEnrollCourse]
 GO
 
-CREATE OR ALTER TABLE [learnerEnrollCourse]
+CREATE TABLE [learnerEnrollCourse]
 (
     courseId INT NOT NULL,
     learnerId NVARCHAR(128) NOT NULL,
@@ -850,7 +847,7 @@ IF OBJECT_ID('learnerReviewCourse', 'U') IS NOT NULL
     DROP TABLE [learnerReviewCourse]
 GO
 
-CREATE OR ALTER TABLE [learnerReviewCourse]
+CREATE TABLE [learnerReviewCourse]
 (
     courseId INT NOT NULL,
     learnerId NVARCHAR(128) NOT NULL,
@@ -876,9 +873,9 @@ IF OBJECT_ID('post', 'U') IS NOT NULL
     DROP TABLE [post]
 GO
 
-CREATE OR ALTER TABLE [post]
+CREATE TABLE [post]
 (
-    id IDENTITY NOT NULL,
+    id INT NOT NULL IDENTITY(1,1),
     date DATETIME NOT NULL DEFAULT GETDATE(),
     courseId INT NOT NULL,
     publisher NVARCHAR(128) NOT NULL,
@@ -899,21 +896,19 @@ IF OBJECT_ID('postNotification', 'U') IS NOT NULL
     DROP TABLE [postNotification]
 GO
 
-CREATE OR ALTER TABLE [postNotification]
+CREATE TABLE [postNotification]
 (
     postId INT NOT NULL,
     date DATETIME NOT NULL DEFAULT GETDATE(),
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
     memberNotification NVARCHAR(128) NOT NULL,
 	isRead BIT NOT NULL DEFAULT 0,
 
 	CONSTRAINT [Post date must be today or before.] CHECK(date <= GETDATE()),
 
-    CONSTRAINT [PK_postNotification] PRIMARY KEY(postId, courseId, postPublisher, memberNotification),
+    CONSTRAINT [PK_postNotification] PRIMARY KEY(postId, memberNotification),
 
     CONSTRAINT [FK_postNotification_courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id),
-	CONSTRAINT [FK_postNotification_post] FOREIGN KEY (postId, courseId, postPublisher) REFERENCES [post](id, courseId, publisher),
+	CONSTRAINT [FK_postNotification_post] FOREIGN KEY (postId) REFERENCES [post](id),
 );
 GO
 
@@ -922,9 +917,9 @@ IF OBJECT_ID('comment', 'U') IS NOT NULL
     DROP TABLE [comment]
 GO
 
-CREATE OR ALTER TABLE [comment]	
+CREATE TABLE [comment]	
 (
-    id IDENTITY NOT NULL,
+    id INT NOT NULL IDENTITY(1,1),
 	postId INT NOT NULL,
     date DATETIME NOT NULL DEFAULT GETDATE(),
     courseId INT NOT NULL,
@@ -937,7 +932,7 @@ CREATE OR ALTER TABLE [comment]
 
     CONSTRAINT [PK_comment] PRIMARY KEY(id),
 
-    CONSTRAINT [FK_comment_post] FOREIGN KEY (postId, courseId, postPublisher) REFERENCES [post](id, courseId, publisher),
+    CONSTRAINT [FK_comment_post] FOREIGN KEY (postId) REFERENCES [post](id),
 	CONSTRAINT [FK_comment_courseMember] FOREIGN KEY (commenter) REFERENCES [courseMember](id)
 );
 GO
@@ -947,20 +942,16 @@ IF OBJECT_ID('commentNotification', 'U') IS NOT NULL
     DROP TABLE [commentNotification]
 GO
 
-CREATE OR ALTER TABLE [commentNotification]	
+CREATE TABLE [commentNotification]	
 (
     commentId INT NOT NULL,
-	postId INT NOT NULL,
-    date DATETIME NOT NULL DEFAULT GETDATE(),
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
-	commenter NVARCHAR(128) NOT NULL,	
+    date DATETIME NOT NULL DEFAULT GETDATE(),	
 	memberNotification NVARCHAR(128) NOT NULL,
     isRead BIT NOT NULL DEFAULT 0,
 
-    CONSTRAINT [PK_commentNotification] PRIMARY KEY(commentId, postId, courseId, postPublisher, commenter, memberNotification),
+    CONSTRAINT [PK_commentNotification] PRIMARY KEY(commentId, memberNotification),
 
-    CONSTRAINT [FK_commentNotification_comment] FOREIGN KEY (commentId, postId, courseId, postPublisher, commenter) REFERENCES [comment](id, postId, courseId, postPublisher, commenter),
+    CONSTRAINT [FK_commentNotification_comment] FOREIGN KEY (commentId) REFERENCES [comment](id),
 	CONSTRAINT [FK_commentNotification__courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id)
 );
 GO
