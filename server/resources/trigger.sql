@@ -17,20 +17,13 @@ ON subCategory
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @countSubCategoriesOfCategory TABLE(
-        categoryId INT,
-        countSubCategories INT DEFAULT 0
-    )
+    DECLARE @MaxID INT;
 
-    INSERT INTO @countSubCategoriesOfCategory(categoryId, countSubCategories)
-    SELECT DISTINCT sc.parentCategoryId, ISNULL(MAX(sc.id), 0) AS count
-    FROM (SELECT DISTINCT parentCategoryId categoryId FROM inserted) pc
-    JOIN subCategory sc ON sc.parentCategoryId = pc.categoryId;
+    SELECT @MaxID = ISNULL(MAX(id), 0) FROM subCategory;
 
     INSERT INTO subCategory (id, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL) PARTITION BY parentCategoryId) + ssc.count, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
-    FROM inserted
-    JOIN @countSubCategoriesOfCategory ssc ON inserted.parentCategoryId = ssc.parentCategoryId;
+    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
+    FROM inserted;
 END
 GO
 
@@ -348,104 +341,5 @@ BEGIN
     SELECT id, 'INS'
     FROM inserted
     WHERE role = 'INS';
-END
-GO
-
-CREATE TRIGGER trg_AfterInsertComment_InsertCommentNotification
-ON [comment]
-AFTER INSERT
-AS
-BEGIN
-    -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
-    -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
-    WITH insertedComment(commentId, postId, date, courseId, postPublisher, commenter) AS (
-        SELECT commentId, postId, date, courseId, postPublisher, commenter
-        FROM inserted
-    ),
-    WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
-        WHERE EXISTS (
-            SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
-            SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
-        )
-    ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
-    FROM insertedComment
-    CROSS JOIN memberNoticed nc
-END
-GO
-
-CREATE TRIGGER trg_AfterInsertComment_InsertCommentNotification
-ON [comment]
-AFTER INSERT
-AS
-BEGIN
-    -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
-    -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
-    WITH insertedComment(commentId, postId, date, courseId, postPublisher, commenter) AS (
-        SELECT commentId, postId, date, courseId, postPublisher, commenter
-        FROM inserted
-    ),
-    WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
-        WHERE EXISTS (
-            SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
-            SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
-        )
-    ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
-    FROM insertedComment
-    CROSS JOIN memberNoticed nc
-END
-GO
-
-CREATE TRIGGER trg_AfterInsertPost_InsertPostNotification
-ON [post]
-AFTER INSERT
-AS
-BEGIN
-    -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
-    -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
-    WITH insertedPost(postId, date, courseId, postPublisher) AS (
-        SELECT id, date, courseId, postPublisher, commenter
-        FROM inserted
-    ),
-    WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
-        WHERE EXISTS (
-            SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
-            SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
-        )
-    ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
-    FROM insertedComment
-    CROSS JOIN memberNoticed nc
 END
 GO
