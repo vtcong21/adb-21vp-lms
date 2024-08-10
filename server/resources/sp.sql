@@ -267,9 +267,7 @@ GO
 -- finished
 CREATE OR ALTER PROC sp_CM_MarkReadMessages (
 	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@offset INT,
-	@limit INT
+	@receiverId NVARCHAR(128)
 )
 BEGIN TRAN
 	SET XACT_ABORT ON
@@ -345,22 +343,33 @@ GO
 
 
 
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_GetPostsInForum (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@courseId INT,
+	@offset INT,
+	@limit INT
 )
 AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@courseId IS NULL OR @offset IS NULL OR @limit IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Course ID, Offset and Limit are required.', 1;
 		END
-		
+		IF NOT EXISTS(SELECT 1 FROM [course] WHERE id = @courseId)
+		BEGIN
+			THROW 51000, 'Course does not exist', 1;
+		END
+		RETURN (
+			SELECT id as postId, date, publisher, content
+			FROM [post]
+			WHERE courseId = @courseId
+			ORDER BY date
+			OFFSET @offset ROWS
+			FETCH NEXT @limit ROWS ONLY;
+		)
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -372,23 +381,35 @@ COMMIT TRAN
 GO
 
 
-
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_CommentInPost (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@courseId INT,
+	@postId INT,
+	@postPublisher NVARCHAR(128),
+	@commenter NVARCHAR(128),
+	@commentContent NVARCHAR(MAX)
 )
 AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @messageContent IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Post ID, Course ID, Post Publisher ID, Commenter ID and Message Content are required.', 1;
+		END
+		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId AND courseId = @courseId AND publisher = @postPublisher)
+		BEGIN
+			THROW 51000, 'Post does not exist', 1;
 		END
 		
+		INSERT INTO [comment](postId, date, courseId, postPublisher, commenter, content)
+		VALUES (@postId, now(), @courseId, @postPublisher, @commenter, @commentContent)
+
+		RETURN (
+			SELECT *
+			FROM inserted
+		)	
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -401,22 +422,35 @@ GO
 
 
 
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_GetCommentsInPost (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@courseId INT,
+	@postId INT,
+	@postPublisher NVARCHAR(128),
+	@offset INT,
+	@limit INT
 )
 AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @messageContent IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Course ID, Post ID, Post Publisher ID, Offset and Limit are required.', 1;
 		END
-		
+		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId AND courseId = @courseId AND publisher = @postPublisher)
+		BEGIN
+			THROW 51000, 'Post does not exist', 1;
+		END
+		RETURN (
+			SELECT id as commentId, commenter, postId, postPublisher, content
+			FROM [comment]
+			WHERE postId = @postId AND courseId = @courseId AND postPublisher = @postPublisher
+			ORDER BY date asc -- check
+			OFFSET @offset ROWS
+			FETCH NEXT @limit ROWS ONLY;
+		)	
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -426,7 +460,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-
 
 
 -- un
