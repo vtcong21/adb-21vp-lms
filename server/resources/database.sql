@@ -400,7 +400,7 @@ GO
 CREATE TABLE [courseRequirements]
 (
     courseId INT NOT NULL,
-	requirementId INT IDENTITY(1,1) NOT NULL,
+	requirementId INT NOT NULL,
     requirement NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course requirement is required.] CHECK(LEN(requirement) > 0),
