@@ -23,14 +23,15 @@ BEGIN
     )
 
     INSERT INTO @countSubCategoriesOfCategory(categoryId, countSubCategories)
-    SELECT DISTINCT sc.parentCategoryId, ISNULL(MAX(sc.id), 0) AS count
+    SELECT DISTINCT pc.categoryId, ISNULL(MAX(sc.id), 0) AS count
     FROM (SELECT DISTINCT parentCategoryId categoryId FROM inserted) pc
-    JOIN subCategory sc ON sc.parentCategoryId = pc.categoryId;
+    LEFT JOIN [subCategory] sc ON sc.parentCategoryId = pc.categoryId
+	GROUP BY pc.categoryId;
 
-    INSERT INTO subCategory (id, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL) PARTITION BY parentCategoryId) + ssc.count, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
+    INSERT INTO [subCategory] (id, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses)
+    SELECT ROW_NUMBER() OVER (PARTITION BY parentCategoryId ORDER BY (SELECT NULL)) + ssc.countSubCategories, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
     FROM inserted
-    JOIN @countSubCategoriesOfCategory ssc ON inserted.parentCategoryId = ssc.parentCategoryId;
+    JOIN @countSubCategoriesOfCategory ssc ON inserted.parentCategoryId = ssc.categoryId;
 END
 GO
 
@@ -44,13 +45,21 @@ ON courseIntendedLearners
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @MaxID INT;
+    DECLARE @countIntendedLearnerOfCourse TABLE(
+        courseId INT,
+        countIntendedLearner INT DEFAULT 0
+    )
 
-    SELECT @MaxID = ISNULL(MAX(intendedLearnerId), 0) FROM courseIntendedLearners;
+	INSERT INTO @countIntendedLearnerOfCourse(courseId, countIntendedLearner)
+    SELECT DISTINCT c.courseId, ISNULL(MAX(intendedLearnerId), 0) AS count
+    FROM (SELECT DISTINCT courseId FROM inserted) c
+    LEFT JOIN [courseIntendedLearners] cil ON cil.courseId = c.courseId
+	GROUP BY c.courseId;
 
     INSERT INTO courseIntendedLearners (intendedLearnerId, courseId, intendedLearner)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, courseId, intendedLearner
-    FROM inserted;
+    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId ORDER BY (SELECT NULL)) + cil.countIntendedLearner, inserted.courseId, inserted.intendedLearner
+    FROM inserted
+	JOIN @countIntendedLearnerOfCourse cil ON cil.courseId = inserted.courseId;
 END
 GO
 
@@ -64,13 +73,21 @@ ON courseRequirements
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @MaxID INT;
+    DECLARE @countRequirementOfCourse TABLE(
+        courseId INT,
+        countRequirement INT DEFAULT 0
+    )
 
-    SELECT @MaxID = ISNULL(MAX(requirementId), 0) FROM courseRequirements;
+	INSERT INTO @countRequirementOfCourse(courseId, countRequirement)
+    SELECT DISTINCT c.courseId, ISNULL(MAX(requirementId), 0) AS count
+    FROM (SELECT DISTINCT courseId FROM inserted) c
+    LEFT JOIN [courseRequirements] cr ON cr.courseId = c.courseId
+	GROUP BY c.courseId;
 
     INSERT INTO courseRequirements (requirementId, courseId, requirement)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, courseId, requirement
-    FROM inserted;
+    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId ORDER BY (SELECT NULL)) + cr.countRequirement, inserted.courseId, inserted.requirement
+    FROM inserted
+	JOIN @countRequirementOfCourse cr ON cr.courseId = inserted.courseId;
 END
 GO
 
@@ -84,15 +101,24 @@ ON courseObjectives
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @MaxID INT;
+	DECLARE @countObjectiveOfCourse TABLE(
+        courseId INT,
+        countObjective INT DEFAULT 0
+    )
 
-    SELECT @MaxID = ISNULL(MAX(objectiveId), 0) FROM courseObjectives;
+	INSERT INTO @countObjectiveOfCourse(courseId, countObjective)
+    SELECT DISTINCT c.courseId, ISNULL(MAX(objectiveId), 0) AS count
+    FROM (SELECT DISTINCT courseId FROM inserted) c
+    LEFT JOIN [courseObjectives] co ON co.courseId = c.courseId
+	GROUP BY c.courseId;
 
     INSERT INTO courseObjectives (objectiveId, courseId, objective)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, courseId, objective
-    FROM inserted;
+    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId ORDER BY (SELECT NULL)) + co.countObjective, inserted.courseId, inserted.objective
+    FROM inserted
+	JOIN @countObjectiveOfCourse co ON co.courseId = inserted.courseId;
 END
 GO
+
 
 --5/ Trigger to auto-increment the 'id' column in 'section' table
 IF OBJECT_ID('trg_AutoIncrement_SectionID', 'TR') IS NOT NULL
