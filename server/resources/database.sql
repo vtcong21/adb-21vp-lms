@@ -419,7 +419,7 @@ GO
 CREATE TABLE [courseObjectives]
 (
     courseId INT NOT NULL,
-	objectiveId INT IDENTITY(1,1) NOT NULL,
+	objectiveId INT NOT NULL,
     objective NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course objective is required.] CHECK(LEN(objective) > 0),
