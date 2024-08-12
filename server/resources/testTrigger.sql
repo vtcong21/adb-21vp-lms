@@ -59,3 +59,37 @@ VALUES (29, 'Maximize financial earnings through strategic decision-making'),
        (73, 'Introduce children to basic financial concepts in an engaging manner');
 
 select * from courseObjectives;
+
+select * from questionAnswer;
+
+select * from section;
+
+insert into section values (1, 25, 'Section 1', 10);
+
+insert into lesson values (1, 1, 25, 'Lesson 1', 5, 'exercise');
+
+insert into lesson values (2, 1, 25, 'Lesson 2', 5, 'exercise');
+
+select * from exercise;
+
+insert into exercise values(1, 1, 25);
+
+insert into exercise values(2, 1, 25);
+
+select * from question;
+
+insert into question values (1, 1, 1, 25, 'What is 1+1?');
+
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 1, '5', 0);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 1, '2', 1);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 1, '+2', 1);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 1, '--2', 1);
+
+insert into question values (2, 1, 1, 25, 'What is 2-1?');
+
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 2, '6', 0);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 2, '1', 1);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 2, '0', 0);
+insert into questionanswer (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) values(25, 1, 1, 2, '-1', 0);
+
+select * from questionanswer order by questionId, id;
