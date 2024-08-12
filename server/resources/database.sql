@@ -11,7 +11,6 @@ GO
 
 USE LMS
 GO
-
 -- CREATE TABLEs
 
 CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole VARCHAR(3))
@@ -136,7 +135,7 @@ CREATE TABLE [instructor]
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
     
 	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [Instructor id is invalid.] CHECK([dbo].isValidCourseMember(id, 'INS') = 1),
+	CONSTRAINT [Instructor's role must be valid.] CHECK([dbo].isValidCourseMember(id, 'INS') = 1),
 	CONSTRAINT [Instructor gender is invalid.] CHECK(gender IN ('M', 'F')),
 	CONSTRAINT [Instructor phone number must be 10 to 11 digits long.] CHECK(LEN(phone) BETWEEN 10 AND 11 AND ISNUMERIC(phone) = 1),
 	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
@@ -220,7 +219,7 @@ CREATE TABLE [vipInstructor]
     paymentCardNumber VARCHAR(16) NOT NULL,
     
 	CONSTRAINT [VIP instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1), -- Hơi có vấn đề, xem SỬA
+	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1), --CHECK!!!!!!!!!!!!!
 
     CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
 
