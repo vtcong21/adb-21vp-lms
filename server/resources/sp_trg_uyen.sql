@@ -7,9 +7,9 @@ IF OBJECT_ID('sp_AD_INS_ChangeStateOfCourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_ChangeStateOfCourse]
 GO
 CREATE PROCEDURE sp_AD_INS_ChangeStateOfCourse
-	@adminId NVARCHAR(128),
+	@adminId NVARCHAR(128) = NULL,
 	@courseId INT,
-	@vipState VARCHAR(7),
+	@vipState VARCHAR(15),
 	@responseText NVARCHAR(MAX) = NULL
 AS
 BEGIN
@@ -26,15 +26,28 @@ BEGIN
 		-- có 2 trường hợp
 		-- từ chối phê duyệt khóa học (pendingReview --> pendingReview)
 		-- ẩn khóa học (public --> pendingReview)
-		ELSE IF (@vipState = 'pendingReview' AND @responseText IS NOT NULL)
+		ELSE IF (@vipState = 'pendingReview' 
+				AND @responseText IS NOT NULL AND @adminId IS NOT NULL)
 		BEGIN
+			
+			UPDATE course
+			SET state = @vipState
+			WHERE id = @courseId;
+
+			INSERT INTO adminResponse(adminId, courseId, responseText, dateResponse)
+			VALUES (@adminId, @courseId, @responseText, GETDATE());
+
+        END
+
+		-- giảng viên gửi yêu cầu đc đăng khóa học
+		-- draft --> pendingReview
+		ELSE IF (@responseText IS NULL AND @adminId IS NULL)
+        BEGIN
             UPDATE course
             SET state = @vipState
             WHERE id = @courseId;
-
-            INSERT INTO adminResponse(adminId, courseId, responseText, dateResponse)
-            VALUES (@adminId, @courseId, @responseText, GETDATE());
         END
+
 
 		-- trả về lỗi nếu không thuộc 1 trong 2 trường hợp trên
 		ELSE
@@ -70,6 +83,7 @@ BEGIN
 		BEGIN
 			SELECT id, email, name, profilePhoto, role
 			FROM [user] WHERE role = @type
+			FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 		END
 
 		ELSE IF (@type = 'INS')
@@ -79,6 +93,7 @@ BEGIN
 					INS.scientificBackground, INS.vipState
 			FROM [user] U JOIN instructor INS ON (U.id = INS.id)
 			WHERE role = 'INS'
+			FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 		END
 
 		ELSE 
@@ -87,6 +102,7 @@ BEGIN
 					INS.gender, INS.phone, INS.DOB, INS.address, INS.degrees,
 					INS.scientificBackground, INS.vipState
 			FROM [user] U LEFT JOIN instructor INS ON (U.id = INS.id)
+			FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 		END
 
 		COMMIT TRANSACTION;
@@ -127,7 +143,8 @@ BEGIN
 				((year = @startYear AND month >= @startMonth) OR
 				(year = @currentYear AND month <= @currentMonth) OR
 				(year > @startYear AND year < @currentYear))
-        ORDER BY year, month;
+        ORDER BY year, month
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -159,7 +176,8 @@ BEGIN
         FROM instructorRevenueByMonth
         WHERE instructorId = @instructorId AND year >= @startYear
         GROUP BY year
-        ORDER BY year;
+        ORDER BY year
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
         COMMIT TRANSACTION;
     END TRY
@@ -239,6 +257,7 @@ BEGIN
 					WHERE instructorId = @userId)
 				GROUP BY IOC.courseId) AS T 
 			ON C.id = T.courseId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -265,6 +284,7 @@ BEGIN
 		FROM adminResponse AR JOIN [user] U ON (AR.adminId = U.id)
 		WHERE courseId = @courseId
 		ORDER BY AR.dateResponse DESC
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -291,6 +311,7 @@ BEGIN
 		SELECT LER.learnerId, U.name
 		FROM learnerEnrollCourse LER JOIN [user] U ON (LER.learnerId = U.id)
 		WHERE LER.courseId = @courseId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -319,6 +340,7 @@ BEGIN
 				SC.numberOfLearners, SC.averageRating
 		FROM subCategory SC JOIN category C ON (SC.parentCategoryId = C.id)
 		ORDER BY SC.numberOfLearners DESC, SC.averageRating DESC
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -452,12 +474,13 @@ BEGIN
 		BEGIN
 			
 			DECLARE @NewCourseId INT;
-
+			
 			INSERT INTO course (title, subTitle, description, image, video, subCategoryId, categoryId, language, price)
 			VALUES (@title, @subTitle, @description, @image, @video, @subCategoryId, @categoryId, @language, @price);
 
 			SET @NewCourseId = SCOPE_IDENTITY();
-			SELECT @NewCourseId AS NewCourseId;
+			SELECT @NewCourseId AS courseId
+			FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		END
 		ELSE
@@ -624,7 +647,6 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-
 		DECLARE @NewSectionId INT;
 
         SELECT @NewSectionId = ISNULL(MAX(id), 0) + 1
@@ -635,6 +657,7 @@ BEGIN
 		VALUES (@NewSectionId, @courseId, @title);
 
 		SELECT @NewSectionId as sectionId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -662,7 +685,6 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-
 		DECLARE @NewLessonId INT;
 
         SELECT @NewLessonId = ISNULL(MAX(id), 0) + 1
@@ -673,6 +695,7 @@ BEGIN
 		VALUES (@NewLessonId, @courseId, @sectionId, @title, @learnTime, @type);
 
 		SELECT @NewLessonId as lessonId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -728,7 +751,6 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-		
 		DECLARE @NewQuestionId INT;
 
         SELECT @NewQuestionId = ISNULL(MAX(id), 0) + 1
@@ -739,6 +761,7 @@ BEGIN
 		VALUES (@NewQuestionId, @courseId, @sectionId, @exerciseId, @question);
 
 		SELECT @NewQuestionId as questionId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 		COMMIT TRANSACTION;
 	END TRY
