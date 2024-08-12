@@ -120,67 +120,7 @@ END
 GO
 
 
---5/ Trigger to auto-increment the 'id' column in 'section' table
-IF OBJECT_ID('trg_AutoIncrement_SectionID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_SectionID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_SectionID
-ON section
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM section;
-
-    INSERT INTO section (id, courseId, title, learnTime)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, courseId, title, learnTime
-    FROM inserted;
-END
-GO
-
---6/ Trigger to auto-increment the 'id' column in 'lesson' table
-IF OBJECT_ID('trg_AutoIncrement_LessonID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_LessonID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_LessonID
-ON lesson
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM lesson;
-
-    INSERT INTO lesson (id, sectionId, courseId, title, learnTime, type)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, sectionId, courseId, title, learnTime, type
-    FROM inserted;
-END
-GO
-
---7/ Trigger to auto-increment the 'id' column in 'question' table
-IF OBJECT_ID('trg_AutoIncrement_QuestionID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_QuestionID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_QuestionID
-ON question
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM question;
-
-    INSERT INTO question (id, exerciseId, sectionId, courseId, question, correctAnswer)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, exerciseId, sectionId, courseId, question, correctAnswer
-    FROM inserted;
-END
-GO
-
---8/ Trigger to auto-increment the 'id' column in 'questionAnswer' table
+--5/ Trigger to auto-increment the 'id' column in 'questionAnswer' table CHECK
 IF OBJECT_ID('trg_AutoIncrement_QuestionAnswerID', 'TR') IS NOT NULL
     DROP TRIGGER trg_AutoIncrement_QuestionAnswerID
 GO
@@ -190,13 +130,24 @@ ON questionAnswer
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @MaxID INT;
+    DECLARE @countQuestionAnswer TABLE(
+        courseId INT,
+        sectionId INT,
+        exerciseId INT,
+        questionId INT,
+        countQuestionAnswer INT DEFAULT 0
+    )
 
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM questionAnswer;
+    INSERT INTO @countQuestionAnswer(courseId, sectionId, exerciseId, questionId, countQuestionAnswer)
+    SELECT DISTINCT courseId, sectionId, exerciseId, questionId, ISNULL(MAX(id), 0) AS countQuestionAnswer
+    FROM (SELECT DISTINCT courseId, sectionId, exerciseId, questionId FROM inserted) c
+    LEFT JOIN [questionAnswer] qa ON qa.courseId = c.courseId, qa.sectionId = c.sectionId, qa.exerciseId = c.exerciseId, qa.questionId = c.questionId
+	GROUP BY c.courseId, c.sectionId, c.exerciseId, c.questionId;
 
     INSERT INTO questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, questionId, exerciseId, sectionId, courseId, questionAnswers
-    FROM inserted;
+    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId, inserted.sectionId, inserted.exerciseId, inserted.questionId ORDER BY (SELECT NULL)) + qa.countQuestionAnswer, inserted.courseId, inserted.sectionId, inserted.exerciseId, inserted.questionId
+    FROM inserted
+    JOIN @countQuestionAnswer qa ON qa.courseId = inserted.courseId, qa.sectionId = inserted.sectionId, qa.exerciseId = inserted.exerciseId, qa.questionId = inserted.questionId;
 END
 GO
 
