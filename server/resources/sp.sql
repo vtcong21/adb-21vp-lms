@@ -22,9 +22,10 @@
 -- 	END CATCH
 -- COMMIT TRAN
 -- GO
+use LMS
+go
 
-
--- finished
+-- finished and tested
 CREATE OR ALTER PROC sp_AD_CreateAdmin (
 	@id NVARCHAR(128),
 	@email NVARCHAR(256),
@@ -32,19 +33,23 @@ CREATE OR ALTER PROC sp_AD_CreateAdmin (
 	@password VARCHAR(128),
     @profilePhoto NVARCHAR(256)
 )
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+AS
+BEGIN TRAN;
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
 		IF (@id IS NULL OR @email IS NULL OR @name IS NULL OR @password IS NULL OR @profilePhoto IS NULL)
-		BEGIN
-			THROW 52000, 'ID, Email, Name, Password and ProfilePhoto is required', 1
+		BEGIN;
+			THROW 52000, 'ID, Email, Name, Password and ProfilePhoto is required', 1;
 		END
 		
 		INSERT INTO [user](id, email, name, password, profilePhoto, role)
-		VALUES (@id, @email, @name, @password, @profilePhoto, 'AD')
+		VALUES (@id, @email, @name, @password, @profilePhoto, 'AD');
 
-		RETURN (SELECT id, email, name, profilePhoto, role FROM [user] WHERE id = @id)
+		SELECT id, email, name, profilePhoto, role 
+		FROM [user] 
+		WHERE id = @id
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -55,18 +60,26 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
+-- test
+EXEC sp_AD_CreateAdmin 
+    @id = 'user3', 
+    @email = 'user3@example.com', 
+    @name = 'User Three', 
+    @password = 'Password123', 
+    @profilePhoto = 'photo1.jpg';
+GO
 
--- finished
-CREATE OR ALTER PROC sp_AD_GetVIPInstructorQueue ()
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+-- finished and tested
+CREATE OR ALTER PROC sp_AD_GetVIPInstructorQueue
+AS
+BEGIN TRAN;
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY		
-		RETURN (
-			SELECT [instructor].*, 
-			FROM [instructor]
-			WHERE vipState = 'pending';
-		)
+		SELECT [instructor].* 
+		FROM [instructor]
+		WHERE vipState = 'pending'
+		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -74,49 +87,158 @@ BEGIN TRAN
 		THROW 51000, @errorMessage, 1;
 		RETURN
 	END CATCH
-COMMIT TRAN
+COMMIT TRAN;
+GO
 
+-- test
+INSERT INTO [user] (id, email, name, password, profilePhoto, role)
+VALUES (
+    'instructor1', 
+    'instructor1@springfield.edu', 
+    'John Doe', 
+    'Password123', 
+    'john_doe_photo.jpg', 
+    'INS'
+);
+INSERT INTO [courseMember] (id, role)
+VALUES (
+	'instructor1',
+	'INS'
+)
+INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
+VALUES (
+    'instructor1', 
+    'M', 
+    '12345678901', 
+    '1980-05-15', 
+    '123 Elm Street, Springfield, IL', 
+    'Ph.D. in Computer Science', 
+    'Springfield University', 
+    'Expert in Artificial Intelligence and Machine Learning', 
+    'pending', 
+    50000.00
+);
+INSERT INTO [user] (id, email, name, password, profilePhoto, role)
+VALUES (
+    'instructor2', 
+    'instructor2@greenfield.edu', 
+    'Jane Smith', 
+    'SecurePass456', 
+    'jane_smith_photo.jpg', 
+    'INS'
+);
+INSERT INTO [courseMember] (id, role)
+VALUES (
+	'instructor2',
+	'INS'
+)
+INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
+VALUES (
+    'instructor2', 
+    'F', 
+    '09876543210', 
+    '1975-10-22', 
+    '456 Oak Avenue, Greenfield, CA', 
+    'Master of Education', 
+    'Greenfield High School', 
+    'Specialist in Educational Psychology', 
+    'Vip', 
+    75000.00
+);
+INSERT INTO [user] (id, email, name, password, profilePhoto, role)
+VALUES (
+    'instructor3', 
+    'instructor3@rivercity.edu', 
+    'Michael Brown', 
+    'MathGuru789', 
+    'michael_brown_photo.jpg', 
+    'INS'
+);
+INSERT INTO [courseMember] (id, role)
+VALUES (
+	'instructor3',
+	'INS'
+)
+INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
+VALUES (
+    'instructor3', 
+    'M', 
+    '11223344556', 
+    '1990-01-10', 
+    '789 Maple Lane, River City, NY', 
+    'Bachelor of Science in Mathematics', 
+    'River City College', 
+    'Researcher in Theoretical Mathematics and Algebra', 
+    'notVip', 
+    40000.00
+);
+
+EXEC sp_AD_GetVIPInstructorQueue
+GO
 
 -- finished
 CREATE OR ALTER PROC sp_AD_GetTaxForm (
 	@instructorId NVARCHAR(128)
 )
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+AS
+BEGIN TRAN;
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
 		IF (@instructorId IS NULL)
 		BEGIN
-			THROW 52000, 'InstructorID is required.', 1
-		END
+			THROW 52000, 'InstructorID is required.', 1;
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [instructor] WHERE id = @instructorId)
 		BEGIN
 			THROW 51000, 'Instructor does not exist.', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [taxForm] WHERE vipInstructorId = @instructorId)
 		BEGIN
 			THROW 51000, 'Instructor has not submitted any tax forms.', 1;
-		END
+		END;
 
-		RETURN (
-			WITH instructorInfo (gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue) AS (
-				SELECT gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue
-				FROM [instructor]
-				WHERE id = @instructorId;
-			),
-			SELECT * 
-			FROM [taxForm]
-			JOIN instructorInfo ON id = vipInstructorId
-			WHERE vipInstructorId = @instructorId;
+		WITH instructorInfo (id, gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue) AS (
+			SELECT id, gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue
+			FROM [instructor]
+			WHERE id = @instructorId
 		)
+		SELECT * 
+		FROM [taxForm]
+		JOIN instructorInfo ON id = vipInstructorId
+		WHERE vipInstructorId = @instructorId
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
 		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
 		THROW 51000, @errorMessage, 1;
-		RETURN
 	END CATCH
 COMMIT TRAN
+
+-- test
+
+INSERT INTO [vipInstructor] VALUES ('instructor1', '12421412412');
+INSERT INTO [taxForm] (
+    submissionDate, 
+    fullName, 
+    address, 
+    phone, 
+    taxCode, 
+    identityNumber, 
+    postCode, 
+    vipInstructorId
+)
+VALUES (
+    GETDATE(),                  -- submissionDate (defaults to today's date)
+    'John Doe',                 -- fullName
+    '123 Elm Street, Springfield, IL',  -- address
+    '12345678901',              -- phone
+    '123456789012',             -- taxCode
+    '987654321012',             -- identityNumber
+    '62704',                    -- postCode
+    'instructor1'               -- vipInstructorId (foreign key)
+);
 
 
 -- finished
@@ -606,22 +728,23 @@ GO
 
 
 
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_GetLearnerPaymentCard (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@learnerId NVARCHAR(128)
 )
 AS
 BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@learnerId IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
-		END
+			THROW 51000, 'Learner Id is required.', 1;
+		END;
 		
+		SELECT paymentCardNumber
+		FROM [learnerPaymentCard]
+		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -633,25 +756,24 @@ COMMIT TRAN
 GO
 
 
-
-
-
--- un
+-- finished and tested
 CREATE OR ALTER PROC sp_CM_GetInstructorPaymentCard (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@instructorId NVARCHAR(128)
 )
 AS
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+BEGIN TRAN;
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@instructorId IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 51000, 'Instructor Id is required.', 1;
 		END
-		
+
+		SELECT paymentCardNumber
+		FROM [vipInstructor]
+		WHERE id = @instructorId
+		FOR JSON PATH
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -660,4 +782,10 @@ BEGIN TRAN
 		RETURN
 	END CATCH
 COMMIT TRAN
+GO
+
+-- test
+
+EXEC sp_CM_GetInstructorPaymentCard
+	@instructorId = 'instructor1'
 GO
