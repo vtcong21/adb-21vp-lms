@@ -151,125 +151,13 @@ BEGIN
 END
 GO
 
---9/ Trigger to auto-increment the 'id' column in 'adminResponse' table
-IF OBJECT_ID('trg_AutoIncrement_AdminResponseID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_AdminResponseID
-GO
+--ID1/ Trigger to auto-increment the 'id' column in 'adminResponse' table
 
-CREATE TRIGGER trg_AutoIncrement_AdminResponseID
-ON adminResponse
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
+--ID2/ Trigger to auto-increment the 'id' column in 'message' table
 
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM adminResponse;
+--ID3/ Trigger to auto-increment the 'id' column in 'post' table
 
-    INSERT INTO adminResponse (id, adminId, courseId, dateResponse, responseText)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, adminId, courseId, dateResponse, responseText
-    FROM inserted;
-END
-GO
-
---10/ Trigger to auto-increment the 'id' column in 'message' table
-IF OBJECT_ID('trg_AutoIncrement_MessageID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_MessageID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_MessageID
-ON [message]
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM [message];
-
-    INSERT INTO [message] (id, content, isRead, senderId, receiverId, sentTime)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, content, isRead, senderId, receiverId, sentTime
-    FROM inserted;
-END
-GO
-
---11/ Trigger to auto-increment the 'id' column in 'order' table
-IF OBJECT_ID('trg_AutoIncrement_OrderID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_OrderID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_OrderID
-ON [order]
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM [order];
-
-    INSERT INTO [order] (id, learnerId, dateCreated, total, paymentCardNumber, couponCode)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, learnerId, dateCreated, total, paymentCardNumber, couponCode
-    FROM inserted;
-END
-GO
-
---12/ Trigger to auto-increment the 'id' column in 'orderDetail' table
-IF OBJECT_ID('trg_AutoIncrement_OrderDetailID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_OrderDetailID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_OrderDetailID
-ON orderDetail
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM orderDetail;
-
-    INSERT INTO orderDetail (id, orderId, learnerId, courseId, coursePrice)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, orderId, learnerId, courseId, coursePrice
-	FROM inserted;
-END
-GO
-
---13/ Trigger to auto-increment the 'id' column in 'post' table
-IF OBJECT_ID('trg_AutoIncrement_PostID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_PostID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_PostID
-ON post
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM post;
-
-    INSERT INTO post (id, date, courseId, publisher, content)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, date, courseId, publisher, content
-	FROM inserted;
-END
-GO
-
---14/ Trigger to auto-increment the 'id' column in 'comment' table
-IF OBJECT_ID('trg_AutoIncrement_CommentID', 'TR') IS NOT NULL
-    DROP TRIGGER trg_AutoIncrement_CommentID
-GO
-
-CREATE TRIGGER trg_AutoIncrement_CommentID
-ON comment
-INSTEAD OF INSERT
-AS
-BEGIN
-    DECLARE @MaxID INT;
-
-    SELECT @MaxID = ISNULL(MAX(id), 0) FROM comment;
-
-    INSERT INTO comment (id, postId, date, courseId, postPublisher, commenter, content)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, postId, date, courseId, postPublisher, commenter, content
-	FROM inserted;
-END
-GO
+--ID4/ Trigger to auto-increment the 'id' column in 'comment' table
 
 --15/ Trigger insert learner
 IF OBJECT_ID('trg_Insert_InsertUserAsLearner', 'TR') IS NOT NULL
