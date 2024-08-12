@@ -139,15 +139,15 @@ BEGIN
     )
 
     INSERT INTO @countQuestionAnswer(courseId, sectionId, exerciseId, questionId, countQuestionAnswer)
-    SELECT DISTINCT courseId, sectionId, exerciseId, questionId, ISNULL(MAX(id), 0) AS countQuestionAnswer
+    SELECT DISTINCT c.courseId, c.sectionId, c.exerciseId, c.questionId, ISNULL(MAX(id), 0) AS countQuestionAnswer
     FROM (SELECT DISTINCT courseId, sectionId, exerciseId, questionId FROM inserted) c
-    LEFT JOIN [questionAnswer] qa ON qa.courseId = c.courseId, qa.sectionId = c.sectionId, qa.exerciseId = c.exerciseId, qa.questionId = c.questionId
+    LEFT JOIN [questionAnswer] qa ON qa.courseId = c.courseId AND qa.sectionId = c.sectionId AND qa.exerciseId = c.exerciseId AND qa.questionId = c.questionId
 	GROUP BY c.courseId, c.sectionId, c.exerciseId, c.questionId;
 
-    INSERT INTO questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers)
-    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId, inserted.sectionId, inserted.exerciseId, inserted.questionId ORDER BY (SELECT NULL)) + qa.countQuestionAnswer, inserted.courseId, inserted.sectionId, inserted.exerciseId, inserted.questionId
+    INSERT INTO questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers, isCorrect)
+    SELECT ROW_NUMBER() OVER (PARTITION BY inserted.courseId, inserted.sectionId, inserted.exerciseId, inserted.questionId ORDER BY (SELECT NULL)) + qa.countQuestionAnswer, inserted.questionId, inserted.exerciseId, inserted.sectionId, inserted.courseId, inserted.questionAnswers, inserted.isCorrect
     FROM inserted
-    JOIN @countQuestionAnswer qa ON qa.courseId = inserted.courseId, qa.sectionId = inserted.sectionId, qa.exerciseId = inserted.exerciseId, qa.questionId = inserted.questionId;
+    JOIN @countQuestionAnswer qa ON qa.courseId = inserted.courseId AND qa.sectionId = inserted.sectionId AND qa.exerciseId = inserted.exerciseId AND qa.questionId = inserted.questionId;
 END
 GO
 
