@@ -26,7 +26,7 @@ BEGIN
             AND o.dateCreated < GETDATE()
         GROUP BY
             o.dateCreated
-        ORDER BYsq
+        ORDER BY
             o.dateCreated DESC;
         COMMIT TRANSACTION;
     END TRY
@@ -1061,3 +1061,37 @@ BEGIN
 END;
 GO
 
+
+-- LN - GetEnrolledCourse
+IF OBJECT_ID('sp_LN_GetEnrolledCourse', 'P') IS NOT NULL
+    DROP PROCEDURE sp_LN_GetEnrolledCourse;
+GO
+
+CREATE PROCEDURE sp_LN_GetEnrolledCourse
+    @learnerId NVARCHAR(128)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        SELECT
+            c.id,
+            c.title,
+            c.image
+        FROM
+            course c
+        JOIN
+            learnerEnrollCourse lec ON c.id = lec.courseId
+        WHERE
+            lec.learnerId = @learnerId;
+        
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @errorMessage NVARCHAR(4000);
+        SET @errorMessage = ERROR_MESSAGE();
+        RAISERROR('An error occurred while get the enrolled courses: %s', 16, 1, @errorMessage);
+    END CATCH
+END;
+GO
