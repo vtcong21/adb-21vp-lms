@@ -670,22 +670,38 @@ GO
 
 
 
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_ReadCommentNotification (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@commentId INT,
+	@memberNotification NVARCHAR(128)
 )
 AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@memberNotification IS NULL OR @commentId IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Member ID and Comment ID are required.', 1;
 		END
-		
+		IF NOT EXISTS(SELECT 1 FROM courseMember WHERE id = @memberNotification)
+		BEGIN
+			THROW 51000, 'Member not found.', 1;
+		END
+		IF NOT EXISTS(SELECT 1 FROM commentNotification WHERE memberNotification = @memberNotification AND commentId = @commentId)
+		BEGIN
+			THROW 51000, 'Notification not found.', 1;
+		END
+
+		UPDATE commentNotification
+		SET isRead = 1
+		WHERE memberNotification = @memberNotification AND commentId = @commentId
+
+		SELECT commentId, memberNotification, isRead
+		FROM commentNotification
+		WHERE commentId = @commentId AND memberNotification = @memberNotification
+		FOR JSON PATH;
+
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -699,22 +715,38 @@ GO
 
 
 
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_ReadPostNotification (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@postId INT,
+	@memberNotification NVARCHAR(128)
 )
 AS
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+BEGIN TRAN;
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@memberNotification IS NULL OR @postId IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Member ID and Post ID are required.', 1;
 		END
-		
+		IF NOT EXISTS(SELECT 1 FROM [courseMember] WHERE id = @memberNotification)
+		BEGIN
+			THROW 51000, 'Member not found', 1;
+		END
+		IF NOT EXISTS(SELECT 1 FROM [postNotification] WHERE postId = @postId AND memberNotification = @memberNotification)
+		BEGIN
+			THROW 51000, 'Notification not found', 1;
+		END
+
+		UPDATE postNotification
+		SET isRead = 1
+		WHERE postId = @postId AND memberNotification = @memberNotification;
+
+		SELECT postId, memberNotification, isRead
+		FROM postNotification
+		WHERE postId = @postId AND memberNotification = @memberNotification
+		FOR JSON PATH;
+
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -724,8 +756,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-
-
 
 
 -- finished
