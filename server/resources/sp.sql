@@ -569,7 +569,7 @@ BEGIN TRAN
 			SELECT id as commentId, commenter, postId, postPublisher, content
 			FROM [comment]
 			WHERE postId = @postId AND courseId = @courseId AND postPublisher = @postPublisher
-			ORDER BY date asc -- check
+			ORDER BY date asc -- CHECK
 			OFFSET @offset ROWS
 			FETCH NEXT @limit ROWS ONLY;
 		)	
@@ -584,78 +584,33 @@ COMMIT TRAN
 GO
 
 
--- un
-CREATE OR ALTER PROC sp_CM_CreatePostNotification (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
-)
-AS
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
-	BEGIN TRY
-		IF NOT EXISTS()
-		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
-		END
-		
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRAN;
-		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
-		THROW 51000, @errorMessage, 1;
-		RETURN
-	END CATCH
-COMMIT TRAN
-GO
-
-
-
--- un
-CREATE OR ALTER PROC sp_CM_CreateCommentNotification (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
-)
-AS
-BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
-	BEGIN TRY
-		IF NOT EXISTS()
-		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
-		END
-		
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRAN;
-		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
-		THROW 51000, @errorMessage, 1;
-		RETURN
-	END CATCH
-COMMIT TRAN
-GO
-
-
-
-
--- un
+-- finished
 CREATE OR ALTER PROC sp_CM_GetAccountNotifications (
-	@senderId NVARCHAR(128),
-	@receiverId NVARCHAR(128),
-	@messageContent NVARCHAR(MAX)
+	@memberId NVARCHAR(128)
 )
 AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF NOT EXISTS()
+		IF (@memberId IS NULL)
 		BEGIN
-			THROW 51000, 'Receiver does not exist', 1;
+			THROW 52000, 'Member ID is required.', 1;
 		END
+		IF NOT EXISTS(SELECT 1 FROM courseMember WHERE id = @memberId)
+		BEGIN
+			THROW 51000, 'Member not found.', 1;
+		END
+
+		SELECT commentId, 'post'
+		FROM commentNotification
+		WHERE memberNotification = @memberId
+		FOR JSON PATH
+		UNION
+		SELECT postId, 'comment'
+		FROM postNotification
+		WHERE memberNotification = @postId
+		FOR JSON PATH
 		
 	END TRY
 	BEGIN CATCH
