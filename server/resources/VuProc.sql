@@ -133,6 +133,7 @@ BEGIN TRAN
 		FROM [course] c 
 		JOIN [subCategory] s ON c.subCategoryId = s.id AND c.categoryId = s.parentCategoryId
 		JOIN [category] ca ON ca.id = s.parentCategoryId
+		WHERE c.title LIKE @courseName + '%'
 		FOR JSON PATH;
 
 	END TRY
