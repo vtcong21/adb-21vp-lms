@@ -1,27 +1,3 @@
--- CREATE OR ALTER PROC sp_Role_ProcName (
--- 	@senderId NVARCHAR(128),
--- 	@receiverId NVARCHAR(128),
--- 	@messageContent NVARCHAR(MAX)
--- )
--- AS
--- BEGIN TRAN
--- 	SET XACT_ABORT ON
--- 	SET NOCOUNT ON
--- 	BEGIN TRY
--- 		IF NOT EXISTS()
--- 		BEGIN
--- 			THROW 51000, 'Receiver does not exist', 1;
--- 		END
-		
--- 	END TRY
--- 	BEGIN CATCH
--- 		ROLLBACK TRAN;
--- 		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
--- 		THROW 51000, @errorMessage, 1;
--- 		RETURN
--- 	END CATCH
--- COMMIT TRAN
--- GO
 use LMS
 go
 
@@ -265,11 +241,11 @@ BEGIN TRAN
 		UPDATE [instructor]
 		SET state = @state
 		WHERE id = @instructorId;
-		RETURN (
-			SELECT id, state
-			FROM [instructor]
-			WHERE id = @instructorId;
-		)
+		
+		SELECT id, state
+		FROM [vipInstructor]
+		WHERE id = @instructorId
+		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -282,6 +258,7 @@ GO
 
 
 -- finished
+-- FIX return
 CREATE OR ALTER PROC sp_CM_CreateMessage (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
@@ -348,31 +325,30 @@ BEGIN TRAN
 			THROW 51000, 'Receiver does not exist', 1;
 		END
 
-		RETURN (
-			WITH sentMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
-				SELECT id, senderId, receiverId, content, sentTime, isRead
-				FROM [message]
-				WHERE senderId = @senderId AND receiverId = @receiverId
-				ORDER BY sentTime
-			),
-			WITH receivedMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
-				SELECT id, senderId, receiverId, content, sentTime, isRead
-				FROM [message]
-				WHERE senderId = @receiverId AND receiverId = @senderId
-				ORDER BY sentTime
-			),
-			SELECT *
-			FROM (
-				SELECT *
-				FROM sentMessage
-				UNION
-				SELECT *
-				FROM receivedMessage
-			)
+		WITH sentMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
+			SELECT id, senderId, receiverId, content, sentTime, isRead
+			FROM [message]
+			WHERE senderId = @senderId AND receiverId = @receiverId
 			ORDER BY sentTime
-			OFFSET @offset ROWS
-			FETCH NEXT @limit ROWS ONLY;
+		),
+		WITH receivedMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
+			SELECT id, senderId, receiverId, content, sentTime, isRead
+			FROM [message]
+			WHERE senderId = @receiverId AND receiverId = @senderId
+			ORDER BY sentTime
+		),
+		SELECT *
+		FROM (
+			SELECT *
+			FROM sentMessage
+			UNION
+			SELECT *
+			FROM receivedMessage
 		)
+		ORDER BY sentTime
+		OFFSET @offset ROWS
+		FETCH NEXT @limit ROWS ONLY
+		FOR JSON PATH;
 		
 	END TRY
 	BEGIN CATCH
@@ -445,14 +421,17 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Course does not exist', 1;
 		END
+		DECLARE @inserted_id INT;
 		
 		INSERT INTO [post](date, courseId, publisher, content)
+		OUTPUT inserted.id INTO @inserted.id
 		VALUES (now(), @courseId, @postPublisher, @postContent);
 
-		RETURN (
-			SELECT *
-			FROM inserted;
-		)
+		SELECT id, postPublisher, courseId, postContent
+		FROM post
+		WHERE id = @inserted_id AND postPublisher = @postPublisher AND courseId = @courseId AND postContent = @postContent
+		FOR JSON PATH;
+
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -484,14 +463,15 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Course does not exist', 1;
 		END
-		RETURN (
-			SELECT id as postId, date, publisher, content
-			FROM [post]
-			WHERE courseId = @courseId
-			ORDER BY date
-			OFFSET @offset ROWS
-			FETCH NEXT @limit ROWS ONLY;
-		)
+		
+		SELECT id as postId, date, publisher, content
+		FROM [post]
+		WHERE courseId = @courseId
+		ORDER BY date
+		OFFSET @offset ROWS
+		FETCH NEXT @limit ROWS ONLY
+		FOR JSON PATH;
+		
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
