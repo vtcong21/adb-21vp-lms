@@ -217,40 +217,6 @@ END
 GO
 
 
-
-CREATE TRIGGER trg_AfterInsertComment_InsertCommentNotification
-ON [comment]
-AFTER INSERT
-AS
-BEGIN
-    -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
-    -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
-    WITH insertedComment(commentId, postId, date, courseId, postPublisher, commenter) AS (
-        SELECT commentId, postId, date, courseId, postPublisher, commenter
-        FROM inserted
-    ),
-    WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
-        WHERE EXISTS (
-            SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
-            SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
-        )
-    ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
-    FROM insertedComment
-    CROSS JOIN memberNoticed nc
-END
-GO
-
 CREATE TRIGGER trg_AfterInsertComment_InsertCommentNotification
 ON [comment]
 AFTER INSERT
@@ -279,8 +245,8 @@ BEGIN
             WHERE inserted.postId = comment.postId
         )
     ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
+    INSERT INTO [commentNotification](commendId, date, memberNotification)
+    SELECT commentId, date, memberId
     FROM insertedComment
     CROSS JOIN memberNoticed nc
 END
