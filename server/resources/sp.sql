@@ -741,6 +741,10 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Learner Id is required.', 1;
 		END;
+		IF (SELECT * FROM [learner] WHERE id = @learnerId)
+		BEGIN
+			THROW 51000, 'Learner not found.', 1;
+		END;
 		
 		SELECT paymentCardNumber
 		FROM [learnerPaymentCard]
