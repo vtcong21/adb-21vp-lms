@@ -258,23 +258,25 @@ AS
 BEGIN
     -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
     -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
     WITH insertedComment(commentId, postId, date, courseId, postPublisher, commenter) AS (
         SELECT commentId, postId, date, courseId, postPublisher, commenter
         FROM inserted
     ),
     WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
+        SELECT publisher
+        FROM post
         WHERE EXISTS (
             SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
+            FROM inserted
+            WHERE inserted.postId = post.id
+        )
+        UNION
+        SELECT commenter
+        FROM comment
+        WHERE EXISTS (
             SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
+            FROM inserted
+            WHERE inserted.postId = comment.postId
         )
     ),
     INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
@@ -291,28 +293,22 @@ AS
 BEGIN
     -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
     -- Thông báo đến 1. người đăng post 2. người comment vào post
-    -- Comment PK(id, postId, courseId, postPublisher, commenter)
-    -- Post PK(id, courseId, publisher)
-    WITH insertedPost(postId, date, courseId, postPublisher) AS (
-        SELECT id, date, courseId, postPublisher, commenter
+    WITH insertedPost(postId, courseId, date) AS (
+        SELECT id, date
         FROM inserted
     ),
     WITH membersNoticed(memberId) AS (
-        SELECT id
-        FROM [user] mb
+        SELECT learnerId
+        FROM learnerEnrollCourse
         WHERE EXISTS (
             SELECT 1
-            FROM [post]
-            WHERE publisher = mb.id AND id = insertedComment.postId AND courseId = insertedComment.courseId AND publisher = insertedComment.postPublisher
-        ) OR EXISTS (
-            SELECT 1
-            FROM [comment]
-            WHERE commenter = mb.id AND postId = insertedComment.postId AND courseId = insertedComment.courseId AND postPublisher = insertedComment.postPublisher
+            FROM inserted
+            WHERE inserted.courseId = learnerEnrollCourse.courseId
         )
-    ),
-    INSERT INTO [commentNotification](commendId, postId, date, courseId, postPublisher, commenter, memberNotification)
-    SELECT commentId, postId, date, courseId, postPublisher, commenter, memberId
-    FROM insertedComment
-    CROSS JOIN memberNoticed nc
+    )
+    INSERT INTO [postNotification](postId, date, memberNotification)
+    SELECT ip.postId, ip.date, nc.memberId
+    FROM insertedPost ip
+    CROSS JOIN memberNoticed nc;
 END
 GO
