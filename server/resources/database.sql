@@ -921,8 +921,6 @@ CREATE TABLE [comment]
     id INT NOT NULL IDENTITY(1,1),
 	postId INT NOT NULL,
     date DATETIME NOT NULL DEFAULT GETDATE(),
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
 	commenter NVARCHAR(128) NOT NULL,	
     content NVARCHAR(MAX) NOT NULL,
 
