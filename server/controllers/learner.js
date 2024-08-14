@@ -1,6 +1,4 @@
-//import queryString from "query-string";
 import getPool from "../utils/database";
-//const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 export const addCourseToCart = async (req, res) => {
   try {
@@ -120,8 +118,7 @@ export const viewOrders = async (req, res) => {
 
 export const viewOrderDetails = async (req, res) => {
   try {
-    const { learnerId } = req.body;
-    const { orderId } = req.params;
+    const { learnerId, orderId } = req.body;
     const pool = getPool('LMS');
 
     if (!pool) {

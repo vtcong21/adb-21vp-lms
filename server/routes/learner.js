@@ -12,7 +12,8 @@ import {
   getCartDetails,
   makeOrder,
   viewOrders,
-  viewOrderDetails
+  viewOrderDetails,
+  completeLesson
 } from "../controllers/learner";
 
 router.post("/learner/cart/course", addCourseToCart);
@@ -20,8 +21,8 @@ router.delete("/learner/cart/course", removeCourseFromCart);
 router.get("/learner/cart", getCartDetails);
 router.post("/learner/order", makeOrder);
 router.get("/learner/order", viewOrders);
-router.get("/learner/order/:orderId", viewOrderDetails);
-
+router.get("/learner/order", viewOrderDetails);
+router.post("/learner/lesson/complete", completeLesson);
 
 export default router;
 

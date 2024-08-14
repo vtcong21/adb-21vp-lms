@@ -514,7 +514,7 @@ BEGIN
 
         OPEN cart_cursor;
         FETCH NEXT FROM cart_cursor INTO @courseId;
-        
+		
         WHILE @@FETCH_STATUS = 0
         BEGIN
 			SET @orderDetailId = @orderDetailId + 1;
@@ -524,8 +524,8 @@ BEGIN
             WHERE id = @courseId;
 
             -- Insert into orderDetails
-            INSERT INTO [orderDetail] (orderId, learnerId, courseId, coursePrice)
-            VALUES (@newOrderId, @learnerId, @courseId, @coursePrice);
+            INSERT INTO [orderDetail] (id, orderId, learnerId, courseId, coursePrice)
+            VALUES (@orderDetailId, @newOrderId, @learnerId, @courseId, @coursePrice);
             
             -- Enroll course
             INSERT INTO [learnerEnrollCourse] (courseId, learnerId, learnerScore, completionPercentInCourse)
@@ -662,7 +662,8 @@ BEGIN
                 JOIN
                     [course] co ON od.courseId = co.id
                 WHERE
-                    od.orderId = o.id
+                    od.orderId = o.id 
+					AND o.learnerId = @learnerId
                 FOR JSON PATH
             ) AS orderDetails
         FROM

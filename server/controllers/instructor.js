@@ -1,65 +1,49 @@
-import queryString from "query-string";
-const stripe = require("stripe")(process.env.STRIPE_SECRET);
+import getPool from "../utils/database";
 
-export const makeInstructor = async (req, res) => {
+export const getInstructorProfile = async (req, res) => {
   try {
-    // code here
+
+      const { instructorId } = req.body;
+
+      const pool = getPool('LMS');
+
+      if (!pool) {
+          return res.status(500).json({ message: "Database pool is not available" });
+      }
+
+      if (!instructorId) {
+          return res.status(400).json({ message: "instructorId is required" });
+      }
+      const jsonResult = await pool.executeSP('sp_All_GetInstructorProfile', { id: instructorId });
+
+      return res.status(200).json(jsonResult);
 
   } catch (err) {
-    console.log("MAKE INSTRUCTOR ERR ", err);
+      console.log("ERR ", err);
+      return res.status(400).json({ error: err.message });
   }
 };
 
-export const getAccountStatus = async (req, res) => {
+
+export const updateInstructorInfo = async (req, res) => {
   try {
-    // code here
+    const { instructorId, password, gender, phone, DOB, address, degress, workplace, scientificBackground } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!instructorId || !password) {
+      return res.status(400).json({ message: "instructorId and password required" });
+    }
+    await pool.executeSP('sp_All_UpdateInstructorIndo', { instructorId, password, gender, phone, DOB, address, degress, workplace, scientificBackground  });
+
+    return res.status(200).json({ message: "updated informations successfully" });
 
   } catch (err) {
-    console.log(err);
-  }
-};
-
-export const currentInstructor = async (req, res) => {
-  try {
-    // code here
-
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-export const instructorCourses = async (req, res) => {
-  try {
-    // code here
-
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-export const studentCount = async (req, res) => {
-  try {
-    // code here
-
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-export const instructorBalance = async (req, res) => {
-  try {
-    // code here
-
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-export const instructorPayoutSettings = async (req, res) => {
-  try {
-    // code here
-
-  } catch (err) {
-    console.log("stripe payout settings login link err => , err");
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
   }
 };

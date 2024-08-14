@@ -19,9 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
+//import learnerRouter from "./routes/learner";
 // route
-import learnerRouter from "./routes/learner";
-app.use("/api", learnerRouter); 
+readdirSync("./routes").forEach((file) => {
+    const route = require(`./routes/${file}`);
+    app.use("/api", route.default || route);
+  });
 
 // // csrf
 // app.use(csrfProtection);
