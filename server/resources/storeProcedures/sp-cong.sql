@@ -458,6 +458,7 @@ BEGIN
         DECLARE @coursePrice DECIMAL(18, 2);
         DECLARE @couponQuantity INT;
         DECLARE @startDate DATETIME;
+		DECLARE @orderDetailId INT = 0;
         
         -- Compute total amount
         SELECT @totalAmount = SUM(c.price)
@@ -500,14 +501,11 @@ BEGIN
         
         SET @totalAmount = @totalAmount /100 * (100 - @discountPercent);
 		
-        DECLARE @NewOrderOutput TABLE (id INT);
+        SELECT @newOrderId =  ISNULL(MAX(id), 0) FROM [order] WHERE learnerId = @learnerId;
+		SET @newOrderId = @newOrderId + 1;
         INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
-        OUTPUT inserted.id INTO @NewOrderOutput(id)
         VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
 
-        -- Check if the insert succeeded
-        SELECT @newOrderId = id FROM @NewOrderOutput;
-	
         -- Insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR LOCAL FOR
         SELECT courseId
@@ -519,6 +517,7 @@ BEGIN
         
         WHILE @@FETCH_STATUS = 0
         BEGIN
+			SET @orderDetailId = @orderDetailId + 1;
             -- Get the course price
             SELECT @coursePrice = price 
             FROM [course] 
@@ -780,7 +779,7 @@ BEGIN
         FROM learnerDoExercise
         WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND learnerScore IS NOT NULL;
 
-        SET @newSectionCompletionPercent = CAST((@completedLecturesInSection + @completedExercisesInSection) AS DECIMAL(5, 2)) / @totalLessonsInSection * 100;
+        SET @newSectionCompletionPercent = CAST((@completedLessonsInSection + @completedExercisesInSection) AS DECIMAL(5, 2)) / @totalLessonsInSection * 100;
 
         UPDATE learnerParticipateSection
         SET completionPercentSection = @newSectionCompletionPercent

@@ -60,7 +60,18 @@ const createPool = async (loginType) => {
             }
             try {
                 const result = await request.execute(procedureName);
-                return result.recordsets;
+                
+                if (result.recordset && Array.isArray(result.recordset)) {
+                    const recordset = result.recordset;
+                    if (recordset.length > 0) {
+                        const firstRow = recordset[0];
+                        const columnName = Object.keys(firstRow)[0];
+                        const jsonResult = firstRow[columnName];
+                        return JSON.parse(jsonResult);
+                    }
+                }
+        
+                return []; 
             } catch (error) {
                 throw error;
             }

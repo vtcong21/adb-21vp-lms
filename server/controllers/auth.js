@@ -1,4 +1,3 @@
-import User from "../models/user";
 import { hashPassword, comparePassword } from "../utils/auth";
 import jwt from "jsonwebtoken";
 import { nanoid } from "nanoid";
@@ -36,7 +35,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { id, password } = req.body;
      // code here
     let user;
 
