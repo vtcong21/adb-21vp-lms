@@ -27,7 +27,8 @@ BEGIN
         GROUP BY
             o.dateCreated
         ORDER BY
-            o.dateCreated DESC;
+            o.dateCreated DESC
+        FOR JSON AUTO, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -61,7 +62,8 @@ BEGIN
             AND DATEFROMPARTS(year, month, 1) < @endDate
         ORDER BY
             year,
-            month;
+            month
+        FOR JSON AUTO, INCLUDE_NULL_VALUES;
 
         COMMIT TRANSACTION;
     END TRY
@@ -97,7 +99,8 @@ BEGIN
         GROUP BY
             year
         ORDER BY
-            year;
+            year
+        FOR JSON AUTO, INCLUDE_NULL_VALUES;
 		COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -121,8 +124,9 @@ BEGIN
     FROM
         [course]
     ORDER BY
-            totalRevenue DESC;
-        COMMIT TRANSACTION;
+            totalRevenue DESC
+    FOR JSON AUTO, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
+    COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
@@ -330,13 +334,14 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         SELECT
-            cd.learnerId, cd.courseId, c.title, c.price
+            cd.courseId, c.title, c.price
         FROM
             [cartDetail] cd
         JOIN
             [course] c ON cd.courseId = c.id
         WHERE
-            cd.learnerId = @learnerId;
+            cd.learnerId = @learnerId
+        FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -585,24 +590,35 @@ BEGIN
     BEGIN TRY
         
         SELECT
-            o.id,
-            o.learnerId,
+            u.id AS learnerId,
             u.name,
-            o.dateCreated,
-            o.total,
-            o.paymentCardNumber,
-            o.couponCode,
-            c.discountPercent
+            (
+                SELECT
+                    o.id,
+                    o.dateCreated,
+                    o.total
+                FROM
+                    [order] o
+                WHERE
+                    o.learnerId = u.id
+                ORDER BY
+                    o.dateCreated DESC
+                FOR JSON PATH
+            ) AS orders,
+            MAX(o.paymentCardNumber) AS paymentCardNumber,
+            MAX(o.couponCode) AS couponCode,
+            MAX(c.discountPercent) AS discountPercent
         FROM
-            [order] o
-		JOIN
-            [user] u ON o.learnerId = u.id 
-        JOIN
-            [paymentCard] p ON o.paymentCardNumber = p.number
+            [user] u
+        LEFT JOIN
+            [order] o ON u.id = o.learnerId
         LEFT JOIN
             [coupon] c ON o.couponCode = c.code
-        WHERE u.id = @learnerId
-        ORDER BY dateCreated DESC
+        WHERE
+            u.id = @learnerId
+        GROUP BY
+            u.id, u.name
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
         COMMIT TRANSACTION;
     END TRY
@@ -621,7 +637,7 @@ IF OBJECT_ID('sp_LN_ViewOrderDetails', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_LN_ViewOrderDetails
-	@learnerId NVARCHAR(128),
+    @learnerId NVARCHAR(128),
     @orderId INT
 AS
 BEGIN
@@ -629,31 +645,37 @@ BEGIN
     BEGIN TRY
         
         SELECT
-            o.id,
+            o.id AS orderId,
             o.learnerId,
-            u.name,
+            u.name AS learnerName,
             o.dateCreated,
             o.total,
             o.paymentCardNumber,
             o.couponCode,
             c.discountPercent,
-            od.courseId,
-            co.title,
-            od.coursePrice
+            (
+                SELECT
+                    od.courseId,
+                    co.title AS courseTitle,
+                    od.coursePrice
+                FROM
+                    [orderDetail] od
+                JOIN
+                    [course] co ON od.courseId = co.id
+                WHERE
+                    od.orderId = o.id
+                FOR JSON PATH
+            ) AS orderDetails
         FROM
             [order] o
         JOIN
             [user] u ON o.learnerId = u.id
-        JOIN
-            [paymentCard] p ON o.paymentCardNumber = p.number
         LEFT JOIN
             [coupon] c ON o.couponCode = c.code
-        JOIN
-            [orderDetail] od ON o.id = od.orderId
-        JOIN
-            [course] co ON od.courseId = co.id
         WHERE
-            o.learnerId = @learnerId AND o.id = @orderId;
+            o.learnerId = @learnerId
+            AND o.id = @orderId
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
         COMMIT TRANSACTION;
     END TRY
@@ -665,6 +687,7 @@ BEGIN
     END CATCH
 END;
 GO
+
 
 -- LN - Unenroll
 IF OBJECT_ID('sp_LN_UnenrollLearnerFromCourse', 'P') IS NOT NULL
@@ -742,17 +765,22 @@ BEGIN
         -- update learnerParticipateSection
         DECLARE @totalLessonsInSection INT;
         DECLARE @completedLessonsInSection INT;
+        DECLARE @completedExercisesInSection INT;
         DECLARE @newSectionCompletionPercent DECIMAL(5, 2);
 
         SELECT @totalLessonsInSection = COUNT(*)
-        FROM lesson
+        FROM lecture
         WHERE sectionId = @sectionId AND courseId = @courseId;
 
         SELECT @completedLessonsInSection = COUNT(*)
         FROM learnerParticipateLesson
         WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND isCompletedLesson = 1;
 
-        SET @newSectionCompletionPercent = CAST(@completedLessonsInSection AS DECIMAL(5, 2)) / @totalLessonsInSection * 100;
+        SELECT @completedExercisesInSection = COUNT(*)
+        FROM learnerDoExercise
+        WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND learnerScore IS NOT NULL;
+
+        SET @newSectionCompletionPercent = CAST((@completedLecturesInSection + @completedExercisesInSection) AS DECIMAL(5, 2)) / @totalLessonsInSection * 100;
 
         UPDATE learnerParticipateSection
         SET completionPercentSection = @newSectionCompletionPercent
@@ -777,7 +805,6 @@ BEGIN
         SET completionPercentInCourse = @newCourseCompletionPercent
         WHERE learnerId = @learnerId AND courseId = @courseId;
     
-
         
         COMMIT TRANSACTION;
     END TRY
@@ -1082,8 +1109,8 @@ BEGIN
         JOIN
             learnerEnrollCourse lec ON c.id = lec.courseId
         WHERE
-            lec.learnerId = @learnerId;
-        
+            lec.learnerId = @learnerId
+        FOR JSON PATH, INCLUDE_NULL_VALUES;
 
         COMMIT TRANSACTION;
     END TRY
