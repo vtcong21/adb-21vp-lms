@@ -354,7 +354,7 @@ BEGIN TRAN
 		SET name = COALESCE(@name, name),
 			email = COALESCE(@email, email),
 			password = COALESCE(@password, password),
-			profilePhoto = COALESCE(@profilePhoto, @profilePhoto)
+			profilePhoto = COALESCE(@profilePhoto, ~profilePhoto)
 		WHERE id = @userId
 
 	END TRY
