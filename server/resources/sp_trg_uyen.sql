@@ -1237,3 +1237,58 @@ BEGIN
     WHERE type = 'exercise';
 END
 GO
+
+
+-- Trigger to update the average rating of a course
+IF OBJECT_ID('trg_AfterInsertLRC_UpdateAverageRating', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertLRC_UpdateAverageRating
+GO
+
+CREATE TRIGGER trg_AfterInsertLRC_UpdateAverageRating
+ON learnerReviewCourse
+AFTER INSERT
+AS
+BEGIN
+    UPDATE c
+    SET c.averageRating = avgRatings.newAvgRatings
+    FROM course c
+    JOIN (
+        SELECT lrc.courseId, AVG(lrc.rating) AS newAvgRatings
+        FROM learnerReviewCourse lrc
+        WHERE EXISTS (
+            SELECT 1
+            FROM inserted i
+            WHERE i.courseId = lrc.courseId
+        )
+        GROUP BY lrc.courseId
+    ) AS avgRatings
+    ON c.id = avgRatings.courseId;
+END
+GO
+
+-- Trigger to update the average score of exercises in the learnerEnrollCourse table
+IF OBJECT_ID('trg_AfterInsertLDE_UpdateAverageScore', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertLDE_UpdateAverageScore
+GO
+
+CREATE TRIGGER trg_AfterInsertLDE_UpdateAverageScore
+ON learnerDoExercise
+AFTER INSERT
+AS
+BEGIN
+    UPDATE lec
+    SET lec.learnerScore = avgScores.newAvgScore
+    FROM learnerEnrollCourse lec
+    JOIN (
+        SELECT lde.learnerId, lde.courseId, AVG(lde.learnerScore) AS newAvgScore
+        FROM learnerDoExercise lde
+        WHERE EXISTS (
+            SELECT 1
+            FROM inserted i
+            WHERE i.learnerId = lde.learnerId AND i.courseId = lde.courseId
+        )
+        GROUP BY lde.learnerId, lde.courseId
+    ) AS avgScores
+    ON lec.learnerId = avgScores.learnerId AND lec.courseId = avgScores.courseId;
+END
+GO
