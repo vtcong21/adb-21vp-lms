@@ -2,7 +2,7 @@
 Use LMS 
 GO
 
--- AD - Get Daily Revenue Of A Course
+-- AD - Get Daily Revenue Of A Course untested
 IF OBJECT_ID('sp_AD_INS_GetDailyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetDailyRevenueOfACourse]
 GO
@@ -38,7 +38,7 @@ BEGIN
 END;
 GO
 
--- AD - Get Monthly Revenue Of A Course
+-- AD - Get Monthly Revenue Of A Course untested
 IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetMonthlyRevenueOfACourse]
 GO
@@ -74,7 +74,7 @@ BEGIN
 END;
 GO
 
--- AD - Get Yearly Revenue Of A Course
+-- AD - Get Yearly Revenue Of A Course untested
 IF OBJECT_ID('sp_AD_INS_GetYearlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetYearlyRevenueOfACourse]
 GO
@@ -110,7 +110,7 @@ BEGIN
 END;
 GO
 
--- AD - Get Top 50 Courses By Revenue
+-- AD - Get Top 50 Courses By Revenue untested
 IF OBJECT_ID('sp_AD_GetTop50CoursesByRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_GetTop50CoursesByRevenue]
 GO
