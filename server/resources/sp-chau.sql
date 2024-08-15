@@ -36,15 +36,6 @@ BEGIN TRAN;
 COMMIT TRAN
 GO
 
--- test
-EXEC sp_AD_CreateAdmin 
-    @id = 'user3', 
-    @email = 'user3@example.com', 
-    @name = 'User Three', 
-    @password = 'Password123', 
-    @profilePhoto = 'photo1.jpg';
-GO
-
 -- finished and tested
 CREATE OR ALTER PROC sp_AD_GetVIPInstructorQueue
 AS
@@ -64,92 +55,6 @@ BEGIN TRAN;
 		RETURN
 	END CATCH
 COMMIT TRAN;
-GO
-
--- test
-INSERT INTO [user] (id, email, name, password, profilePhoto, role)
-VALUES (
-    'instructor1', 
-    'instructor1@springfield.edu', 
-    'John Doe', 
-    'Password123', 
-    'john_doe_photo.jpg', 
-    'INS'
-);
-INSERT INTO [courseMember] (id, role)
-VALUES (
-	'instructor1',
-	'INS'
-)
-INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
-VALUES (
-    'instructor1', 
-    'M', 
-    '12345678901', 
-    '1980-05-15', 
-    '123 Elm Street, Springfield, IL', 
-    'Ph.D. in Computer Science', 
-    'Springfield University', 
-    'Expert in Artificial Intelligence and Machine Learning', 
-    'pending', 
-    50000.00
-);
-INSERT INTO [user] (id, email, name, password, profilePhoto, role)
-VALUES (
-    'instructor2', 
-    'instructor2@greenfield.edu', 
-    'Jane Smith', 
-    'SecurePass456', 
-    'jane_smith_photo.jpg', 
-    'INS'
-);
-INSERT INTO [courseMember] (id, role)
-VALUES (
-	'instructor2',
-	'INS'
-)
-INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
-VALUES (
-    'instructor2', 
-    'F', 
-    '09876543210', 
-    '1975-10-22', 
-    '456 Oak Avenue, Greenfield, CA', 
-    'Master of Education', 
-    'Greenfield High School', 
-    'Specialist in Educational Psychology', 
-    'Vip', 
-    75000.00
-);
-INSERT INTO [user] (id, email, name, password, profilePhoto, role)
-VALUES (
-    'instructor3', 
-    'instructor3@rivercity.edu', 
-    'Michael Brown', 
-    'MathGuru789', 
-    'michael_brown_photo.jpg', 
-    'INS'
-);
-INSERT INTO [courseMember] (id, role)
-VALUES (
-	'instructor3',
-	'INS'
-)
-INSERT INTO [instructor] (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
-VALUES (
-    'instructor3', 
-    'M', 
-    '11223344556', 
-    '1990-01-10', 
-    '789 Maple Lane, River City, NY', 
-    'Bachelor of Science in Mathematics', 
-    'River City College', 
-    'Researcher in Theoretical Mathematics and Algebra', 
-    'notVip', 
-    40000.00
-);
-
-EXEC sp_AD_GetVIPInstructorQueue
 GO
 
 -- finished and tested
@@ -186,33 +91,6 @@ BEGIN TRAN;
 	END CATCH
 COMMIT TRAN
 
--- test
-select * from taxform
-INSERT INTO [vipInstructor] VALUES ('instructor1', '12421412412');
-INSERT INTO [taxForm] (
-    submissionDate, 
-    fullName, 
-    address, 
-    phone, 
-    taxCode, 
-    identityNumber, 
-    postCode, 
-    vipInstructorId
-)
-VALUES (
-    GETDATE(),                  -- submissionDate (defaults to today's date)
-    'John Doe',                 -- fullName
-    '123 Elm Street, Springfield, IL',  -- address
-    '12345678901',              -- phone
-    '123456789012',             -- taxCode
-    '987654321012',             -- identityNumber
-    '62704',                    -- postCode
-    'instructor1'               -- vipInstructorId (foreign key)
-);
-EXEC sp_AD_GetTaxForm
-	@instructorId = 'instructor1'
-GO
-
 -- finished and tested
 CREATE OR ALTER PROC sp_AD_ReviewVIPInstructor (
 	@instructorId NVARCHAR(128),
@@ -247,12 +125,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-
-EXEC sp_AD_ReviewVIPInstructor 
-	@instructorId = 'instructor1',
-	@state = 'Vip'
-GO
-SELECT * FROM INSTRUCTOR
 
 -- finished and tested
 CREATE OR ALTER PROC sp_CM_CreateMessage (
@@ -303,25 +175,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-select * from [user];
-insert into [user](id, email, name, password, profilePhoto, role) values ('learner1', 'learner1@email.com', 'some name', 'fuckingpassword', 'photo.png', 'LN');
-insert into [coursemember] values ('learner1', 'LN');
-insert into [learner] values ('learner1');
-exec sp_CM_CreateMessage 
-	'learner1',
-	'instructor1',
-	'hey man how its going'
-go
-exec sp_CM_CreateMessage 
-	'instructor1',
-	'learner1',
-	'do i know you'
-go
-exec sp_CM_CreateMessage 
-	'learner1',
-	'instructor1',
-	'its your old pal learner1 bro'
-go
 
 -- finished and tested
 CREATE OR ALTER PROC sp_CM_GetMessages (
@@ -371,13 +224,6 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
-exec sp_CM_GetMessages 
-	@senderId = 'instructor1',
-	@receiverId = 'learner1',
-	@offset = 0,
-	@limit = 10
-go
-
 -- finished and tested
 CREATE OR ALTER PROC sp_CM_MarkReadMessages (
 	@senderId NVARCHAR(128),
@@ -414,15 +260,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-
-exec sp_CM_MarkReadMessages 
-	@senderId = 'instructor1',
-	@receiverId = 'learner1'
-go
-select * from [message];
-
-select 
-
 
 -- finished and untested
 CREATE OR ALTER PROC sp_CM_CreatePost (
@@ -472,24 +309,6 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
-
-
---insert into [category] values ('category1');
---insert into [subcategory](parentCategoryId, name) values (1, 'subcategory1');
-
---INSERT INTO [course] (title, subTitle, description, image, video, state, numberOfStudents, numberOfLectures, totalTime, averageRating, subCategoryId, categoryId, totalRevenue, language, price, lastUpdateTime) VALUES (N'Introduction to Financial Modeling (Professional Level)', N'Sub Introduction to Financial Modeling (Professional Level)', N'Description for Introduction to Financial Modeling (Professional Level)', N'resources/image.png', N'resources/path.png', N'draft', 0, 0, 0.0, 0.0, 1, 1, 15431.93, N'English', 14.55, '2024-07-20 16:44:11');
-
---select * from course;
---select * from learnerEnrollCourse
---insert into learnerEnrollCourse (courseId, learnerId) values (9, 'learner1');
-
---exec sp_CM_CreatePost
---	@postPublisher = 'learner1',
---	@courseId = 9,
---	@postContent = 'some post content 1'
---go
---select * from post;
-
 
 -- finished and untested
 CREATE OR ALTER PROC sp_CM_GetPostsInForum (
@@ -775,15 +594,6 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
-select * from learnerPaymentCard;
-select * from paymentCard;
-insert into paymentCard (number, type, name, CVC, expireDate) values ('1234567890123456', 'debit', 'Some name', '214', GETDATE()+1);
-insert into learnerPaymentCard (learnerId, paymentCardNumber) values ('learner1', '1234567890123456');
-
-exec sp_LN_GetLearnerPaymentCard 
-	@learnerId = 'learner1'
-go
-
 
 -- finished and tested
 CREATE OR ALTER PROC sp_CM_GetInstructorPaymentCard (
@@ -812,10 +622,4 @@ BEGIN TRAN;
 		RETURN
 	END CATCH
 COMMIT TRAN
-GO
-
--- test
-insert into vipInstructor(id, paymentCardNumber) values ('instructor1', '1234567890123456');
-EXEC sp_CM_GetInstructorPaymentCard
-	@instructorId = 'instructor1'
 GO
