@@ -476,7 +476,7 @@ GO
 
 CREATE TRIGGER trg_AfterInsertLDE_UpdateAverageScore
 ON learnerDoExercise
-AFTER INSERT
+AFTER UPDATE
 AS
 BEGIN
     UPDATE lec

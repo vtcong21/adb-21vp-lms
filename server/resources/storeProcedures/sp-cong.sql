@@ -546,7 +546,7 @@ BEGIN
             
             -- Participate exercise
             INSERT INTO [learnerDoExercise] (learnerId, courseId, sectionId, lessonId, learnerScore)
-            SELECT @learnerId, @courseId, s.id, e.id, 0
+            SELECT @learnerId, @courseId, s.id, e.id, NULL
             FROM [section] s
             JOIN [exercise] e ON s.id = e.sectionId
             WHERE s.courseId = @courseId;
