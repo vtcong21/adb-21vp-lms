@@ -375,33 +375,45 @@ ON [comment]
 AFTER INSERT
 AS
 BEGIN
+	DECLARE @inserted TABLE (
+		commentId INT,
+		dateCommented DATE,
+		memberNotification NVARCHAR(128),
+		isRead BIT
+	);
+
     -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
     -- Thông báo đến 1. người đăng post 2. người comment vào post
-    WITH insertedComment(commentId, postId, date, courseId, postPublisher, commenter) AS (
-        SELECT commentId, postId, date, courseId, postPublisher, commenter
+    WITH insertedComment(commentId) AS (
+        SELECT id
         FROM inserted
     ),
-    WITH membersNoticed(memberId) AS (
+    membersNoticed(memberId) AS (
         SELECT publisher
         FROM post
         WHERE EXISTS (
             SELECT 1
             FROM inserted
-            WHERE inserted.postId = post.id
+            JOIN comment ON inserted.id = comment.id
+			WHERE comment.postId = post.id
         )
         UNION
         SELECT commenter
-        FROM comment
+        FROM comment c2
         WHERE EXISTS (
             SELECT 1
             FROM inserted
-            WHERE inserted.postId = comment.postId
+			JOIN comment c1 ON inserted.id = c1.id
+            WHERE c2.postId = c1.postId
         )
-    ),
-    INSERT INTO [commentNotification](commendId, date, memberNotification)
-    SELECT commentId, date, memberId
+    )
+    INSERT INTO [commentNotification](commentId, date, memberNotification)
+	OUTPUT inserted.commentId, inserted.date, inserted.memberNotification, inserted.isRead
+	INTO @inserted
+    SELECT commentId, GETDATE(), memberId
     FROM insertedComment
-    CROSS JOIN memberNoticed nc
+    CROSS JOIN membersNoticed mn;
+
 END
 GO
 
@@ -412,20 +424,32 @@ AS
 BEGIN
     -- Chèn thông báo vào bảng CommentNotification ngay sau khi có một comment mới nào đó vào một post
     -- Thông báo đến 1. người đăng post 2. người comment vào post
-    WITH insertedPost(postId, courseId, date) AS (
-        SELECT id, date
+	DECLARE @inserted TABLE (
+		postId INT,
+		datePosted DATE,
+		memberNotification NVARCHAR(128),
+		isRead BIT
+	);
+
+    WITH insertedPost(postId) AS (
+        SELECT id
         FROM inserted
     ),
-    WITH membersNoticed(memberId) AS (
+    membersNoticed(memberId) AS (
         SELECT learnerId
         FROM learnerEnrollCourse
         WHERE EXISTS (
             SELECT 1
             FROM inserted
-            WHERE inserted.courseId = learnerEnrollCourse.courseId
+			JOIN post ON inserted.id = post.id
+            WHERE post.courseId = learnerEnrollCourse.courseId
         )
     )
-    INSERT INTO [postNotification](postId, date, memberNotification)
-    SELECT ip.postId, ip.date, nc.memberId
+    INSERT INTO [postNotification](postId, [date], memberNotification)
+	OUTPUT inserted.postId, inserted.[date], inserted.memberNotification, inserted.isRead
+	INTO @inserted
+    SELECT ip.postId, GETDATE(), mn.memberId
     FROM insertedPost ip
-    CROSS JOIN memberNoticed nc;
+    CROSS JOIN membersNoticed mn;
+END
+GO
