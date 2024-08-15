@@ -15,11 +15,11 @@ BEGIN
     BEGIN TRY
         SELECT
             o.dateCreated AS [date], 
-            SUM(c.price) AS revenue
+            SUM(od.coursePrice * (100 - COALESCE(c.discountPercent, 0))/100) AS revenue
         FROM
             [orderDetail] od
             JOIN [order] o ON od.orderId = o.id
-            JOIN [course] c ON od.courseId = c.id
+            LEFT JOIN [coupon] c ON o.couponCode = c.code
         WHERE
             od.courseId = @courseId
             AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
