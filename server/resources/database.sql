@@ -258,8 +258,7 @@ CREATE TABLE [taxForm]
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
 
-    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) 
-																									   
+    CONSTRAINT [FK_taxForm_instructor] FOREIGN KEY (vipInstructorId) REFERENCES [instructor](id) 																								   
 );
 GO
 
@@ -324,6 +323,7 @@ CREATE TABLE [course]
     numberOfLectures INT NOT NULL DEFAULT 0,
     totalTime DECIMAL(10, 2) NOT NULL DEFAULT 0,
     averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    ratingCount INT NOT NULL DEFAULT 0,
     subCategoryId INT NOT NULL,
     categoryId INT NOT NULL,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
@@ -403,7 +403,7 @@ GO
 CREATE TABLE [courseRequirements]
 (
     courseId INT NOT NULL,
-	requirementId INT IDENTITY(1,1) NOT NULL,
+	requirementId INT NOT NULL,
     requirement NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course requirement is required.] CHECK(LEN(requirement) > 0),
@@ -422,7 +422,7 @@ GO
 CREATE TABLE [courseObjectives]
 (
     courseId INT NOT NULL,
-	objectiveId INT IDENTITY(1,1) NOT NULL,
+	objectiveId INT NOT NULL,
     objective NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course objective is required.] CHECK(LEN(objective) > 0),
