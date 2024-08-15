@@ -1,5 +1,0 @@
--- Write the SPs here
--- 1. Login
--- 2. Register
--- 3. Select a user
--- 4. Check password

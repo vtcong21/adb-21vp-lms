@@ -487,7 +487,7 @@ BEGIN
             END
             IF @couponQuantity > 0
             BEGIN
-                UPDATE [coupon] SET quantity = quantity - 1
+                UPDATE [coupon] SET quantity = quantity - 1 WHERE code = @couponCode
             END
             ELSE 
             BEGIN
