@@ -1,20 +1,39 @@
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var dotenv = require('dotenv');
-dotenv.config();
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+import express from "express";
+import cors from "cors";
+import { readdirSync } from "fs";
+import csrf from "csurf";
+import cookieParser from "cookie-parser";
+const morgan = require("morgan");
+require("dotenv").config();
 
+const csrfProtection = csrf({ cookie: true });
 
-var app = express();
+// create express app
+const app = express();
+// db
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// apply middlewares
+app.use(cors());
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan("dev"));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//import learnerRouter from "./routes/learner";
+// route
+readdirSync("./routes").forEach((file) => {
+    const route = require(`./routes/${file}`);
+    app.use("/api", route.default || route);
+  });
 
-module.exports = app;
+// // csrf
+// app.use(csrfProtection);
+
+// app.get("/api/csrf-token", (req, res) => {
+//   res.json({ csrfToken: req.csrfToken() });
+// });
+
+// port
+const port = process.env.PORT || 8000;
+
+app.listen(port, () => console.log(`Server is running on port ${port}`));

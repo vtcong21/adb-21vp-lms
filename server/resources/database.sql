@@ -14,7 +14,7 @@ GO
 
 -- Create tables
 
-CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole CHAR(2))
+CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole VARCHAR(3))
 RETURNS BIT
 AS
 BEGIN
@@ -37,7 +37,7 @@ CREATE TABLE [user]
     name NVARCHAR(128) NOT NULL,
     password VARCHAR(128) NOT NULL,
     profilePhoto NVARCHAR(256) NOT NULL,
-    role CHAR(2) NOT NULL,
+    role VARCHAR(3) NOT NULL,
 
 	CONSTRAINT [User id is required.] CHECK(LEN(id) > 0),
 	CONSTRAINT [User email format is invalid.] CHECK(email LIKE '_%@_%._%'),
@@ -584,7 +584,6 @@ CREATE TABLE [question]
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	question NVARCHAR(2000) NOT NULL,
-    correctAnswer INT NOT NULL,
 
 	CONSTRAINT [Question is required.] CHECK(LEN(question) > 0),
     
@@ -607,6 +606,7 @@ CREATE TABLE [questionAnswer]
 	sectionId INT NOT NULL,
     courseId INT NOT NULL,
 	questionAnswers NVARCHAR(2000) NOT NULL,
+	isCorrect BIT NOT NULL,
 
 	CONSTRAINT [Question answers are required.] CHECK(LEN(questionAnswers) > 0),
     
@@ -870,7 +870,6 @@ CREATE TABLE [learnerReviewCourse]
     CONSTRAINT [FK_learnerReviewCourse_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
-
 
 -- Table post
 IF OBJECT_ID('post', 'U') IS NOT NULL
