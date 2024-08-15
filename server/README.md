@@ -1,6 +1,5 @@
-# Dental Clinic Management System
-## Client
-
+# Learning Management System
+## Server
 
 ## Installation
 1. Move to client folder

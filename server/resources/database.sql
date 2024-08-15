@@ -254,8 +254,7 @@ CREATE TABLE [taxForm]
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
 
-    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) 
-																									   
+    CONSTRAINT [FK_taxForm_instructor] FOREIGN KEY (vipInstructorId) REFERENCES [instructor](id) 																								   
 );
 GO
 
@@ -320,6 +319,7 @@ CREATE TABLE [course]
     numberOfLectures INT NOT NULL DEFAULT 0,
     totalTime DECIMAL(10, 2) NOT NULL DEFAULT 0,
     averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    ratingCount INT NOT NULL DEFAULT 0,
     subCategoryId INT NOT NULL,
     categoryId INT NOT NULL,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
@@ -865,7 +865,6 @@ CREATE TABLE [learnerReviewCourse]
     CONSTRAINT [FK_learnerReviewCourse_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id)
 );
 GO
-
 
 -- Table post
 IF OBJECT_ID('post', 'U') IS NOT NULL
