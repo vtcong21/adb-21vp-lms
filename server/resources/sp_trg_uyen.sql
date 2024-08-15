@@ -1239,7 +1239,7 @@ END
 GO
 
 
--- Trigger to update the average rating of a course
+-- Cập nhật điểm đánh giá một khóa học 
 IF OBJECT_ID('trg_AfterInsertLRC_UpdateAverageRating', 'TR') IS NOT NULL
     DROP TRIGGER trg_AfterInsertLRC_UpdateAverageRating
 GO
@@ -1250,23 +1250,21 @@ AFTER INSERT
 AS
 BEGIN
     UPDATE c
-    SET c.averageRating = avgRatings.newAvgRatings
+    SET 
+        c.averageRating = ((c.averageRating * c.ratingCount) + newRatingInfo.totalNewRating) / (c.ratingCount + newRatingInfo.newRatingCount),
+        c.ratingCount = c.ratingCount + newRatingInfo.newRatingCount
     FROM course c
     JOIN (
-        SELECT lrc.courseId, AVG(lrc.rating) AS newAvgRatings
-        FROM learnerReviewCourse lrc
-        WHERE EXISTS (
-            SELECT 1
-            FROM inserted i
-            WHERE i.courseId = lrc.courseId
-        )
-        GROUP BY lrc.courseId
-    ) AS avgRatings
-    ON c.id = avgRatings.courseId;
+        SELECT i.courseId, COUNT(i.rating) AS newRatingCount, SUM(i.rating) AS totalNewRating
+        FROM inserted i
+        GROUP BY i.courseId
+    ) AS newRatingInfo
+    ON c.id = newRatingInfo.courseId;
 END
 GO
 
--- Trigger to update the average score of exercises in the learnerEnrollCourse table
+
+-- Cập nhật điểm trung bình của một học sinh trên toàn khóa học
 IF OBJECT_ID('trg_AfterInsertLDE_UpdateAverageScore', 'TR') IS NOT NULL
     DROP TRIGGER trg_AfterInsertLDE_UpdateAverageScore
 GO
