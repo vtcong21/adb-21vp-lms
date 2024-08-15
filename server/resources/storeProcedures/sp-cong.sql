@@ -15,11 +15,11 @@ BEGIN
     BEGIN TRY
         SELECT
             o.dateCreated AS [date], 
-            SUM(c.price) AS revenue
+            SUM(od.coursePrice * (100 - COALESCE(c.discountPercent, 0))/100) AS revenue
         FROM
             [orderDetail] od
             JOIN [order] o ON od.orderId = o.id
-            JOIN [course] c ON od.courseId = c.id
+            LEFT JOIN [coupon] c ON o.couponCode = c.code
         WHERE
             od.courseId = @courseId
             AND o.dateCreated >= DATEADD(DAY, -@duration, GETDATE())
@@ -487,7 +487,7 @@ BEGIN
             END
             IF @couponQuantity > 0
             BEGIN
-                UPDATE [coupon] SET quantity = quantity - 1
+                UPDATE [coupon] SET quantity = quantity - 1 WHERE code = @couponCode
             END
             ELSE 
             BEGIN
@@ -546,7 +546,7 @@ BEGIN
             
             -- Participate exercise
             INSERT INTO [learnerDoExercise] (learnerId, courseId, sectionId, lessonId, learnerScore)
-            SELECT @learnerId, @courseId, s.id, e.id, 0
+            SELECT @learnerId, @courseId, s.id, e.id, NULL
             FROM [section] s
             JOIN [exercise] e ON s.id = e.sectionId
             WHERE s.courseId = @courseId;

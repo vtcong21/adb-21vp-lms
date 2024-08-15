@@ -343,3 +343,155 @@ BEGIN
     WHERE role = 'INS';
 END
 GO
+
+-- 18. Tự động thay đổi trạng thái vipState sau khi tạo tax form
+IF OBJECT_ID('trg_AfterInsertTaxForm_UpdateInstructor', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertTaxForm_UpdateInstructor
+GO
+CREATE TRIGGER trg_AfterInsertTaxForm_UpdateInstructor
+ON taxForm
+AFTER INSERT
+AS
+BEGIN
+	UPDATE instructor
+	SET vipState = 'pending'
+	WHERE id IN (SELECT vipInstructorId FROM inserted);
+END
+GO
+
+
+-- 19. Tự động cập nhật totalTime và numOfLesson trong course khi thêm hoặc xóa lesson
+IF OBJECT_ID('trg_AfterChangeLesson_UpdateCourseAndSection', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterChangeLesson_UpdateCourseAndSection
+GO
+CREATE TRIGGER trg_AfterChangeLesson_UpdateCourseAndSection
+ON lesson
+AFTER INSERT, DELETE
+AS
+BEGIN
+    -- Cập nhật learnTime cho section khi chèn hoặc xóa lesson
+    UPDATE s
+    SET s.learnTime = s.learnTime + COALESCE(i.TotalLearnTime, 0) - COALESCE(d.TotalLearnTime, 0)
+    FROM section s
+    LEFT JOIN (
+        SELECT sectionId, courseId, SUM(learnTime) AS TotalLearnTime
+        FROM inserted
+        GROUP BY sectionId, courseId
+    ) i ON s.id = i.sectionId AND s.courseId = i.courseId
+    LEFT JOIN (
+        SELECT sectionId, courseId, SUM(learnTime) AS TotalLearnTime
+        FROM deleted
+        GROUP BY sectionId, courseId
+    ) d ON s.id = d.sectionId AND s.courseId = d.courseId;
+
+    -- Cập nhật tổng thời gian và tổng số bài học cho mỗi khóa học khi thêm hoặc xóa lesson
+    UPDATE c
+    SET c.totalTime = c.totalTime + COALESCE(i.TotalLearnTime, 0) - COALESCE(d.TotalLearnTime, 0),
+        c.numberOfLectures = c.numberOfLectures + COALESCE(i.LessonCount, 0) - COALESCE(d.LessonCount, 0)
+    FROM course c
+    LEFT JOIN (
+        SELECT courseId, 
+               SUM(learnTime) AS TotalLearnTime,
+               COUNT(*) AS LessonCount
+        FROM inserted
+        GROUP BY courseId
+    ) i ON c.id = i.courseId
+    LEFT JOIN (
+        SELECT courseId, 
+               SUM(learnTime) AS TotalLearnTime,
+               COUNT(*) AS LessonCount
+        FROM deleted
+        GROUP BY courseId
+    ) d ON c.id = d.courseId;
+END
+GO
+
+
+-- 20. Kiểm tra paymentCard nếu dư thừa thì xóa
+IF OBJECT_ID('trg_AfterUpdateVipInstructor_DeletePaymentCard', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterUpdateVipInstructor_DeletePaymentCard
+GO
+CREATE TRIGGER trg_AfterUpdateVipInstructor_DeletePaymentCard
+ON vipInstructor
+AFTER UPDATE
+AS
+BEGIN
+	-- Xóa các thẻ tín dụng không còn được tham chiếu
+    DELETE FROM paymentCard
+    WHERE number NOT IN (
+        SELECT paymentCardNumber FROM vipInstructor
+        UNION
+        SELECT paymentCardNumber FROM learnerPaymentCard
+    );
+END
+GO
+
+
+-- 21. Tạo exercise
+IF OBJECT_ID('trg_Insert_InsertLessenAsExercise', 'TR') IS NOT NULL
+    DROP TRIGGER trg_Insert_InsertLessenAsExercise
+GO
+CREATE TRIGGER trg_Insert_InsertLessenAsExercise
+ON lesson
+AFTER INSERT
+AS
+BEGIN
+    INSERT INTO exercise(id, courseId, sectionId)
+    SELECT id, courseId, sectionId
+    FROM inserted
+    WHERE type = 'exercise';
+END
+GO
+
+
+-- 22. Cập nhật điểm đánh giá một khóa học 
+IF OBJECT_ID('trg_AfterInsertLRC_UpdateAverageRating', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertLRC_UpdateAverageRating
+GO
+
+CREATE TRIGGER trg_AfterInsertLRC_UpdateAverageRating
+ON learnerReviewCourse
+AFTER INSERT
+AS
+BEGIN
+    UPDATE c
+    SET 
+        c.averageRating = ((c.averageRating * c.ratingCount) + newRatingInfo.totalNewRating) / (c.ratingCount + newRatingInfo.newRatingCount),
+        c.ratingCount = c.ratingCount + newRatingInfo.newRatingCount
+    FROM course c
+    JOIN (
+        SELECT i.courseId, COUNT(i.rating) AS newRatingCount, SUM(i.rating) AS totalNewRating
+        FROM inserted i
+        GROUP BY i.courseId
+    ) AS newRatingInfo
+    ON c.id = newRatingInfo.courseId;
+END
+GO
+
+
+-- 23. Cập nhật điểm trung bình của một học sinh trên toàn khóa học
+IF OBJECT_ID('trg_AfterInsertLDE_UpdateAverageScore', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertLDE_UpdateAverageScore
+GO
+
+CREATE TRIGGER trg_AfterInsertLDE_UpdateAverageScore
+ON learnerDoExercise
+AFTER UPDATE
+AS
+BEGIN
+    UPDATE lec
+    SET lec.learnerScore = avgScores.newAvgScore
+    FROM learnerEnrollCourse lec
+    JOIN (
+        SELECT lde.learnerId, lde.courseId, AVG(lde.learnerScore) AS newAvgScore
+        FROM learnerDoExercise lde
+        WHERE EXISTS (
+            SELECT 1
+            FROM inserted i
+            WHERE i.learnerId = lde.learnerId AND i.courseId = lde.courseId
+        )
+        GROUP BY lde.learnerId, lde.courseId
+    ) AS avgScores
+    ON lec.learnerId = avgScores.learnerId AND lec.courseId = avgScores.courseId;
+END
+GO
