@@ -369,6 +369,9 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('trg_AfterInsertComment_InsertCommentNotification', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertComment_InsertCommentNotification
+GO
 
 CREATE TRIGGER trg_AfterInsertComment_InsertCommentNotification
 ON [comment]
@@ -415,6 +418,10 @@ BEGIN
     CROSS JOIN membersNoticed mn;
 
 END
+GO
+
+IF OBJECT_ID('trg_AfterInsertPost_InsertPostNotification', 'TR') IS NOT NULL
+    DROP TRIGGER trg_AfterInsertPost_InsertPostNotification
 GO
 
 CREATE TRIGGER trg_AfterInsertPost_InsertPostNotification
