@@ -152,7 +152,7 @@ VALUES (
 EXEC sp_AD_GetVIPInstructorQueue
 GO
 
--- finished
+-- finished and tested
 CREATE OR ALTER PROC sp_AD_GetTaxForm (
 	@instructorId NVARCHAR(128)
 )
@@ -174,14 +174,8 @@ BEGIN TRAN;
 			THROW 51000, 'Instructor has not submitted any tax forms.', 1;
 		END;
 
-		WITH instructorInfo (id, gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue) AS (
-			SELECT id, gender, phone, DOB, address,degrees, workplace, scientificBackground, vipState, totalRevenue
-			FROM [instructor]
-			WHERE id = @instructorId
-		)
 		SELECT * 
 		FROM [taxForm]
-		JOIN instructorInfo ON id = vipInstructorId
 		WHERE vipInstructorId = @instructorId
 		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 	END TRY
@@ -193,7 +187,7 @@ BEGIN TRAN;
 COMMIT TRAN
 
 -- test
-
+select * from taxform
 INSERT INTO [vipInstructor] VALUES ('instructor1', '12421412412');
 INSERT INTO [taxForm] (
     submissionDate, 
@@ -215,13 +209,16 @@ VALUES (
     '62704',                    -- postCode
     'instructor1'               -- vipInstructorId (foreign key)
 );
+EXEC sp_AD_GetTaxForm
+	@instructorId = 'instructor1'
+GO
 
-
--- finished
+-- finished and tested
 CREATE OR ALTER PROC sp_AD_ReviewVIPInstructor (
 	@instructorId NVARCHAR(128),
 	@state VARCHAR(7)
 )
+AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
@@ -239,13 +236,8 @@ BEGIN TRAN
 			THROW 51000, 'Instructor does not exist.', 1;
 		END
 		UPDATE [instructor]
-		SET state = @state
+		SET [vipState] = @state
 		WHERE id = @instructorId;
-		
-		SELECT id, state
-		FROM [vipInstructor]
-		WHERE id = @instructorId
-		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -256,14 +248,19 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
+EXEC sp_AD_ReviewVIPInstructor 
+	@instructorId = 'instructor1',
+	@state = 'Vip'
+GO
+SELECT * FROM INSTRUCTOR
 
--- finished
--- FIX return
+-- finished and tested
 CREATE OR ALTER PROC sp_CM_CreateMessage (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
 	@messageContent NVARCHAR(MAX)
 )
+AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
@@ -282,14 +279,21 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
 		END
+
+		DECLARE @inserted TABLE (
+            id INT,
+            senderId NVARCHAR(128),
+            receiverId NVARCHAR(128),
+            content NVARCHAR(MAX)
+        );
 		
 		INSERT INTO [message](senderId, receiverId, content)
-		VALUES (@senderId, @receiverId, @messageContent)
+		OUTPUT INSERTED.id, INSERTED.senderId, INSERTED.receiverId, INSERTED.content
+		INTO @inserted
+		VALUES (@senderId, @receiverId, @messageContent);
 
-		RETURN (
-			SELECT *
-			FROM inserted
-		)
+		SELECT id, senderId, receiverId, content
+		FROM @inserted;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -299,56 +303,63 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
+select * from [user];
+insert into [user](id, email, name, password, profilePhoto, role) values ('learner1', 'learner1@email.com', 'some name', 'fuckingpassword', 'photo.png', 'LN');
+insert into [coursemember] values ('learner1', 'LN');
+insert into [learner] values ('learner1');
+exec sp_CM_CreateMessage 
+	'learner1',
+	'instructor1',
+	'hey man how its going'
+go
+exec sp_CM_CreateMessage 
+	'instructor1',
+	'learner1',
+	'do i know you'
+go
+exec sp_CM_CreateMessage 
+	'learner1',
+	'instructor1',
+	'its your old pal learner1 bro'
+go
 
-
--- finished
+-- finished and tested
 CREATE OR ALTER PROC sp_CM_GetMessages (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
 	@offset INT,
 	@limit INT
 )
+AS
 BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
 		IF @senderId IS NULL OR @receiverId IS NULL
 		BEGIN
 			THROW 52000, 'SenderID, ReceiverID are required', 1
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [user] WHERE id = @senderId)
 		BEGIN
 			THROW 51000, 'Sender does not exist', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [user] WHERE id = @receiverId)
 		BEGIN
 			THROW 51000, 'Receiver does not exist', 1;
-		END
+		END;
 
-		WITH sentMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
-			SELECT id, senderId, receiverId, content, sentTime, isRead
-			FROM [message]
-			WHERE senderId = @senderId AND receiverId = @receiverId
-			ORDER BY sentTime
-		),
-		WITH receivedMessage(id, senderId, receiverId, content, sentTime, isRead) AS (
-			SELECT id, senderId, receiverId, content, sentTime, isRead
-			FROM [message]
-			WHERE senderId = @receiverId AND receiverId = @senderId
-			ORDER BY sentTime
-		),
-		SELECT *
-		FROM (
-			SELECT *
-			FROM sentMessage
-			UNION
-			SELECT *
-			FROM receivedMessage
-		)
-		ORDER BY sentTime
-		OFFSET @offset ROWS
-		FETCH NEXT @limit ROWS ONLY
-		FOR JSON PATH;
+		WITH AllMessages AS (
+            SELECT id, senderId, receiverId, content, sentTime, isRead
+            FROM [message]
+            WHERE (senderId = @senderId AND receiverId = @receiverId)
+               OR (senderId = @receiverId AND receiverId = @senderId)
+        )
+        SELECT id, senderId, receiverId, content, sentTime, isRead
+        FROM AllMessages
+        ORDER BY sentTime
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY
+        FOR JSON PATH;
 		
 	END TRY
 	BEGIN CATCH
@@ -360,13 +371,19 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
+exec sp_CM_GetMessages 
+	@senderId = 'instructor1',
+	@receiverId = 'learner1',
+	@offset = 0,
+	@limit = 10
+go
 
-
--- finished
+-- finished and tested
 CREATE OR ALTER PROC sp_CM_MarkReadMessages (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128)
 )
+AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
@@ -398,13 +415,22 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
+exec sp_CM_MarkReadMessages 
+	@senderId = 'instructor1',
+	@receiverId = 'learner1'
+go
+select * from [message];
 
--- finished
+select 
+
+
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_CreatePost (
 	@postPublisher NVARCHAR(128),
 	@courseId INT,
 	@postContent NVARCHAR(MAX)
 )
+AS
 BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
@@ -413,7 +439,7 @@ BEGIN TRAN
 		BEGIN
 			THROW 52000, 'Post publisher ID, Course ID, Post Content are required.', 1;
 		END
-		IF NOT EXISTS(SELECT 1 FROM [user] WHERE id = @postPublisher AND role = 'CM')
+		IF NOT EXISTS(SELECT 1 FROM [user] WHERE id = @postPublisher AND role = 'LN' OR role = 'INS')
 		BEGIN
 			THROW 51000, 'Post publisher does not exist', 1;
 		END
@@ -421,17 +447,22 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Course does not exist', 1;
 		END
-		DECLARE @inserted_id INT;
+		DECLARE @inserted TABLE(
+			id INT,
+			datePosted date,
+			postPublisher NVARCHAR(128),
+			courseId INT,
+			postContent NVARCHAR(MAX)
+		);
 		
-		INSERT INTO [post](date, courseId, publisher, content)
-		OUTPUT inserted.id INTO @inserted.id
-		VALUES (now(), @courseId, @postPublisher, @postContent);
+		INSERT INTO [post]([date], courseId, publisher, content)
+		OUTPUT INSERTED.id, INSERTED.[date], INSERTED.courseId, INSERTED.publisher, INSERTED.content 
+		INTO @inserted
+		VALUES (GETDATE(), @courseId, @postPublisher, @postContent);
 
-		SELECT id, postPublisher, courseId, postContent
-		FROM post
-		WHERE id = @inserted_id AND postPublisher = @postPublisher AND courseId = @courseId AND postContent = @postContent
-		FOR JSON PATH;
-
+		SELECT id, datePosted, courseId, postPublisher, postContent
+		FROM @inserted
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -443,8 +474,24 @@ COMMIT TRAN
 GO
 
 
+--insert into [category] values ('category1');
+--insert into [subcategory](parentCategoryId, name) values (1, 'subcategory1');
 
--- finished
+--INSERT INTO [course] (title, subTitle, description, image, video, state, numberOfStudents, numberOfLectures, totalTime, averageRating, subCategoryId, categoryId, totalRevenue, language, price, lastUpdateTime) VALUES (N'Introduction to Financial Modeling (Professional Level)', N'Sub Introduction to Financial Modeling (Professional Level)', N'Description for Introduction to Financial Modeling (Professional Level)', N'resources/image.png', N'resources/path.png', N'draft', 0, 0, 0.0, 0.0, 1, 1, 15431.93, N'English', 14.55, '2024-07-20 16:44:11');
+
+--select * from course;
+--select * from learnerEnrollCourse
+--insert into learnerEnrollCourse (courseId, learnerId) values (9, 'learner1');
+
+--exec sp_CM_CreatePost
+--	@postPublisher = 'learner1',
+--	@courseId = 9,
+--	@postContent = 'some post content 1'
+--go
+--select * from post;
+
+
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_GetPostsInForum (
 	@courseId INT,
 	@offset INT,
@@ -483,7 +530,7 @@ COMMIT TRAN
 GO
 
 
--- finished
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_CommentInPost (
 	@courseId INT,
 	@postId INT,
@@ -496,7 +543,7 @@ BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @messageContent IS NULL)
+		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @commentContent IS NULL)
 		BEGIN
 			THROW 52000, 'Post ID, Course ID, Post Publisher ID, Commenter ID and Message Content are required.', 1;
 		END
@@ -504,14 +551,26 @@ BEGIN TRAN
 		BEGIN
 			THROW 51000, 'Post does not exist', 1;
 		END
-		
-		INSERT INTO [comment](postId, date, courseId, postPublisher, commenter, content)
-		VALUES (@postId, now(), @courseId, @postPublisher, @commenter, @commentContent)
 
-		RETURN (
-			SELECT *
-			FROM inserted
-		)	
+		DECLARE @inserted TABLE (
+			commentId INT,
+			postId INT,
+			courseId INT,
+			postPublisher NVARCHAR(128),
+			dateCommented DATE,
+			commenter NVARCHAR(128),
+			commentContent NVARCHAR(MAX)
+		)
+		
+		INSERT INTO [comment](postId, [date], courseId, postPublisher, commenter, content)
+		OUTPUT inserted.id, inserted.postId, inserted.courseId, inserted.postPublisher, inserted.[date], inserted.commenter, inserted.content
+		INTO @inserted
+		VALUES (@postId, GETDATE(), @courseId, @postPublisher, @commenter, @commentContent)
+
+		SELECT *
+		FROM @inserted
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -523,12 +582,9 @@ COMMIT TRAN
 GO
 
 
-
--- finished
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_GetCommentsInPost (
-	@courseId INT,
 	@postId INT,
-	@postPublisher NVARCHAR(128),
 	@offset INT,
 	@limit INT
 )
@@ -537,22 +593,22 @@ BEGIN TRAN
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	BEGIN TRY
-		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @messageContent IS NULL)
+		IF (@postId IS NULL OR @offset IS NULL OR @limit IS NULL)
 		BEGIN
 			THROW 52000, 'Course ID, Post ID, Post Publisher ID, Offset and Limit are required.', 1;
-		END
-		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId AND courseId = @courseId AND publisher = @postPublisher)
+		END;
+		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId)
 		BEGIN
 			THROW 51000, 'Post does not exist', 1;
-		END
-		RETURN (
-			SELECT id as commentId, commenter, postId, postPublisher, content
-			FROM [comment]
-			WHERE postId = @postId AND courseId = @courseId AND postPublisher = @postPublisher
-			ORDER BY date asc -- CHECK
-			OFFSET @offset ROWS
-			FETCH NEXT @limit ROWS ONLY;
-		)	
+		END;
+		
+		SELECT id as commentId, commenter, postId, postPublisher, content
+		FROM [comment]
+		WHERE postId = @postId
+		ORDER BY date asc
+		OFFSET @offset ROWS
+		FETCH NEXT @limit ROWS ONLY
+		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -564,7 +620,7 @@ COMMIT TRAN
 GO
 
 
--- finished
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_GetAccountNotifications (
 	@memberId NVARCHAR(128)
 )
@@ -585,12 +641,11 @@ BEGIN TRAN
 		SELECT commentId, 'post'
 		FROM commentNotification
 		WHERE memberNotification = @memberId
-		FOR JSON PATH
 		UNION
 		SELECT postId, 'comment'
 		FROM postNotification
-		WHERE memberNotification = @postId
-		FOR JSON PATH
+		WHERE memberNotification = @memberId
+		FOR JSON PATH;
 		
 	END TRY
 	BEGIN CATCH
@@ -603,30 +658,28 @@ COMMIT TRAN
 GO
 
 
-
-
--- finished
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_ReadCommentNotification (
 	@commentId INT,
 	@memberNotification NVARCHAR(128)
 )
 AS
 BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
-	BEGIN TRY
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
+	BEGIN TRY;
 		IF (@memberNotification IS NULL OR @commentId IS NULL)
 		BEGIN
 			THROW 52000, 'Member ID and Comment ID are required.', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM courseMember WHERE id = @memberNotification)
 		BEGIN
 			THROW 51000, 'Member not found.', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM commentNotification WHERE memberNotification = @memberNotification AND commentId = @commentId)
 		BEGIN
 			THROW 51000, 'Notification not found.', 1;
-		END
+		END;
 
 		UPDATE commentNotification
 		SET isRead = 1
@@ -648,9 +701,7 @@ COMMIT TRAN
 GO
 
 
-
-
--- finished
+-- finished and untested
 CREATE OR ALTER PROC sp_CM_ReadPostNotification (
 	@postId INT,
 	@memberNotification NVARCHAR(128)
@@ -661,17 +712,17 @@ BEGIN TRAN;
 	SET NOCOUNT ON;
 	BEGIN TRY
 		IF (@memberNotification IS NULL OR @postId IS NULL)
-		BEGIN
+		BEGIN;
 			THROW 52000, 'Member ID and Post ID are required.', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [courseMember] WHERE id = @memberNotification)
-		BEGIN
+		BEGIN;
 			THROW 51000, 'Member not found', 1;
-		END
+		END;
 		IF NOT EXISTS(SELECT 1 FROM [postNotification] WHERE postId = @postId AND memberNotification = @memberNotification)
-		BEGIN
+		BEGIN;
 			THROW 51000, 'Notification not found', 1;
-		END
+		END;
 
 		UPDATE postNotification
 		SET isRead = 1
@@ -693,8 +744,8 @@ COMMIT TRAN
 GO
 
 
--- finished
-CREATE OR ALTER PROC sp_CM_GetLearnerPaymentCard (
+-- finished and tested
+CREATE OR ALTER PROC sp_LN_GetLearnerPaymentCard (
 	@learnerId NVARCHAR(128)
 )
 AS
@@ -703,11 +754,11 @@ BEGIN TRAN
 	SET NOCOUNT ON;
 	BEGIN TRY
 		IF (@learnerId IS NULL)
-		BEGIN
+		BEGIN;
 			THROW 51000, 'Learner Id is required.', 1;
 		END;
-		IF (SELECT * FROM [learner] WHERE id = @learnerId)
-		BEGIN
+		IF NOT EXISTS (SELECT 1 FROM [learner] WHERE id = @learnerId)
+		BEGIN;
 			THROW 51000, 'Learner not found.', 1;
 		END;
 		
@@ -724,6 +775,15 @@ BEGIN TRAN
 COMMIT TRAN
 GO
 
+select * from learnerPaymentCard;
+select * from paymentCard;
+insert into paymentCard (number, type, name, CVC, expireDate) values ('1234567890123456', 'debit', 'Some name', '214', GETDATE()+1);
+insert into learnerPaymentCard (learnerId, paymentCardNumber) values ('learner1', '1234567890123456');
+
+exec sp_LN_GetLearnerPaymentCard 
+	@learnerId = 'learner1'
+go
+
 
 -- finished and tested
 CREATE OR ALTER PROC sp_CM_GetInstructorPaymentCard (
@@ -735,14 +795,15 @@ BEGIN TRAN;
 	SET NOCOUNT ON;
 	BEGIN TRY
 		IF (@instructorId IS NULL)
-		BEGIN
+		BEGIN;
 			THROW 51000, 'Instructor Id is required.', 1;
-		END
+		END;
 
 		SELECT paymentCardNumber
 		FROM [vipInstructor]
 		WHERE id = @instructorId
-		FOR JSON PATH
+		FOR JSON PATH;
+
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -754,7 +815,7 @@ COMMIT TRAN
 GO
 
 -- test
-
+insert into vipInstructor(id, paymentCardNumber) values ('instructor1', '1234567890123456');
 EXEC sp_CM_GetInstructorPaymentCard
 	@instructorId = 'instructor1'
 GO
