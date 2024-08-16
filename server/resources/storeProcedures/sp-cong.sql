@@ -2,6 +2,42 @@
 Use LMS 
 GO
 
+
+-- Sample data for paymentCard
+INSERT INTO [paymentCard] (number, type, name, CVC, expireDate) VALUES 
+('1234567812345678', 'Credit', 'John Doe', '123', '2025-12-31');
+
+-- Sample data for learnerPaymentCard
+INSERT INTO [learnerPaymentCard] (learnerId, paymentCardNumber) VALUES 
+('learner1', '1234567812345678');
+
+-- Insert sample data into order table
+INSERT INTO [order] (total, id,learnerId,  dateCreated, couponCode, paymentCardNumber)
+VALUES 
+    (100,1,'learner1', '2024-07-01', NULL, '1234567812345678'),
+    (100,2,'learner1', '2024-07-02', NULL, '1234567812345678'),
+    (100,3,'learner1', '2024-07-10', NULL, '1234567812345678');
+
+UPDATE [order] set dateCreated = '2024-08-10'
+UPDATE [order] set dateCreated = '2024-08-9' where id = 1
+
+INSERT INTO [courseRevenueByMonth] (courseId, year, month, revenue)
+VALUES 
+    (1, 2023, 7, 1000.00),
+    (1, 2023, 8, 1200.00),
+    (2, 2024, 7, 1500.00),
+    (2, 2024, 8, 1600.00);
+
+-- Insert sample data into orderDetail table
+INSERT INTO [orderDetail] (learnerId, orderId, courseId, coursePrice)
+VALUES 
+    ('learner1',1, 1, 100),
+    ('learner1',2, 1, 100),
+    ('learner1',3, 2, 150);
+
+EXEC sp_LN_ViewOrders 'learner1'
+
+
 -- AD - Get Daily Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetDailyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetDailyRevenueOfACourse]
@@ -95,7 +131,7 @@ BEGIN
         WHERE
             courseId = @courseId
             AND year >= @startYear
-            AND year <= @endYear
+            AND year < @endYear
         GROUP BY
             year
         ORDER BY
@@ -588,36 +624,32 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         
-        SELECT
+         SELECT
             u.id AS learnerId,
             u.name,
             (
                 SELECT
                     o.id,
                     o.dateCreated,
-                    o.total
+                    o.total,
+                    o.paymentCardNumber AS paymentCardNumber,
+                    o.couponCode AS couponCode,
+                    c.discountPercent AS discountPercent
                 FROM
                     [order] o
+                LEFT JOIN
+                    [coupon] c ON o.couponCode = c.code
                 WHERE
                     o.learnerId = u.id
                 ORDER BY
                     o.dateCreated DESC
                 FOR JSON PATH
-            ) AS orders,
-            MAX(o.paymentCardNumber) AS paymentCardNumber,
-            MAX(o.couponCode) AS couponCode,
-            MAX(c.discountPercent) AS discountPercent
+            ) AS orders
         FROM
             [user] u
-        LEFT JOIN
-            [order] o ON u.id = o.learnerId
-        LEFT JOIN
-            [coupon] c ON o.couponCode = c.code
         WHERE
             u.id = @learnerId
-        GROUP BY
-            u.id, u.name
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+        FOR JSON PATH;
 
         COMMIT TRANSACTION;
     END TRY
