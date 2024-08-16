@@ -36,7 +36,7 @@ BEGIN
 
 			INSERT INTO adminResponse(adminId, courseId, responseText, dateResponse)
 			VALUES (@adminId, @courseId, @responseText, GETDATE());
-
+		END
 
 		-- giảng viên gửi yêu cầu đc đăng khóa học
 		-- draft --> pendingReview
@@ -51,7 +51,6 @@ BEGIN
 		-- trả về lỗi nếu không thuộc 1 trong 2 trường hợp trên
 		ELSE
 		BEGIN
-        END
 			RAISERROR('Invalid vipState or missing responseText for pendingReview state.', 16, 1);
 			IF @@trancount > 0 ROLLBACK TRANSACTION;
 			RETURN;
