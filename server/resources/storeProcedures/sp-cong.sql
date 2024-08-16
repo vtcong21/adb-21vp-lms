@@ -28,17 +28,22 @@ BEGIN
             o.dateCreated
         ORDER BY
             o.dateCreated DESC
-        FOR JSON AUTO, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
+        FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         RAISERROR ('Cannot get daily revenue of the course.', 16, 1);
     END CATCH
 END;
 GO
 
--- AD - Get Monthly Revenue Of A Course untested
+EXEC sp_AD_INS_GetDailyRevenueOfACourse
+    @courseId = 4,
+    @duration = 100
+GO
+
+-- AD - Get Monthly Revenue Of A Course todo
 IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetMonthlyRevenueOfACourse]
 GO
@@ -68,13 +73,20 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         RAISERROR ('Cannot get course revenue by date.', 16, 1);
     END CATCH
 END;
 GO
 
--- AD - Get Yearly Revenue Of A Course untested
+
+EXEC sp_AD_INS_GetMonthlyRevenueOfACourse
+    @courseId = 4,
+    @duration = 7
+GO
+
+
+-- AD - Get Yearly Revenue Of A Course todo
 IF OBJECT_ID('sp_AD_INS_GetYearlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetYearlyRevenueOfACourse]
 GO
@@ -104,13 +116,18 @@ BEGIN
 		COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         RAISERROR ('Cannot get course revenue by year.', 16, 1);
     END CATCH
 END;
 GO
 
--- AD - Get Top 50 Courses By Revenue untested
+EXEC sp_AD_INS_GetYearlyRevenueOfACourse
+    @courseId = 4,
+    @duration = 1;
+GO
+
+-- AD - Get Top 50 Courses By Revenue tested
 IF OBJECT_ID('sp_AD_GetTop50CoursesByRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_GetTop50CoursesByRevenue]
 GO
@@ -125,14 +142,17 @@ BEGIN
         [course]
     ORDER BY
             totalRevenue DESC
-    FOR JSON AUTO, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
+    FOR JSON AUTO, INCLUDE_NULL_VALUES;
     COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         RAISERROR ('Cannot get top 50 courses by revenue.', 16, 1);
     END CATCH
 END;
+GO
+
+EXEC sp_AD_GetTop50CoursesByRevenue
 GO
 
 -- AD - Insert Coupon
@@ -152,7 +172,7 @@ BEGIN
         IF @discountPercent > 30 
         BEGIN
             RAISERROR ('Discount percent must be less than 30.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
         INSERT INTO [coupon]
@@ -162,7 +182,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
     DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot insert coupon. Error: %s', 16, 1, @errorMessage);    
@@ -170,7 +190,16 @@ BEGIN
 END;
 GO
 
--- LN - Create Learner
+exec sp_AD_InsertCoupon
+    @code = 'LMFAO123',
+    @discountPercent = '29',
+    @quantity = 100,
+    @startDate = '2024-08-15 09:08:09.953',
+    @adminId = 'user001';
+go
+select * from coupon
+
+-- LN - Create Learner - tested
 IF OBJECT_ID('sp_LN_CreateLearner', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_CreateLearner]
 GO
@@ -189,7 +218,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot insert user, course member, or learner. Error: %s', 16, 1, @errorMessage);
@@ -197,7 +226,15 @@ BEGIN
 END;
 GO
 
--- LN - Update Learner Payment Card
+exec sp_LN_CreateLearner
+    @userId = 'user0069',
+    @email = 'meomeo@gmail.com',
+    @name = 'Nona Me',
+    @password = 'fuckingpasssword',
+    @profilePhoto = 'uglyphoto.png';
+select * from [user];
+
+-- LN - Update Learner Payment Card todo
 IF OBJECT_ID('sp_LN_UpdateLearnerPaymentCard', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UpdateLearnerPaymentCard]
 GO
@@ -227,7 +264,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot update learner payment card. Error: %s', 16, 1, @errorMessage);
@@ -235,7 +272,7 @@ BEGIN
 END;
 GO
 
--- Ln - Add A Course To Cart
+-- Ln - Add A Course To Cart tested
 IF OBJECT_ID('sp_LN_AddCourseToCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_AddCourseToCart]
 GO
@@ -254,7 +291,7 @@ BEGIN
         )
         BEGIN
             RAISERROR ('The learner is already enrolled in the course.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -265,7 +302,7 @@ BEGIN
         )
         BEGIN
             RAISERROR ('The course is already in the learner''s cart.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -275,7 +312,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
@@ -284,7 +321,20 @@ BEGIN
 END;
 GO
 
--- LN - Remove A Course From Cart
+exec sp_LN_AddCourseToCart
+    @learnerId = 'user003',
+    @courseId = 5
+go
+exec sp_LN_AddCourseToCart
+    @learnerId = 'user003',
+    @courseId = 6
+go
+exec sp_LN_AddCourseToCart
+    @learnerId = 'user003',
+    @courseId = 7
+go
+
+-- LN - Remove A Course From Cart tested
 IF OBJECT_ID('sp_LN_RemoveCourseFromCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_RemoveCourseFromCart]
 GO
@@ -303,7 +353,7 @@ BEGIN
         )
         BEGIN
             RAISERROR ('The course is not in the learner''s cart.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -313,7 +363,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
 
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
@@ -322,7 +372,15 @@ BEGIN
 END;
 GO
 
--- LN - Get Cart Details
+exec sp_LN_RemoveCourseFromCart
+    @learnerId= 'user003',
+    @courseId = 5
+go
+exec sp_LN_GetCartDetails
+    @learnerId = 'user003'
+go
+
+-- LN - Get Cart Details tested
 IF OBJECT_ID('sp_LN_GetCartDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_GetCartDetails]
 GO
@@ -341,11 +399,11 @@ BEGIN
             [course] c ON cd.courseId = c.id
         WHERE
             cd.learnerId = @learnerId
-        FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER;
+        FOR JSON PATH, INCLUDE_NULL_VALUES;
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot retrieve cart details. Error: %s', 16, 1, @errorMessage);
@@ -353,7 +411,11 @@ BEGIN
 END;
 GO
 
--- update the total revenue of a course and course revenue by month
+exec sp_LN_GetCartDetails
+    @learnerId = 'user003'
+go
+
+-- update the total revenue of a course and course revenue by month todo
 IF OBJECT_ID('sp_UpdateCourseRevenueAndInstructorRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_UpdateCourseRevenueAndInstructorRevenue]
 GO
@@ -374,7 +436,7 @@ BEGIN
         SET totalRevenue = totalRevenue + @amount
         WHERE id = @courseId;
 
-        -- update  course revenue by month
+        -- update course revenue by month
         DECLARE @year INT = YEAR(@currentDate);
         DECLARE @month INT = MONTH(@currentDate);
         
@@ -390,7 +452,7 @@ BEGIN
             VALUES (@courseId, @year, @month, @amount);
         END
 
-        -- update  instructor revenue by month
+        -- update instructor revenue by month
         DECLARE @instructorId NVARCHAR(128);
         DECLARE @percentageInCome DECIMAL(5, 2);
         DECLARE @instructorRevenue DECIMAL(18, 2);
@@ -428,7 +490,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Error updating course and instructor revenue. Error: %s', 16, 1, @errorMessage);
@@ -436,7 +498,7 @@ BEGIN
 END;
 GO
 
--- LN - Make Order
+-- LN - Make Order tested
 IF OBJECT_ID('sp_LN_MakeOrder', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_MakeOrder]
 GO
@@ -453,6 +515,7 @@ BEGIN
         -- Declare variables
         DECLARE @discountPercent DECIMAL(5, 2) = 0;
         DECLARE @totalAmount DECIMAL(18, 2) = 0;
+        DECLARE @totalAmountAfterDiscount DECIMAL(18, 2) = 0;
         DECLARE @newOrderId INT;
         DECLARE @courseId INT;
         DECLARE @coursePrice DECIMAL(18, 2);
@@ -469,7 +532,7 @@ BEGIN
 		IF @totalAmount IS NULL
         BEGIN
             RAISERROR ('Cart is empty. No items to process.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -482,7 +545,7 @@ BEGIN
             IF @startDate > GETDATE()
             BEGIN
                 RAISERROR ('The coupon is not available yet.', 16, 1);
-                ROLLBACK TRANSACTION;
+                IF @@trancount > 0 ROLLBACK TRANSACTION;
                 RETURN;
             END
             IF @couponQuantity > 0
@@ -492,19 +555,19 @@ BEGIN
             ELSE 
             BEGIN
                 RAISERROR ('The coupon is out of quantity.', 16, 1);
-                ROLLBACK TRANSACTION;
+                IF @@trancount > 0 ROLLBACK TRANSACTION;
                 RETURN;
             RETURN;
             END
 
         END
         
-        SET @totalAmount = @totalAmount /100 * (100 - @discountPercent);
+        SET @totalAmountAfterDiscount = @totalAmount / 100 * (100 - @discountPercent);
 		
         SELECT @newOrderId =  ISNULL(MAX(id), 0) FROM [order] WHERE learnerId = @learnerId;
 		SET @newOrderId = @newOrderId + 1;
-        INSERT INTO [order] (learnerId, total, paymentCardNumber, couponCode)
-        VALUES (@learnerId, @totalAmount, @paymentCardNumber, @couponCode);
+        INSERT INTO [order] (id, learnerId, total, paymentCardNumber, couponCode)
+        VALUES (@newOrderId, @learnerId, @totalAmountAfterDiscount, @paymentCardNumber, @couponCode);
 
         -- Insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR LOCAL FOR
@@ -541,14 +604,14 @@ BEGIN
             INSERT INTO [learnerParticipateLesson] (learnerId, courseId, sectionId, lessonId, isCompletedLesson)
             SELECT @learnerId, @courseId, s.id, l.id, 0
             FROM [section] s
-            JOIN [lesson] l ON s.id = l.sectionId
+            JOIN [lesson] l ON s.id = l.sectionId AND s.courseId = l.courseId
             WHERE s.courseId = @courseId;
             
             -- Participate exercise
             INSERT INTO [learnerDoExercise] (learnerId, courseId, sectionId, lessonId, learnerScore)
             SELECT @learnerId, @courseId, s.id, e.id, NULL
             FROM [section] s
-            JOIN [exercise] e ON s.id = e.sectionId
+            JOIN [exercise] e ON s.id = e.sectionId AND s.courseId = e.courseId
             WHERE s.courseId = @courseId;
             
             -- Delete from cartDetails
@@ -556,7 +619,7 @@ BEGIN
             WHERE learnerId = @learnerId AND courseId = @courseId;
 
             -- Update course total revenue, course revenue by month, instructor revenue by month
-            SET @coursePrice = @coursePrice / 100 *(100 - @discountPercent);
+            SET @coursePrice = @coursePrice / 100 * (100 - @discountPercent);
             EXEC [sp_UpdateCourseRevenueAndInstructorRevenue] @courseId = @courseId, @amount = @coursePrice;
 
             FETCH NEXT FROM cart_cursor INTO @courseId;
@@ -568,7 +631,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot complete the order. Error: %s', 16, 1, @errorMessage);
@@ -576,7 +639,25 @@ BEGIN
 END;
 GO
 
--- LN - View Orders
+exec sp_LN_MakeOrder
+    @learnerId = 'user003',
+    @paymentCardNumber = '1111222233334444',
+    @couponCode = 'LMFAO123'
+GO
+exec sp_LN_AddCourseToCart
+	@learnerId = 'user003',
+	@courseId = 4
+go
+exec sp_LN_GetCartDetails
+	@learnerId = 'user003'
+go
+exec sp_LN_MakeOrder
+    @learnerId = 'user003',
+    @paymentCardNumber = '1111222233334444',
+    @couponCode = 'LMFAO123'
+GO
+
+-- LN - View Orders todo
 IF OBJECT_ID('sp_LN_ViewOrders', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrders]
 GO
@@ -617,12 +698,12 @@ BEGIN
             u.id = @learnerId
         GROUP BY
             u.id, u.name
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+        FOR JSON PATH;
 
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot retrieve orders. Error: %s', 16, 1, @errorMessage);
@@ -630,7 +711,11 @@ BEGIN
 END;
 GO
 
--- LN - View An Order's Details
+exec sp_LN_ViewOrders
+    @learnerId = 'user003';
+go
+
+-- LN - View An Order's Details tested
 IF OBJECT_ID('sp_LN_ViewOrderDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrderDetails]
 GO
@@ -680,7 +765,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot retrieve order details. Error: %s', 16, 1, @errorMessage);
@@ -688,8 +773,20 @@ BEGIN
 END;
 GO
 
+exec sp_LN_ViewOrderDetails
+    @learnerId = 'user003',
+    @orderId = 1;
+go
+exec sp_LN_ViewOrderDetails
+    @learnerId = 'user003',
+    @orderId = 2;
+go
+exec sp_LN_ViewOrderDetails
+    @learnerId = 'user003',
+    @orderId = 3;
+go
 
--- LN - Unenroll
+-- LN - Unenroll tested
 IF OBJECT_ID('sp_LN_UnenrollLearnerFromCourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UnenrollLearnerFromCourse]
 GO
@@ -709,7 +806,7 @@ BEGIN
         IF @@ROWCOUNT = 0
         BEGIN
             RAISERROR ('No enrollment record found for the given course and learner.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
         -- del from learnerAnswerQuestion
@@ -735,7 +832,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot unenroll the learner from the course. Error: %s', 16, 1, @errorMessage);
@@ -743,7 +840,12 @@ BEGIN
 END;
 GO
 
--- LN - Complete A Lesson
+exec sp_LN_UnenrollLearnerFromCourse
+    @learnerId = 'user003',
+    @courseId = 5;
+go
+
+-- LN - Complete A Lesson tested
 IF OBJECT_ID('sp_LN_CompleteLesson', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_CompleteLesson]
 GO
@@ -769,12 +871,12 @@ BEGIN
         DECLARE @newSectionCompletionPercent DECIMAL(5, 2);
 
         SELECT @totalLessonsInSection = COUNT(*)
-        FROM lecture
+        FROM lesson
         WHERE sectionId = @sectionId AND courseId = @courseId;
 
         SELECT @completedLessonsInSection = COUNT(*)
         FROM learnerParticipateLesson
-        WHERE learnerId = @learnerId AND courseId = @courseId AND sectionId = @sectionId AND isCompletedLesson = 1;
+        WHERE learnerId = @learnerId AND sectionId = @sectionId AND courseId = @courseId AND isCompletedLesson = 1;
 
         SELECT @completedExercisesInSection = COUNT(*)
         FROM learnerDoExercise
@@ -804,13 +906,12 @@ BEGIN
         UPDATE learnerEnrollCourse
         SET completionPercentInCourse = @newCourseCompletionPercent
         WHERE learnerId = @learnerId AND courseId = @courseId;
-    
         
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Error occurred while completing the lesson: %s', 16, 1, @errorMessage);
@@ -818,7 +919,7 @@ BEGIN
 END;
 GO
 
--- LN - View Test
+-- LN - View Test tested
 IF OBJECT_ID('sp_LN_ViewTest', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewTest]
 GO
@@ -854,7 +955,7 @@ BEGIN
     INTO #QuestionsAndAnswers
     FROM question q
     LEFT JOIN questionAnswer qa
-      ON q.id = qa.questionId
+      ON q.id = qa.questionId AND q.exerciseId = qa.exerciseId AND q.sectionId = qa.sectionId AND q.courseId = qa.courseId
     WHERE q.exerciseId = @exerciseId 
       AND q.sectionId = @sectionId 
       AND q.courseId = @courseId;
@@ -885,7 +986,13 @@ BEGIN
 END;
 GO
 
--- LN -Take The Test
+exec sp_LN_ViewTest
+    @courseId = 4,
+    @sectionId = 1,
+    @exerciseId = 2;
+go
+
+-- LN -Take The Test tested
 IF OBJECT_ID('sp_LN_AddLearnerAnswersOfExercise', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_AddLearnerAnswersOfExercise]
 GO
@@ -914,10 +1021,15 @@ BEGIN
         FROM STRING_SPLIT(@learnerAnswers, '|')
         WHERE value LIKE '%,%';
 
-        -- insert answers
-        INSERT INTO learnerAnswerQuestion (learnerId, questionId, exerciseId, sectionId, courseId, learnerAnswer)
-        SELECT @learnerId, questionId, @exerciseId, @sectionId, @courseId, learnerAnswer
-        FROM @AnswerTable;
+        -- insert or update answers
+        MERGE learnerAnswerQuestion AS laq
+		USING (SELECT @learnerId, questionId, @exerciseId, @sectionId, @courseId, learnerAnswer FROM @AnswerTable) AS ant(learnerId, questionId, exerciseId, sectionId, courseId, learnerAnswer)
+		ON laq.learnerId = ant.learnerId AND laq.questionId = ant.questionId AND laq.exerciseId = ant.exerciseId AND laq.sectionId = ant.sectionId AND laq.courseId = ant.courseId
+		WHEN MATCHED THEN
+			UPDATE SET learnerAnswer = ant.learnerAnswer
+		WHEN NOT MATCHED THEN
+			INSERT (learnerId, questionId, exerciseId, sectionId, courseId, learnerAnswer)
+			VALUES (ant.learnerId, ant.questionId, ant.exerciseId, ant.sectionId, ant.courseId, ant.learnerAnswer);
 
         -- calculate score
         DECLARE @totalQuestions INT;
@@ -926,7 +1038,7 @@ BEGIN
 
         SELECT @totalQuestions = COUNT(*)
         FROM question
-        WHERE exerciseId = @exerciseId;
+        WHERE courseId = @courseId AND sectionId = @sectionId AND exerciseId = @exerciseId;
 
         SELECT @correctAnswers = COUNT(*)
         FROM @AnswerTable a
@@ -953,12 +1065,16 @@ BEGIN
         WHERE learnerId = @learnerId AND lessonId = @exerciseId AND sectionId = @sectionId AND courseId = @courseId;
 
         -- update lesson, section, and course completion
-        EXEC sp_LN_CompleteLesson @learnerId, @courseId, @sectionId, @exerciseId
+        EXEC sp_LN_CompleteLesson
+			@courseId = @courseId,
+			@learnerId = @learnerId, 
+			@sectionId = @sectionId, 
+			@lessonId = @exerciseId;
 
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot complete the operation. Error: %s', 16, 1, @errorMessage);
@@ -966,7 +1082,15 @@ BEGIN
 END;
 GO
 
--- LN - View Test With Results
+exec sp_LN_AddLearnerAnswersOfExercise
+    @learnerId = 'user003',
+    @courseId = 4,
+    @sectionId = 1,
+    @exerciseId = 2,
+    @learnerAnswers = '1,3|2,2|3,3|4,2';
+go
+
+-- LN - View Test With Results tested
 IF OBJECT_ID('sp_LN_GetLearnerAnswersOfExercise', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_GetLearnerAnswersOfExercise]
 GO
@@ -978,7 +1102,6 @@ CREATE PROCEDURE sp_LN_GetLearnerAnswersOfExercise
     @exerciseId INT
 AS
 BEGIN
-    BEGIN TRANSACTION;
     BEGIN TRY
         -- get score
         DECLARE @learnerScore DECIMAL(5, 2);
@@ -994,27 +1117,28 @@ BEGIN
         FROM lesson l
         WHERE l.id = @exerciseId AND l.sectionId = @sectionId AND l.courseId = @courseId;
 
-
         -- get question with correct answer and learner's answer 
         SELECT 
             q.id AS questionId,
             q.question,
-            qa.questionAnswers AS correctAnswer,
+            qa.id AS correctAnswer,
             laq.learnerAnswer
         FROM 
             question q
         JOIN 
             questionAnswer qa 
             ON q.id = qa.questionId 
-            AND q.exerciseId = qa.exerciseId 
-            AND q.sectionId = qa.sectionId 
-            AND q.courseId = qa.courseId
+            AND q.exerciseId = qa.exerciseId AND q.exerciseId = @exerciseId
+            AND q.sectionId = qa.sectionId AND q.sectionId = @sectionId
+            AND q.courseId = qa.courseId AND q.courseId = @courseId
             AND qa.isCorrect = 1 -- Get the correct answer
         LEFT JOIN 
             learnerAnswerQuestion laq 
-            ON q.id = laq.questionId 
-            AND laq.learnerId = @learnerId 
-            AND laq.exerciseId = @exerciseId
+            ON laq.questionId = q.id
+            AND laq.exerciseId = q.exerciseId
+			AND laq.sectionId = q.sectionId
+			AND laq.courseId = q.courseId
+            AND laq.learnerId = @learnerId
         WHERE 
             q.exerciseId = @exerciseId
         FOR JSON PATH, INCLUDE_NULL_VALUES, ROOT('results');
@@ -1026,7 +1150,7 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR ('Cannot retrieve the results. Error: %s', 16, 1, @errorMessage);
@@ -1034,8 +1158,14 @@ BEGIN
 END;
 GO
 
+exec sp_LN_GetLearnerAnswersOfExercise
+    @learnerId = 'user003',
+    @courseId = 4,
+    @sectionId = 1,
+    @exerciseId = 2;
+go
 
--- LN - Add Review
+-- LN - Add Review tested
 IF OBJECT_ID('sp_LN_AddLearnerReview', 'P') IS NOT NULL
     DROP PROCEDURE sp_LN_AddLearnerReview;
 GO
@@ -1057,7 +1187,7 @@ BEGIN
         )
         BEGIN
             RAISERROR('Learner is not enrolled in this course.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -1070,7 +1200,7 @@ BEGIN
         IF @completionPercent <= 25.00
         BEGIN
             RAISERROR('Learner has not completed enough of the course to leave a review. Must complete at least 25%%.', 16, 1);
-            ROLLBACK TRANSACTION;
+            IF @@trancount > 0 ROLLBACK TRANSACTION;
             RETURN;
         END
 
@@ -1080,7 +1210,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR('An error occurred while adding the review: %s', 16, 1, @errorMessage);
@@ -1088,6 +1218,12 @@ BEGIN
 END;
 GO
 
+exec sp_LN_AddLearnerReview
+    @learnerId = 'user003',
+    @courseId = 4,
+    @review = 'Super review',
+    @rating = 4.3;
+go
 
 -- LN - GetEnrolledCourse
 IF OBJECT_ID('sp_LN_GetEnrolledCourse', 'P') IS NOT NULL
@@ -1115,10 +1251,14 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@trancount > 0 ROLLBACK TRANSACTION;
         DECLARE @errorMessage NVARCHAR(4000);
         SET @errorMessage = ERROR_MESSAGE();
         RAISERROR('An error occurred while get the enrolled courses: %s', 16, 1, @errorMessage);
     END CATCH
 END;
 GO
+
+exec sp_LN_GetEnrolledCourse
+    @learnerId = 'user003';
+go
