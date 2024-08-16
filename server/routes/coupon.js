@@ -1,9 +1,8 @@
 import express from "express";
+import { isAdmin } from "../middlewares";
+import { requireSignin } from "../middlewares";
 
 const router = express.Router();
-
-// middleware
-// import { requireSignin } from "../middlewares";
 
 // controllers
 import {
@@ -11,7 +10,10 @@ import {
     getAllCoupons
 } from "../controllers/coupon";
 
-router.post("/coupon", createCoupon);
+router.post("/coupon",
+//    requireSignin,
+//    isAdmin,
+    createCoupon);
 router.get("/coupon", getAllCoupons);
 
 export default router;
