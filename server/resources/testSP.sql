@@ -1,7 +1,9 @@
-USE LMS;
+﻿USE LMS;
 GO
 
--- Insert into user
+-- DATA
+
+-- Insert into User
 INSERT INTO [user] (id, email, name, password, profilePhoto, role)
 VALUES
 ('user001', 'admin1@example.com', 'Admin One', 'password1', 'photo1.jpg', 'AD'),
@@ -16,7 +18,7 @@ VALUES
 ('user010', 'instructor4@example.com', 'Instructor Four', 'password10', 'photo10.jpg', 'INS');
 GO
 
--- Insert into admin
+-- Insert into Admin
 INSERT INTO admin (id)
 VALUES
 ('user001'),
@@ -116,8 +118,6 @@ VALUES
 ('Computer Science Basics 2', 'Intro to CS', 'Foundational computer science concepts', 'cs.jpg', 'cs.mp4', 'draft', 150, 20, 30.0, 4.6, 70, 1, 2, 6000.00, 1200.00, 'English', 49.99);
 GO
 
-select * from course
-
 -- Insert into courseRevenueByMonth
 INSERT INTO courseRevenueByMonth (courseId, year, month, revenue)
 VALUES
@@ -193,37 +193,183 @@ VALUES
 
 GO
 
-select * from lecture
-select * from exercise
+INSERT INTO lesson (id, sectionId, courseId, title, learnTime, type)
+VALUES
+(1, 1, 4, 'Introduction to Physics', 100, 'lecture'),
+(2, 1, 4, 'Prerequisite Test', 100, 'exercise'),
+(1, 2, 4, 'Motions and Velocity', 40, 'lecture'),
+(2, 2, 4, 'Motions and Velocity Test', 40, 'exercise'),
+(1, 3, 5, 'Bonds of atoms', 70, 'lecture');
+GO
 
 -- Insert into lecture
 INSERT INTO lecture (id, sectionId, courseId, resource)
 VALUES
-(1, 1, 4, 'Welcome to Physics', 'An overview of the course', 1.0, 'intro.mp4'),
-(1, 2, 4, 'Laws of Motion', 'Understanding Newton''s Laws', 2.5, 'motion.mp4'),
-(1, 3, 5, 'Chemical Bonds', 'Exploring the types of bonds', 3.5, 'bonds.mp4');
+(1, 1, 4, 'intro.mp4'),
+(1, 2, 4, 'motion.mp4'),
+(1, 3, 5, 'bonds.mp4');
 GO
 
 -- Insert into exam
-INSERT INTO exercise (sectionId, courseId)
+INSERT INTO exercise (id, sectionId, courseId)
 VALUES
-(1, 1),
-(2, 1);
+(2, 1, 4),
+(2, 2, 4);
 GO
 
 -- Insert into question
-INSERT INTO question (exerciseId, sectionId, courseId, question)
+INSERT INTO question (id, exerciseId, sectionId, courseId, question)
 VALUES
-(1, 1, 'What is Newton''s First Law?'),
-(2, 1, 'Explain the concept of inertia.'),
-(3, 2, 'Describe the different types of chemical bonds.');
+(1, 2, 1, 4, 'What is Newton''s First Law?'),
+(2, 2, 1, 4, 'Explain the concept of inertia.'),
+(3, 2, 1, 4, 'Some physics question 1.'),
+(4, 2, 1, 4, 'Some physics question 2.'),
+(1, 2, 2, 4, 'Describe the different types of chemical bonds.'),
+(2, 2, 2, 4, 'What is bond?'),
+(3, 2, 2, 4, 'Some physics question 1.'),
+(4, 2, 2, 4, 'Some physics question 2.'),
+(5, 2, 2, 4, 'Some physics question 3.');
 GO
 
--- Insert into result
-INSERT INTO result (learnerId, examId, grade, dateTaken)
-VALUES
-('user003', 1, 85, '2024-08-21'),
-('user004', 1, 90, '2024-08-21'),
-('user007', 2, 75, '2024-08-23'),
-('user008', 2, 80, '2024-08-23');
+insert into questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers, isCorrect) values
+(1, 1, 2, 1, 4, 'Newton''s First Law is something incorrect', 0),
+(2, 1, 2, 1, 4, 'Newton''s First Law is something incorrect', 0),
+(3, 1, 2, 1, 4, 'Newton''s First Law is something correct', 1),
+(1, 2, 2, 1, 4, 'Inertia is a phenomenon when you incorrect.', 0),
+(2, 2, 2, 1, 4, 'Inertia is a phenomenon when you correct.', 1),
+(1, 3, 2, 1, 4, 'Some physics answer 1 incorrect.', 0),
+(2, 3, 2, 1, 4, 'Some physics answer 1 incorrect.', 0),
+(3, 3, 2, 1, 4, 'Some physics answer 1 correct.', 1),
+(1, 4, 2, 1, 4, 'Some physics answer 2 incorrect.', 0),
+(2, 4, 2, 1, 4, 'Some physics answer 2 correct.', 1),
+(1, 1, 2, 2, 4, 'Describe the different types of chemical bonds.', 0),
+(2, 1, 2, 2, 4, 'Hexagonal bond appears in metal material like Fe, Cu, etc.', 1),
+(3, 1, 2, 2, 4, 'Something something incorrect.', 0),
+(4, 1, 2, 2, 4, 'Something something incorrect.', 0),
+(1, 2, 2, 2, 4, 'Bond is how atoms are bound to each others to create a structure that ...', 1),
+(2, 2, 2, 2, 4, 'Incorrect ...', 0),
+(3, 2, 2, 2, 4, 'Incorrect ...', 0),
+(1, 3, 2, 2, 4, 'Incorrect.', 0),
+(2, 3, 2, 2, 4, 'Incorrect.', 0),
+(3, 3, 2, 2, 4, 'Incorrect.', 0),
+(4, 3, 2, 2, 4, 'All are incorrect.', 1),
+(1, 4, 2, 2, 4, 'Correct.', 0),
+(2, 4, 2, 2, 4, 'Correct.', 0),
+(3, 4, 2, 2, 4, 'Correct.', 0),
+(4, 4, 2, 2, 4, 'All are correct.', 1),
+(1, 5, 2, 2, 4, 'Correct.', 0),
+(2, 5, 2, 2, 4, 'Correct.', 0),
+(3, 5, 2, 2, 4, 'Incorrect.', 0),
+(4, 5, 2, 2, 4, '1 and 2 are correct.', 1);
 GO
+
+
+-- TEST
+
+-- SELECT ĐỂ TEST, CỨ CHẠY HẾT MỘT NHÓM SELECT
+
+-- BASIC
+SELECT * FROM course
+SELECT * FROM [user]
+SELECT * FROM paymentCard
+SELECT * FROM learnerpaymentCard
+
+-- NHỮNG CÁI LIÊN QUAN COURSE, BÀI HỌC
+select * from section;
+select * from lesson;
+select * from exercise; 
+select * from lecture;
+
+-- NHỮNG BẢNG LIÊN QUAN VIỆC NGƯỜI DÙNG THAM GIA KHÓA HỌC
+select * from learnerAnswerQuestion; 
+select * from learnerDoExercise;
+select * from learnerEnrollCourse
+select * from learnerParticipateLesson;
+select * from learnerParticipateSection;
+select * from learnerReviewCourse;
+
+-- CÂU HỎI VÀ CÂU TRẢ LỜI
+select qa.questionId, q.question, questionAnswers
+from question q
+join questionAnswer qa on q.courseId = qa.courseId and q.sectionId = qa.sectionId and q.exerciseId = qa.exerciseId and q.id = qa.questionId
+order by qa.questionId, qa.id;
+
+-- CÂU HỎI VÀ CÂU TRẢ LỜI ĐÚNG
+select qa.questionId, q.question, qa.id as questionAnswerId, questionAnswers
+from question q
+join questionAnswer qa on q.courseId = qa.courseId and q.sectionId = qa.sectionId and q.exerciseId = qa.exerciseId and q.id = qa.questionId
+where isCorrect = 1
+order by q.courseId, q.sectionId, q.exerciseId, qa.questionId;
+
+-- PAYMENT CARD
+insert into learnerPaymentCard values ('user003', '1111222233334444')
+
+--
+
+-- sp-cong
+-- 1. sp_AD_INS_GetMonthlyRevenueOfACourse
+--EXEC sp_AD_INS_GetMonthlyRevenueOfACourse
+--    @courseId = 4,
+--    @duration = 7
+--GO
+-- hiện giờ là tháng 8, chạy cái này thì chỉ cho kết quả
+-- [{"year":2024,"month":2,"revenue":3000.00}]
+-- trong test data có hai tháng của 2024 là 1 với 2, 
+-- vậy nên 
+-- 1. Sửa @duration lại thành cái gì đó dễ hiểu hơn thành @numberOfMonth hay @monthAgo
+-- 2. Sửa lại để nó hợp lí hơn, nếu @numberOfMonth thì giữ cái code cũ, 
+-- @monthAgo thì sửa lại code
+
+-- 2. sp_AD_INS_GetYearlyRevenueOfACourse
+-- Này thì ngược lại với cái Monthly
+-- @duration là 1 thì kết quả
+-- [{"year":2023,"totalRevenue":10000.00},{"year":2024,"totalRevenue":5000.00}]
+-- nên bên trên làm sao thì dưới đây ngược lại
+
+-- 3. sp_LN_UpdateLearnerPaymentCard
+-- Tại sao này lại đặt là Update vậy? Không phải nó là Insert hả
+-- Mà nếu chỉnh sửa paymentCard của học viên thì phải xóa learnerPaymentCard cũ?
+-- Tại order thì fk với paymentCard rồi nên không có thằng nào fk với learnerPaymentCard hết
+
+-- 4. sp_LN_ViewOrders
+-- 5.1. Do này trả về nhiều nên không cần WITHOUT_ARRAY_WRAPPER
+-- Trả về như thế này
+-- [{"learnerId":"user003","name":"Learner One","orders":[
+--{"id":3,"dateCreated":"2024-08-16T10:24:47.893","total":21.29},
+--{"id":2,"dateCreated":"2024-08-16T10:22:25.437","total":28.39},
+--{"id":1,"dateCreated":"2024-08-16T10:08:24.917","total":56.79}],
+--"paymentCardNumber":"1111222233334444","couponCode":"LMFAO123",
+--"discountPercent":29.00}]
+-- Cái paymentCardNumber, couponCode, discountPercent tự nhiên gắn MAX chi vậy, sao không
+-- lấy thông tin mỗi cái luôn???
+
+-- 5. sp_UpdateCourseRevenueAndInstructorRevenue
+-- Lỗi logic
+-- Mình quy ước là, giá ban đầu giảng viên đưa là 70%, udemy sẽ lấy 30%, vậy nên cho dù như thế nào đi nữa
+-- cho dù có coupon thì instructorrevenue vẫn là 70%, nhưng courserevenue là 85%
+-- ví dụ, giờ có coupon 15%, giá là 100, thì 
+-- 1) giảng viên nhận 70, instructorRevenue += 70
+-- 2) udemy nhận 15
+-- 3) courseRevenue += 85, chỉ trừ tiền giảm giá 15%
+-- vậy thì chỉnh lại
+-- @amount thay vì là @amount giá sau giảm giá, thì đổi thành @discount đi
+-- vậy thì courseRevenue += @price * (100 - @discount) / 100
+-- và instructorRevenue = @price * 70%
+
+-- 6. sp_LN_GetLearnerAnswersOfExercise
+-- t sửa thành trả id correct answer
+
+
+
+-- CHECK TRIGGER ORDERID
+
+-- CRITERIA
+-- SELECT
+-- 1. CORRECT AND UNDERSTANDABLE NAME
+-- 2. ORDER BY
+-- 3. ARRAY WRAPPER IF MANY
+
+-- INSERT
+-- 1. INSERT CORRECTLY?
+
+
