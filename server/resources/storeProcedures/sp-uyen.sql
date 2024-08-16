@@ -241,7 +241,7 @@ BEGIN
 	BEGIN TRY
 		SELECT C.id, C.title, C.subTitle, C.image, C.state, C.numberOfStudents, 
 			C.numberOfLectures, C.totalTime, C.averageRating, C.price, C.lastUpdateTime,
-			(SELECT SC.name FROM subCategory SC WHERE SC.id = C.subCategoryId) as subCategory, 
+			(SELECT SC.name FROM subCategory SC WHERE SC.parentCategoryId = C.categoryId AND SC.id = C.subCategoryId) as subCategory, 
 			(SELECT PC.name FROM category PC WHERE PC.id = C.categoryId) as category,
 			T.instructors, T.instructorsId
 		FROM course C 
