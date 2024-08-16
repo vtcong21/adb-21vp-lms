@@ -144,7 +144,7 @@ CREATE TABLE [instructor]
 	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
 	CONSTRAINT [Instructor degrees is required.] CHECK(LEN(degrees) > 0),
 	CONSTRAINT [Instructor scientific background is required.] CHECK(LEN(scientificBackground) > 0),
-	CONSTRAINT [Instructor vipState is invalid.] CHECK(vipState IN ('notVip', 'vip', 'pending')),
+	CONSTRAINT [Instructor vipState is invalid.] CHECK(vipState IN ('notVip', 'vip', 'pendingReview')),
 	CONSTRAINT [Instructor total revenue must be non-negative.] CHECK(totalRevenue >= 0),
 
     CONSTRAINT [PK_instructor] PRIMARY KEY (id),
