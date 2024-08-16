@@ -2,7 +2,7 @@
 Use LMS 
 GO
 
--- AD - Get Daily Revenue Of A Course untested
+-- AD - Get Daily Revenue Of A Course un
 IF OBJECT_ID('sp_AD_INS_GetDailyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetDailyRevenueOfACourse]
 GO
@@ -38,12 +38,7 @@ BEGIN
 END;
 GO
 
-EXEC sp_AD_INS_GetDailyRevenueOfACourse
-    @courseId = 4,
-    @duration = 100
-GO
-
--- AD - Get Monthly Revenue Of A Course todo
+-- AD - Get Monthly Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetMonthlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetMonthlyRevenueOfACourse]
 GO
@@ -79,14 +74,7 @@ BEGIN
 END;
 GO
 
-
-EXEC sp_AD_INS_GetMonthlyRevenueOfACourse
-    @courseId = 4,
-    @duration = 7
-GO
-
-
--- AD - Get Yearly Revenue Of A Course todo
+-- AD - Get Yearly Revenue Of A Course
 IF OBJECT_ID('sp_AD_INS_GetYearlyRevenueOfACourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_INS_GetYearlyRevenueOfACourse]
 GO
@@ -122,12 +110,7 @@ BEGIN
 END;
 GO
 
-EXEC sp_AD_INS_GetYearlyRevenueOfACourse
-    @courseId = 4,
-    @duration = 1;
-GO
-
--- AD - Get Top 50 Courses By Revenue tested
+-- AD - Get Top 50 Courses By Revenue 
 IF OBJECT_ID('sp_AD_GetTop50CoursesByRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_AD_GetTop50CoursesByRevenue]
 GO
@@ -150,9 +133,6 @@ BEGIN
         RAISERROR ('Cannot get top 50 courses by revenue.', 16, 1);
     END CATCH
 END;
-GO
-
-EXEC sp_AD_GetTop50CoursesByRevenue
 GO
 
 -- AD - Insert Coupon
@@ -190,16 +170,7 @@ BEGIN
 END;
 GO
 
-exec sp_AD_InsertCoupon
-    @code = 'LMFAO123',
-    @discountPercent = '29',
-    @quantity = 100,
-    @startDate = '2024-08-15 09:08:09.953',
-    @adminId = 'user001';
-go
-select * from coupon
-
--- LN - Create Learner - tested
+-- LN - Create Learner - 
 IF OBJECT_ID('sp_LN_CreateLearner', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_CreateLearner]
 GO
@@ -226,15 +197,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_CreateLearner
-    @userId = 'user0069',
-    @email = 'meomeo@gmail.com',
-    @name = 'Nona Me',
-    @password = 'fuckingpasssword',
-    @profilePhoto = 'uglyphoto.png';
-select * from [user];
-
--- LN - Update Learner Payment Card todo
+-- LN - Update Learner Payment Card
 IF OBJECT_ID('sp_LN_UpdateLearnerPaymentCard', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UpdateLearnerPaymentCard]
 GO
@@ -272,7 +235,7 @@ BEGIN
 END;
 GO
 
--- Ln - Add A Course To Cart tested
+-- Ln - Add A Course To Cart 
 IF OBJECT_ID('sp_LN_AddCourseToCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_AddCourseToCart]
 GO
@@ -321,20 +284,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_AddCourseToCart
-    @learnerId = 'user003',
-    @courseId = 5
-go
-exec sp_LN_AddCourseToCart
-    @learnerId = 'user003',
-    @courseId = 6
-go
-exec sp_LN_AddCourseToCart
-    @learnerId = 'user003',
-    @courseId = 7
-go
-
--- LN - Remove A Course From Cart tested
+-- LN - Remove A Course From Cart 
 IF OBJECT_ID('sp_LN_RemoveCourseFromCart', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_RemoveCourseFromCart]
 GO
@@ -372,15 +322,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_RemoveCourseFromCart
-    @learnerId= 'user003',
-    @courseId = 5
-go
-exec sp_LN_GetCartDetails
-    @learnerId = 'user003'
-go
-
--- LN - Get Cart Details tested
+-- LN - Get Cart Details 
 IF OBJECT_ID('sp_LN_GetCartDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_GetCartDetails]
 GO
@@ -411,11 +353,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_GetCartDetails
-    @learnerId = 'user003'
-go
-
--- update the total revenue of a course and course revenue by month todo
+-- update the total revenue of a course and course revenue by month
 IF OBJECT_ID('sp_UpdateCourseRevenueAndInstructorRevenue', 'P') IS NOT NULL
     DROP PROCEDURE [sp_UpdateCourseRevenueAndInstructorRevenue]
 GO
@@ -498,7 +436,7 @@ BEGIN
 END;
 GO
 
--- LN - Make Order tested
+-- LN - Make Order 
 IF OBJECT_ID('sp_LN_MakeOrder', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_MakeOrder]
 GO
@@ -639,25 +577,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_MakeOrder
-    @learnerId = 'user003',
-    @paymentCardNumber = '1111222233334444',
-    @couponCode = 'LMFAO123'
-GO
-exec sp_LN_AddCourseToCart
-	@learnerId = 'user003',
-	@courseId = 4
-go
-exec sp_LN_GetCartDetails
-	@learnerId = 'user003'
-go
-exec sp_LN_MakeOrder
-    @learnerId = 'user003',
-    @paymentCardNumber = '1111222233334444',
-    @couponCode = 'LMFAO123'
-GO
-
--- LN - View Orders todo
+-- LN - View Orders
 IF OBJECT_ID('sp_LN_ViewOrders', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrders]
 GO
@@ -711,11 +631,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_ViewOrders
-    @learnerId = 'user003';
-go
-
--- LN - View An Order's Details tested
+-- LN - View An Order's Details 
 IF OBJECT_ID('sp_LN_ViewOrderDetails', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewOrderDetails]
 GO
@@ -773,20 +689,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_ViewOrderDetails
-    @learnerId = 'user003',
-    @orderId = 1;
-go
-exec sp_LN_ViewOrderDetails
-    @learnerId = 'user003',
-    @orderId = 2;
-go
-exec sp_LN_ViewOrderDetails
-    @learnerId = 'user003',
-    @orderId = 3;
-go
-
--- LN - Unenroll tested
+-- LN - Unenroll 
 IF OBJECT_ID('sp_LN_UnenrollLearnerFromCourse', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_UnenrollLearnerFromCourse]
 GO
@@ -840,12 +743,8 @@ BEGIN
 END;
 GO
 
-exec sp_LN_UnenrollLearnerFromCourse
-    @learnerId = 'user003',
-    @courseId = 5;
-go
 
--- LN - Complete A Lesson tested
+-- LN - Complete A Lesson 
 IF OBJECT_ID('sp_LN_CompleteLesson', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_CompleteLesson]
 GO
@@ -919,7 +818,7 @@ BEGIN
 END;
 GO
 
--- LN - View Test tested
+-- LN - View Test 
 IF OBJECT_ID('sp_LN_ViewTest', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_ViewTest]
 GO
@@ -986,13 +885,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_ViewTest
-    @courseId = 4,
-    @sectionId = 1,
-    @exerciseId = 2;
-go
-
--- LN -Take The Test tested
+-- LN -Take The Test 
 IF OBJECT_ID('sp_LN_AddLearnerAnswersOfExercise', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_AddLearnerAnswersOfExercise]
 GO
@@ -1082,15 +975,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_AddLearnerAnswersOfExercise
-    @learnerId = 'user003',
-    @courseId = 4,
-    @sectionId = 1,
-    @exerciseId = 2,
-    @learnerAnswers = '1,3|2,2|3,3|4,2';
-go
-
--- LN - View Test With Results tested
+-- LN - View Test With Results 
 IF OBJECT_ID('sp_LN_GetLearnerAnswersOfExercise', 'P') IS NOT NULL
     DROP PROCEDURE [sp_LN_GetLearnerAnswersOfExercise]
 GO
@@ -1121,7 +1006,7 @@ BEGIN
         SELECT 
             q.id AS questionId,
             q.question,
-            qa.id AS correctAnswer,
+            qa.questionAnswers AS correctAnswer,
             laq.learnerAnswer
         FROM 
             question q
@@ -1158,14 +1043,7 @@ BEGIN
 END;
 GO
 
-exec sp_LN_GetLearnerAnswersOfExercise
-    @learnerId = 'user003',
-    @courseId = 4,
-    @sectionId = 1,
-    @exerciseId = 2;
-go
-
--- LN - Add Review tested
+-- LN - Add Review 
 IF OBJECT_ID('sp_LN_AddLearnerReview', 'P') IS NOT NULL
     DROP PROCEDURE sp_LN_AddLearnerReview;
 GO
@@ -1218,13 +1096,6 @@ BEGIN
 END;
 GO
 
-exec sp_LN_AddLearnerReview
-    @learnerId = 'user003',
-    @courseId = 4,
-    @review = 'Super review',
-    @rating = 4.3;
-go
-
 -- LN - GetEnrolledCourse
 IF OBJECT_ID('sp_LN_GetEnrolledCourse', 'P') IS NOT NULL
     DROP PROCEDURE sp_LN_GetEnrolledCourse;
@@ -1258,7 +1129,3 @@ BEGIN
     END CATCH
 END;
 GO
-
-exec sp_LN_GetEnrolledCourse
-    @learnerId = 'user003';
-go
