@@ -8,10 +8,14 @@ const router = express.Router();
 // controllers
 import {
     getInstructorProfile,
-    updateInstructorInfo
+    updateInstructorInfo,
+    getMonthlyRevenueForInstructor,
+    getAunnualRevenueForInstructor
 } from "../controllers/instructor";
 
-router.post("/instructor/progile", getInstructorProfile);
+router.get("/instructor/profile", getInstructorProfile);
+router.get("/instructor/revenue/monthly", getMonthlyRevenueForInstructor);
+router.get("/instructor/profile/annual", getAunnualRevenueForInstructor);
 router.put("/instructor/profile", updateInstructorInfo);
 
 

@@ -24,28 +24,6 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-export const getAllCoupons = async (req, res) => {
-    try {
-        const { isAvailable } = req.body;
-
-        const pool = getPool('LMS');
-
-        if (!pool) {
-            return res.status(500).json({ message: "Database pool is not available" });
-        }
-
-        if (!isAvailable) {
-            return res.status(400).json({ message: "isAvailable is required" });
-        }
-        const jsonResult = await pool.executeSP('sp_All_GetCoupons', { isAvailable });
-
-        return res.status(200).json(jsonResult);
-
-    } catch (err) {
-        console.log("ERR ", err);
-        return res.status(400).json({ error: err.message });
-    }
-};
 
 export const updateUserInfo = async (req, res) => {
     try {

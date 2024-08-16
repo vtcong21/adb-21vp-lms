@@ -3,24 +3,24 @@ import getPool from "../utils/database";
 export const getInstructorProfile = async (req, res) => {
   try {
 
-      const { instructorId } = req.body;
+    const { instructorId } = req.body;
 
-      const pool = getPool('LMS');
+    const pool = getPool('LMS');
 
-      if (!pool) {
-          return res.status(500).json({ message: "Database pool is not available" });
-      }
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
 
-      if (!instructorId) {
-          return res.status(400).json({ message: "instructorId is required" });
-      }
-      const jsonResult = await pool.executeSP('sp_All_GetInstructorProfile', { id: instructorId });
+    if (!instructorId) {
+      return res.status(400).json({ message: "instructorId is required" });
+    }
+    const jsonResult = await pool.executeSP('sp_All_GetInstructorProfile', { id: instructorId });
 
-      return res.status(200).json(jsonResult);
+    return res.status(200).json(jsonResult);
 
   } catch (err) {
-      console.log("ERR ", err);
-      return res.status(400).json({ error: err.message });
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
   }
 };
 
@@ -38,7 +38,7 @@ export const updateInstructorInfo = async (req, res) => {
     if (!instructorId || !password) {
       return res.status(400).json({ message: "instructorId and password required" });
     }
-    await pool.executeSP('sp_All_UpdateInstructorIndo', { instructorId, password, gender, phone, DOB, address, degress, workplace, scientificBackground  });
+    await pool.executeSP('sp_All_UpdateInstructorIndo', { instructorId, password, gender, phone, DOB, address, degress, workplace, scientificBackground });
 
     return res.status(200).json({ message: "updated informations successfully" });
 
@@ -47,3 +47,51 @@ export const updateInstructorInfo = async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 };
+
+export const getMonthlyRevenueForInstructor = async (req, res) => {
+  try {
+    const { instructorId, duration } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!instructorId || !duration) {
+      return res.status(400).json({ message: "duration and instructorId art required" });
+    }
+    const jsonResult = await pool.executeSP('sp_AD_INS_GetMonthlyRevenueForInstructor', { instructorId, duration });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+
+export const getAunnualRevenueForInstructor = async (req, res) => {
+  try {
+    const { instructorId, duration } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!instructorId || !duration) {
+      return res.status(400).json({ message: "duration and instructorId art required" });
+    }
+    const jsonResult = await pool.executeSP('sp_AD_INS_GetAnnualRevenueForInstructor', { instructorId, duration });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
