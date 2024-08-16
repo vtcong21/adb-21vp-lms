@@ -189,4 +189,5 @@ INSERT INTO [subCategory] (parentCategoryId, name) VALUES (14, N'Counseling Psyc
 INSERT INTO [subCategory] (parentCategoryId, name) VALUES (14, N'Abnormal Psychology');
 INSERT INTO [subCategory] (parentCategoryId, name) VALUES (14, N'Experimental Psychology');
 INSERT INTO [subCategory] (parentCategoryId, name) VALUES (14, N'Environmental Psychology');
+
 GO

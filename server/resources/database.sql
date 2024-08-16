@@ -11,8 +11,7 @@ GO
 
 USE LMS
 GO
-
--- Create tables
+-- CREATE TABLEs
 
 CREATE FUNCTION isValidUser(@userId VARCHAR(128), @userRole VARCHAR(3))
 RETURNS BIT
@@ -62,9 +61,7 @@ CREATE TABLE [admin]
     
 	CONSTRAINT [Admin id is required.] CHECK(LEN(id) > 0),
 	CONSTRAINT [Admin id is invalid.] CHECK([dbo].isValidUser(id, 'AD') = 1),
-    
     CONSTRAINT [PK_admin] PRIMARY KEY (id),
-
 	CONSTRAINT [FK_admin_user] FOREIGN KEY (id) REFERENCES [user](id)
 );
 GO
@@ -138,7 +135,7 @@ CREATE TABLE [instructor]
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
     
 	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [Instructor id is invalid.] CHECK([dbo].isValidCourseMember(id, 'INS') = 1),
+	CONSTRAINT [Instructor's role must be valid.] CHECK([dbo].isValidCourseMember(id, 'INS') = 1),
 	CONSTRAINT [Instructor gender is invalid.] CHECK(gender IN ('M', 'F')),
 	CONSTRAINT [Instructor phone number must be 10 to 11 digits long.] CHECK(LEN(phone) BETWEEN 10 AND 11 AND ISNUMERIC(phone) = 1),
 	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
@@ -222,12 +219,11 @@ CREATE TABLE [vipInstructor]
     paymentCardNumber VARCHAR(16) NOT NULL,
     
 	CONSTRAINT [VIP instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1),
+	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1), --CHECK!!!!!!!!!!!!!
 
     CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)
-																						  ,
+	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)														  ,
 	CONSTRAINT [FK_vipInstructor_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number)
 );
 GO
@@ -258,8 +254,7 @@ CREATE TABLE [taxForm]
 
     CONSTRAINT [PK_taxForm] PRIMARY KEY(vipInstructorId),
 
-    CONSTRAINT [FK_taxForm_vipInstructor] FOREIGN KEY (vipInstructorId) REFERENCES [vipInstructor](id) 
-																									   
+    CONSTRAINT [FK_taxForm_instructor] FOREIGN KEY (vipInstructorId) REFERENCES [instructor](id) 																								   
 );
 GO
 
@@ -324,10 +319,11 @@ CREATE TABLE [course]
     numberOfLectures INT NOT NULL DEFAULT 0,
     totalTime DECIMAL(10, 2) NOT NULL DEFAULT 0,
     averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    ratingCount INT NOT NULL DEFAULT 0,
     subCategoryId INT NOT NULL,
     categoryId INT NOT NULL,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
-    
+    revenueByMonth DECIMAL(18, 2) NOT NULL DEFAULT 0,
     language NVARCHAR(50) NOT NULL,
     price DECIMAL(18, 2) NOT NULL,
     lastUpdateTime DATETIME NOT NULL DEFAULT GETDATE(),
@@ -403,7 +399,7 @@ GO
 CREATE TABLE [courseRequirements]
 (
     courseId INT NOT NULL,
-	requirementId INT IDENTITY(1,1) NOT NULL,
+	requirementId INT NOT NULL,
     requirement NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course requirement is required.] CHECK(LEN(requirement) > 0),
@@ -422,7 +418,7 @@ GO
 CREATE TABLE [courseObjectives]
 (
     courseId INT NOT NULL,
-	objectiveId INT IDENTITY(1,1) NOT NULL,
+	objectiveId INT NOT NULL,
     objective NVARCHAR(256) NOT NULL,
  
 	CONSTRAINT [Course objective is required.] CHECK(LEN(objective) > 0),
@@ -707,7 +703,7 @@ GO
 
 CREATE TABLE [adminResponse]
 (
-	id INT NOT NULL,
+	id INT NOT NULL IDENTITY(1,1),
 	adminId NVARCHAR(128) NOT NULL,
     courseId INT NOT NULL,
 	dateResponse DATE NOT NULL DEFAULT GETDATE(),
@@ -716,7 +712,7 @@ CREATE TABLE [adminResponse]
 	CONSTRAINT [Admin response text is required.] CHECK(LEN(responseText) > 0),
 	CONSTRAINT [Admin date response must be before today.] CHECK(dateResponse <= GETDATE()),
 
-    CONSTRAINT [PK_adminResponse] PRIMARY KEY(courseId, adminId, id),
+    CONSTRAINT [PK_adminResponse] PRIMARY KEY(id),
 
     CONSTRAINT [FK_adminResponse_admin] FOREIGN KEY (adminId) REFERENCES [admin](id),
 	CONSTRAINT [FK_adminResponse_course] FOREIGN KEY (courseId) REFERENCES [course](id)
@@ -747,7 +743,7 @@ GO
 
 CREATE TABLE [message]	
 (
-	id INT NOT NULL,
+	id INT NOT NULL IDENTITY(1,1),
     content NVARCHAR(MAX) NOT NULL,
     isRead BIT NOT NULL DEFAULT 0,
     senderId NVARCHAR(128) NOT NULL,
@@ -756,7 +752,7 @@ CREATE TABLE [message]
 
 	CONSTRAINT [Message sent time must be before today.] CHECK(sentTime <= GETDATE()),
     
-    CONSTRAINT [PK_message] PRIMARY KEY(senderId, receiverId, id),
+    CONSTRAINT [PK_message] PRIMARY KEY(id),
 
 	CONSTRAINT [FK_messageSender_courseMember] FOREIGN KEY (senderId) REFERENCES [courseMember](id),
 	CONSTRAINT [FK_messageReceiver_courseMember] FOREIGN KEY (receiverId) REFERENCES [courseMember](id)
@@ -817,8 +813,7 @@ CREATE TABLE [learnerPaymentCard]
     learnerId NVARCHAR(128) NOT NULL,
     paymentCardNumber VARCHAR(16) NOT NULL,
     
-    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY(learnerId, paymentCardNumber),
-    
+    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY (learnerId, paymentCardNumber),
     CONSTRAINT [FK_learnerPaymentCard_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_learnerPaymentCard_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
 );
@@ -878,7 +873,7 @@ GO
 
 CREATE TABLE [post]
 (
-    id INT NOT NULL,
+    id INT NOT NULL IDENTITY(1,1),
     date DATETIME NOT NULL DEFAULT GETDATE(),
     courseId INT NOT NULL,
     publisher NVARCHAR(128) NOT NULL,
@@ -887,7 +882,7 @@ CREATE TABLE [post]
 	CONSTRAINT [Post date must be before today.] CHECK(date <= GETDATE()),
 	CONSTRAINT [Post content is required.] CHECK(LEN(content) > 0),
 
-    CONSTRAINT [PK_post] PRIMARY KEY(id, courseId, publisher),
+    CONSTRAINT [PK_post] PRIMARY KEY(id),
 
     CONSTRAINT [FK_post_course] FOREIGN KEY (CourseId) REFERENCES [course](id),
 	CONSTRAINT [FK_post_courseMember] FOREIGN KEY (publisher) REFERENCES [courseMember](id)
@@ -902,15 +897,16 @@ GO
 CREATE TABLE [postNotification]
 (
     postId INT NOT NULL,
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
+    date DATETIME NOT NULL DEFAULT GETDATE(),
     memberNotification NVARCHAR(128) NOT NULL,
 	isRead BIT NOT NULL DEFAULT 0,
 
-    CONSTRAINT [PK_postNotification] PRIMARY KEY(postId, courseId, postPublisher, memberNotification),
+	CONSTRAINT [Post date must be today or before.] CHECK(date <= GETDATE()),
+
+    CONSTRAINT [PK_postNotification] PRIMARY KEY(postId, memberNotification),
 
     CONSTRAINT [FK_postNotification_courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id),
-	CONSTRAINT [FK_postNotification_post] FOREIGN KEY (postId, courseId, postPublisher) REFERENCES [post](id, courseId, publisher),
+	CONSTRAINT [FK_postNotification_post] FOREIGN KEY (postId) REFERENCES [post](id),
 );
 GO
 
@@ -921,20 +917,18 @@ GO
 
 CREATE TABLE [comment]	
 (
-    id INT NOT NULL,
+    id INT NOT NULL IDENTITY(1,1),
 	postId INT NOT NULL,
     date DATETIME NOT NULL DEFAULT GETDATE(),
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
 	commenter NVARCHAR(128) NOT NULL,	
     content NVARCHAR(MAX) NOT NULL,
 
 	CONSTRAINT [Comment date must be before today.] CHECK(date <= GETDATE()),
 	CONSTRAINT [Comment content is required.] CHECK(LEN(content) > 0),
 
-    CONSTRAINT [PK_comment] PRIMARY KEY(id, postId, courseId, postPublisher, commenter),
+    CONSTRAINT [PK_comment] PRIMARY KEY(id),
 
-    CONSTRAINT [FK_comment_post] FOREIGN KEY (postId, courseId, postPublisher) REFERENCES [post](id, courseId, publisher),
+    CONSTRAINT [FK_comment_post] FOREIGN KEY (postId) REFERENCES [post](id),
 	CONSTRAINT [FK_comment_courseMember] FOREIGN KEY (commenter) REFERENCES [courseMember](id)
 );
 GO
@@ -947,17 +941,13 @@ GO
 CREATE TABLE [commentNotification]	
 (
     commentId INT NOT NULL,
-	postId INT NOT NULL,
-    date DATETIME NOT NULL DEFAULT GETDATE(),
-    courseId INT NOT NULL,
-    postPublisher NVARCHAR(128) NOT NULL,
-	commenter NVARCHAR(128) NOT NULL,	
+    date DATETIME NOT NULL DEFAULT GETDATE(),	
 	memberNotification NVARCHAR(128) NOT NULL,
     isRead BIT NOT NULL DEFAULT 0,
 
-    CONSTRAINT [PK_commentNotification] PRIMARY KEY(commentId, postId, courseId, postPublisher, commenter, memberNotification),
+    CONSTRAINT [PK_commentNotification] PRIMARY KEY(commentId, memberNotification),
 
-    CONSTRAINT [FK_commentNotification_comment] FOREIGN KEY (commentId, postId, courseId, postPublisher, commenter) REFERENCES [comment](id, postId, courseId, postPublisher, commenter),
+    CONSTRAINT [FK_commentNotification_comment] FOREIGN KEY (commentId) REFERENCES [comment](id),
 	CONSTRAINT [FK_commentNotification__courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id)
 );
 GO
