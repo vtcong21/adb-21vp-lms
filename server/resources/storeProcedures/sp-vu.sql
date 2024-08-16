@@ -27,7 +27,7 @@ BEGIN TRAN
 		SELECT name, user, profilePhoto
 		FROM [user]
 		WHERE id = @id
-		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;;
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 
     END TRY
@@ -286,7 +286,7 @@ GO
 IF OBJECT_ID('sp_All_GetCoupons', 'P') IS NOT NULL
     DROP PROCEDURE sp_All_GetCoupons
 GO
-	
+
 CREATE PROCEDURE sp_All_GetCoupons
 	@isAvailable BIT
 AS
