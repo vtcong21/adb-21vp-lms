@@ -1,9 +1,10 @@
 import getPool from "../utils/database";
+import { hashPassword } from "../utils/auth";
 
 export const getUserProfile = async (req, res) => {
     try {
 
-        const { learnerId } = req.body;
+        const { userId } = req.body;
 
         const pool = getPool('LMS');
 
@@ -11,10 +12,12 @@ export const getUserProfile = async (req, res) => {
             return res.status(500).json({ message: "Database pool is not available" });
         }
 
-        if (!learnerId) {
-            return res.status(400).json({ message: "learnerId is required" });
+        if (!userId) {
+            return res.status(400).json({ message: "userId is required" });
         }
-        const jsonResult = await pool.executeSP('sp_All_GetUserProfile', { id: learnerId });
+
+        const jsonResult = await pool.executeSP('sp_All_GetUserProfile', { id: userId });
+        jsonResult.password = undefined;
 
         return res.status(200).json(jsonResult);
 
@@ -38,8 +41,8 @@ export const updateUserInfo = async (req, res) => {
         if (!userId || !password) {
             return res.status(400).json({ message: "userId and password required" });
         }
+        password = hashPassword(password);
         await pool.executeSP('sp_All_UpdateUserInfo', { userId, email, name, password, profilePhoto });
-
         return res.status(200).json({ message: "updated informations successfully" });
 
     } catch (err) {

@@ -16,7 +16,10 @@ import {
  getDailyRevenueForCourse,
  getAunnualRevenueOfACourse,
  getTop50CoursesByRevenue,
- getOwnCourses
+ getOwnCourses,
+ createCourse,
+ getAdminResponseInACourse,
+ getLearnerInCourse,
 } from "../controllers/course";
 
 router.get("/course/category", getCourseByCategoryId);
@@ -27,7 +30,10 @@ router.get("/course/revenue/daily", getDailyRevenueForCourse);
 router.get("/course/revenue/monthly", getMonthlyRevenueForCourse);
 router.get("/course/profile/annual", getAunnualRevenueOfACourse);
 router.get("/course/top-50", getTop50CoursesByRevenue);
-router.get("/course/my-course", getOwnCourses);
+router.get("/course/instructor-course", getOwnCourses);
+router.post("/course", createCourse);
+router.get("/course/admin-responses", getAdminResponseInACourse);
+router.get("/course/learners", getLearnerInCourse);
 
 export default router;
 

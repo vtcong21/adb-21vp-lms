@@ -1,66 +1,50 @@
 import { hashPassword, comparePassword } from "../utils/auth";
 import jwt from "jsonwebtoken";
-import { nanoid } from "nanoid";
+// import { nanoid } from "nanoid";
 import AWS from "aws-sdk";
 
-const awsConfig = {
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-  apiVersion: process.env.AWS_API_VERSION,
-};
-
-const SES = new AWS.SES(awsConfig);
-
-export const register = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name) return res.status(400).send("Name is required");
-    if (!password || password.length < 6) {
-      return res
-        .status(400)
-        .send("Password is required and should be min 6 characters long");
-    }
-    // code here
-
-
-
-    //-----------
-    return res.json({ ok: true });
-  } catch (err) {
-    console.log(err);
-    return res.status(400).send("Error. Try again.");
-  }
-};
 
 export const login = async (req, res) => {
   try {
-    const { id, password } = req.body;
-     // code here
-    let user;
+    const { userId, password } = req.body;
 
+    const pool = getPool("LMS");
+    if (!pool) {
+      return res.status(500).send("Database connection failed.");
+    }
 
-    //-----------
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-    user.password = undefined;
+    const user = await pool.executeSP("sp_All_GetUserProfile", {id: userId});
+
     
+    const isMatch = await comparePassword(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).send("Invalid password.");
+    }
+
+    const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+
+    user.password = undefined;
+
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: true, // only works on https
+      // secure: true, // Uncomment this if you're using HTTPS
     });
-    res.json(user);
+
+   
+    res.status(200).json(user);
   } catch (err) {
     console.log(err);
-    return res.status(400).send("Error. Try again.");
+    return res.status(400).send(err.message);
   }
 };
 
 export const logout = async (req, res) => {
   try {
     res.clearCookie("token");
-    return res.json({ message: "Signout success" });
+    return res.send("Signout success" );
   } catch (err) {
     console.log(err);
   }

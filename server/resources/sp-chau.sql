@@ -89,7 +89,8 @@ BEGIN TRAN;
 		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
 		THROW 51000, @errorMessage, 1;
 	END CATCH
-COMMIT TRAN
+COMMIT TRAN;
+GO
 
 -- finished and tested
 CREATE OR ALTER PROC sp_AD_ReviewVIPInstructor (

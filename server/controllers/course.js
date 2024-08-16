@@ -1,5 +1,6 @@
 // dont touch this
 
+import { json } from "express";
 // import AWS from "aws-sdk";
 // import { nanoid } from "nanoid";
 // import slugify from "slugify";
@@ -69,7 +70,7 @@ export const getCourseByCategoryId = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!categoryId || ! subCategoryId) {
+    if (!categoryId || !subCategoryId) {
       return res.status(400).json({ message: "categoryId and subCategoryId are required" });
     }
     const jsonResult = await pool.executeSP('sp_All_GetCourseByCategoryId', { categoryId, subCategoryId });
@@ -85,7 +86,7 @@ export const getCourseByCategoryId = async (req, res) => {
 
 export const changeStateOfCourse = async (req, res) => {
   try {
-    const { adminId, courseId, vipState, responseText } = req.body;
+    const { userId, courseId, vipState, responseText } = req.body;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -95,7 +96,7 @@ export const changeStateOfCourse = async (req, res) => {
     if (!vipState || !courseId) {
       return res.status(400).json({ message: "vipState and courseId are required" });
     }
-    const jsonResult = await pool.executeSP('sp_AD_INS_ChangeStateOfCourse', { adminId, courseId, vipState, responseText });
+    const jsonResult = await pool.executeSP('sp_AD_INS_ChangeStateOfCourse', { adminId: userId, courseId, vipState, responseText });
 
     return res.status(200).json(jsonResult);
 
@@ -179,7 +180,7 @@ export const getAunnualRevenueOfACourse = async (req, res) => {
 
 export const getTop50CoursesByRevenue = async (req, res) => {
   try {
-   
+
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -196,10 +197,9 @@ export const getTop50CoursesByRevenue = async (req, res) => {
   }
 }
 
-
 export const getOwnCourses = async (req, res) => {
   try {
-    const { instructorId} = req.body;
+    const { userId } = req.body;
 
     const pool = getPool('LMS');
 
@@ -207,10 +207,104 @@ export const getOwnCourses = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!instructorId) {
-      return res.status(400).json({ message: "dinstructorId is required" });
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_INS_GetOwnCourses', { idInstructor: instructorId });
+    const jsonResult = await pool.executeSP('sp_INS_GetOwnCourses', { idInstructor: userId });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+export const createCourse = async (req, res) => {
+  try {
+    const { instructorId1,
+      instructorId2,
+      title,
+      subTitle,
+      description,
+      image,
+      video,
+      subCategoryId,
+      language,
+      price
+    } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!instructorId1 || !title || !subTitle || !description
+      || !image || !video || !subCategoryId || !language
+    ) {
+      return res.status(400).json({ message: "All field except instructorId2 and price are required" });
+    }
+    await pool.executeSP('sp_INS_CreateCourse', {
+      instructorId1,
+      instructorId2,
+      title,
+      subTitle,
+      description,
+      image,
+      video,
+      subCategoryId,
+      language,
+      price
+    });
+
+    return res.status(200).json({ message: "Create course successfully" });
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+
+export const getAdminResponseInACourse = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (courseId) {
+      return res.status(400).json({ message: "courseId is required" });
+    }
+    const jsonResult = await pool.executeSP('sp_INS_GetAdminResponseInACourse', { courseId });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+
+export const getLearnerInCourse = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (courseId) {
+      return res.status(400).json({ message: "courseId is required" });
+    }
+    const jsonResult = await pool.executeSP('sp_INS_GetLearnerInCourse', { courseId });
 
     return res.status(200).json(jsonResult);
 
