@@ -198,11 +198,11 @@ END;
 GO
 
 -- LN - Update Learner Payment Card
-IF OBJECT_ID('sp_LN_UpdateLearnerPaymentCard', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_LN_UpdateLearnerPaymentCard]
+IF OBJECT_ID('sp_LN_AddLearnerPaymentCard', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_AddLearnerPaymentCard]
 GO
 
-CREATE PROCEDURE sp_LN_UpdateLearnerPaymentCard
+CREATE PROCEDURE sp_LN_AddLearnerPaymentCard
     @learnerId NVARCHAR(128),
     @number VARCHAR(16),
     @type VARCHAR(6),
