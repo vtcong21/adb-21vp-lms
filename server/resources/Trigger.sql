@@ -141,8 +141,8 @@ BEGIN
 
     SELECT @MaxID = ISNULL(MAX(id), 0) FROM question;
 
-    INSERT INTO question (id, exerciseId, sectionId, courseId, question, correctAnswer)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, exerciseId, sectionId, courseId, question, correctAnswer
+    INSERT INTO question (id, exerciseId, sectionId, courseId, question)
+    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, exerciseId, sectionId, courseId, question
     FROM inserted;
 END
 GO
@@ -161,8 +161,8 @@ BEGIN
 
     SELECT @MaxID = ISNULL(MAX(id), 0) FROM questionAnswer;
 
-    INSERT INTO questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers)
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, questionId, exerciseId, sectionId, courseId, questionAnswers
+    INSERT INTO questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers, isCorrect)
+    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @MaxID, questionId, exerciseId, sectionId, courseId, questionAnswers, isCorrect
     FROM inserted;
 END
 GO

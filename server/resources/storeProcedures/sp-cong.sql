@@ -95,7 +95,7 @@ BEGIN
         WHERE
             courseId = @courseId
             AND year >= @startYear
-            AND year <= @endYear
+            AND year < @endYear
         GROUP BY
             year
         ORDER BY
@@ -198,11 +198,11 @@ END;
 GO
 
 -- LN - Update Learner Payment Card
-IF OBJECT_ID('sp_LN_UpdateLearnerPaymentCard', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_LN_UpdateLearnerPaymentCard]
+IF OBJECT_ID('sp_LN_AddLearnerPaymentCard', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_LN_AddLearnerPaymentCard]
 GO
 
-CREATE PROCEDURE sp_LN_UpdateLearnerPaymentCard
+CREATE PROCEDURE sp_LN_AddLearnerPaymentCard
     @learnerId NVARCHAR(128),
     @number VARCHAR(16),
     @type VARCHAR(6),
@@ -588,36 +588,32 @@ BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
         
-        SELECT
+         SELECT
             u.id AS learnerId,
             u.name,
             (
                 SELECT
                     o.id,
                     o.dateCreated,
-                    o.total
+                    o.total,
+                    o.paymentCardNumber AS paymentCardNumber,
+                    o.couponCode AS couponCode,
+                    c.discountPercent AS discountPercent
                 FROM
                     [order] o
+                LEFT JOIN
+                    [coupon] c ON o.couponCode = c.code
                 WHERE
                     o.learnerId = u.id
                 ORDER BY
                     o.dateCreated DESC
                 FOR JSON PATH
-            ) AS orders,
-            MAX(o.paymentCardNumber) AS paymentCardNumber,
-            MAX(o.couponCode) AS couponCode,
-            MAX(c.discountPercent) AS discountPercent
+            ) AS orders
         FROM
             [user] u
-        LEFT JOIN
-            [order] o ON u.id = o.learnerId
-        LEFT JOIN
-            [coupon] c ON o.couponCode = c.code
         WHERE
             u.id = @learnerId
-        GROUP BY
-            u.id, u.name
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+        FOR JSON PATH;
 
         COMMIT TRANSACTION;
     END TRY
