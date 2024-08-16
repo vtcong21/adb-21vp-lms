@@ -510,10 +510,11 @@ CREATE TABLE [lesson]
     courseId INT NOT NULL,
     title NVARCHAR(256) NOT NULL,
     learnTime DECIMAL(5, 2) NOT NULL DEFAULT 0,
-	type VARCHAR(10) CHECK (type IN ('lecture', 'exercise')),
+	type VARCHAR(10),
 
 	CONSTRAINT [Lesson title is required.] CHECK(LEN(title) > 0),
 	CONSTRAINT [Lesson learn time must be non-negative.] CHECK(learnTime >= 0),
+	CONSTRAINT [Lesson type must be 'exercise' or 'lecture'.] CHECK (type IN ('lecture', 'exercise')),
     
     CONSTRAINT [PK_lesson] PRIMARY KEY(id, sectionId, courseId),
 
@@ -545,7 +546,7 @@ CREATE TABLE [lecture]
     resource NVARCHAR(256) NOT NULL,
 
 	CONSTRAINT [Lecture resource is required.] CHECK(LEN(resource) > 0),
-	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(id, 'lecture') = 1),
+	CONSTRAINT [Invalid lecture, Lesson ID not found or Lesson Type invalid.] CHECK([dbo].isValidLesson(id, 'lecture') = 1),
     
     CONSTRAINT [PK_lecture] PRIMARY KEY(id, sectionId, courseId),
 
@@ -800,7 +801,7 @@ CREATE TABLE [orderDetail]
 	courseId INT NOT NULL,
 	coursePrice DECIMAL(18, 2) NOT NULL,
 
-	CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id),
+	CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id, orderId),
     
 	CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
 	CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id),
