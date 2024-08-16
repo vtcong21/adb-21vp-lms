@@ -45,7 +45,7 @@ BEGIN TRAN;
 	BEGIN TRY		
 		SELECT [instructor].* 
 		FROM [instructor]
-		WHERE vipState = 'pending'
+		WHERE vipState = 'pendingReview'
 		FOR JSON PATH;
 	END TRY
 	BEGIN CATCH
@@ -105,7 +105,7 @@ BEGIN TRAN
 		BEGIN
 			THROW 52000, 'InstructorID and Review State is required.', 1
 		END
-		IF (@state NOT IN ('notVip', 'vip', 'pending'))
+		IF (@state NOT IN ('notVip', 'vip', 'pendingReview'))
 		BEGIN
 			THROW 52000, 'Invalid Review State.', 1
 		END
@@ -127,7 +127,7 @@ COMMIT TRAN
 GO
 
 -- finished and tested
-CREATE OR ALTER PROC sp_CM_CreateMessage (
+CREATE OR ALTER PROC sp_INS_LN_CreateMessage (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
 	@messageContent NVARCHAR(MAX)
@@ -177,7 +177,7 @@ COMMIT TRAN
 GO
 
 -- finished and tested
-CREATE OR ALTER PROC sp_CM_GetMessages (
+CREATE OR ALTER PROC sp_INS_LN_GetMessages (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128),
 	@offset INT,
@@ -225,7 +225,7 @@ COMMIT TRAN
 GO
 
 -- finished and tested
-CREATE OR ALTER PROC sp_CM_MarkReadMessages (
+CREATE OR ALTER PROC sp_INS_LN_MarkReadMessages (
 	@senderId NVARCHAR(128),
 	@receiverId NVARCHAR(128)
 )
@@ -262,7 +262,7 @@ COMMIT TRAN
 GO
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_CreatePost (
+CREATE OR ALTER PROC sp_INS_LN_CreatePost (
 	@postPublisher NVARCHAR(128),
 	@courseId INT,
 	@postContent NVARCHAR(MAX)
@@ -311,7 +311,7 @@ COMMIT TRAN
 GO
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_GetPostsInForum (
+CREATE OR ALTER PROC sp_INS_LN_GetPostsInForum (
 	@courseId INT,
 	@offset INT,
 	@limit INT
@@ -350,7 +350,7 @@ GO
 
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_CommentInPost (
+CREATE OR ALTER PROC sp_INS_LN_CommentInPost (
 	@courseId INT,
 	@postId INT,
 	@postPublisher NVARCHAR(128),
@@ -402,7 +402,7 @@ GO
 
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_GetCommentsInPost (
+CREATE OR ALTER PROC sp_INS_LN_GetCommentsInPost (
 	@postId INT,
 	@offset INT,
 	@limit INT
@@ -440,7 +440,7 @@ GO
 
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_GetAccountNotifications (
+CREATE OR ALTER PROC sp_INS_LN_GetAccountNotifications (
 	@memberId NVARCHAR(128)
 )
 AS
@@ -478,7 +478,7 @@ GO
 
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_ReadCommentNotification (
+CREATE OR ALTER PROC sp_INS_LN_ReadCommentNotification (
 	@commentId INT,
 	@memberNotification NVARCHAR(128)
 )
@@ -521,7 +521,7 @@ GO
 
 
 -- finished and untested
-CREATE OR ALTER PROC sp_CM_ReadPostNotification (
+CREATE OR ALTER PROC sp_INS_LN_ReadPostNotification (
 	@postId INT,
 	@memberNotification NVARCHAR(128)
 )
@@ -596,7 +596,7 @@ GO
 
 
 -- finished and tested
-CREATE OR ALTER PROC sp_CM_GetInstructorPaymentCard (
+CREATE OR ALTER PROC sp_INS_GetInstructorPaymentCard (
 	@instructorId NVARCHAR(128)
 )
 AS
