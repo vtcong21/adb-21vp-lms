@@ -226,7 +226,7 @@ AFTER INSERT
 AS
 BEGIN
 	UPDATE instructor
-	SET vipState = 'pending'
+	SET vipState = 'pendingReview'
 	WHERE id IN (SELECT vipInstructorId FROM inserted);
 END
 GO

@@ -131,7 +131,7 @@ CREATE TABLE [instructor]
     degrees NVARCHAR(512) NOT NULL,
     workplace NVARCHAR(256) NOT NULL,
     scientificBackground NVARCHAR(512) NOT NULL,
-    vipState VARCHAR(15) NOT NULL DEFAULT 'notVip',
+    vipState VARCHAR(7) NOT NULL DEFAULT 'notVip',
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
     
 	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
@@ -141,7 +141,7 @@ CREATE TABLE [instructor]
 	CONSTRAINT [Instructor address is required.] CHECK(LEN(address) > 0),
 	CONSTRAINT [Instructor degrees is required.] CHECK(LEN(degrees) > 0),
 	CONSTRAINT [Instructor scientific background is required.] CHECK(LEN(scientificBackground) > 0),
-	CONSTRAINT [Instructor vipState is invalid.] CHECK(vipState IN ('notVip', 'vip', 'pendingReview')),
+	CONSTRAINT [Instructor vipState is invalid.] CHECK(vipState IN ('notVip', 'vip', 'pending')),
 	CONSTRAINT [Instructor total revenue must be non-negative.] CHECK(totalRevenue >= 0),
 
     CONSTRAINT [PK_instructor] PRIMARY KEY (id),
@@ -162,7 +162,27 @@ BEGIN
 END
 GO
 
--- Table instructor revenue by month - moved to partition
+-- Table instructor revenue by month
+IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
+    DROP TABLE [instructorRevenueByMonth]
+GO	
+
+CREATE TABLE [instructorRevenueByMonth]
+(
+    instructorId NVARCHAR(128) NOT NULL,
+    year int NOT NULL,
+	month int NOT NULL,
+	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+
+	CONSTRAINT [Year of instructor revenue by month must be greater than 1900.]  CHECK(year >= 1900),
+	CONSTRAINT [Month of instructor revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
+	CONSTRAINT [Instructor revenue by month must be non-negative.]  CHECK(revenue >= 0),
+
+    CONSTRAINT [PK_instructorRevenueByMonth] PRIMARY KEY(instructorId, year, month),
+
+    CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
+);
+GO
 
 -- Table payment card
 IF OBJECT_ID('paymentCard', 'U') IS NOT NULL
@@ -199,11 +219,12 @@ CREATE TABLE [vipInstructor]
     paymentCardNumber VARCHAR(16) NOT NULL,
     
 	CONSTRAINT [VIP instructor id is required.] CHECK(LEN(id) > 0),
-	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1), --CHECK!!!!!!!!!!!!!
+	CONSTRAINT [VIP instructor id is invalid.] CHECK([dbo].isValidVipInstructor(id) = 1),
 
     CONSTRAINT [PK_vipInstructor] PRIMARY KEY (id),
 
-	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)														  ,
+	CONSTRAINT [FK_vipInstructor_instructor] FOREIGN KEY (id) REFERENCES [instructor](id)
+																						  ,
 	CONSTRAINT [FK_vipInstructor_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number)
 );
 GO
@@ -330,7 +351,27 @@ CREATE TABLE [course]
 );
 GO
 
--- Table course revenue by month - moved to partition
+-- Table course revenue by month
+IF OBJECT_ID('courseRevenueByMonth', 'U') IS NOT NULL
+    DROP TABLE [courseRevenueByMonth]
+GO	
+
+CREATE TABLE [courseRevenueByMonth]
+(
+    courseId INT NOT NULL,
+    year int NOT NULL,
+	month int NOT NULL,
+	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+
+	CONSTRAINT [Year of course revenue by month must be greater than 1900.]  CHECK(year >= 1900),
+	CONSTRAINT [Month of course revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
+	CONSTRAINT [Course revenue by month must be non-negative.]  CHECK(revenue >= 0),
+
+    CONSTRAINT [PK_courseRevenueByMonth] PRIMARY KEY(courseId, year, month),
+
+    CONSTRAINT [FK_courseRevenueByMonth_course] FOREIGN KEY (courseId) REFERENCES [course](id),
+);
+GO
 
 -- Table course intended learners
 IF OBJECT_ID('courseIntendedLearners', 'U') IS NOT NULL
@@ -400,7 +441,7 @@ CREATE TABLE [instructorOwnCourse]
 	instructorId NVARCHAR(128) NOT NULL,
 	percentageInCome DECIMAL(5, 2) NOT NULL,
  
-	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome >= 0 AND percentageInCome <= 100),
+	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome > 0 AND percentageInCome <= 100),
     
 	CONSTRAINT [PK_instructorOwnCourse] PRIMARY KEY(courseId, instructorId),
 
@@ -466,11 +507,10 @@ CREATE TABLE [lesson]
     courseId INT NOT NULL,
     title NVARCHAR(256) NOT NULL,
     learnTime DECIMAL(5, 2) NOT NULL DEFAULT 0,
-	type VARCHAR(10),
+	type VARCHAR(10) CHECK (type IN ('lecture', 'exercise')),
 
 	CONSTRAINT [Lesson title is required.] CHECK(LEN(title) > 0),
 	CONSTRAINT [Lesson learn time must be non-negative.] CHECK(learnTime >= 0),
-	CONSTRAINT [Lesson type must be 'exercise' or 'lecture'.] CHECK (type IN ('lecture', 'exercise')),
     
     CONSTRAINT [PK_lesson] PRIMARY KEY(id, sectionId, courseId),
 
@@ -502,7 +542,7 @@ CREATE TABLE [lecture]
     resource NVARCHAR(256) NOT NULL,
 
 	CONSTRAINT [Lecture resource is required.] CHECK(LEN(resource) > 0),
-	CONSTRAINT [Invalid lecture, Lesson ID not found or Lesson Type invalid.] CHECK([dbo].isValidLesson(id, 'lecture') = 1),
+	CONSTRAINT [lecture id is invalid.] CHECK([dbo].isValidLesson(id, 'lecture') = 1),
     
     CONSTRAINT [PK_lecture] PRIMARY KEY(id, sectionId, courseId),
 
@@ -757,7 +797,7 @@ CREATE TABLE [orderDetail]
 	courseId INT NOT NULL,
 	coursePrice DECIMAL(18, 2) NOT NULL,
 
-	CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id, orderId),
+	CONSTRAINT [PK_ORDER_DETAIL] PRIMARY KEY(id),
     
 	CONSTRAINT [FK_orderDetail_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
 	CONSTRAINT [FK_orderDetail_course] FOREIGN KEY (courseId) REFERENCES [course](id),
@@ -774,7 +814,7 @@ CREATE TABLE [learnerPaymentCard]
     learnerId NVARCHAR(128) NOT NULL,
     paymentCardNumber VARCHAR(16) NOT NULL,
     
-    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY (learnerId, paymentCardNumber),
+    CONSTRAINT [PK_learnerPaymentCard] PRIMARY KEY(learnerId, paymentCardNumber),
     CONSTRAINT [FK_learnerPaymentCard_learner] FOREIGN KEY (learnerId) REFERENCES [learner](id),
     CONSTRAINT [FK_learnerPaymentCard_paymentCard] FOREIGN KEY (paymentCardNumber) REFERENCES [paymentCard](number),
 );
