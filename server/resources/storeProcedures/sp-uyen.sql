@@ -156,10 +156,10 @@ END
 GO
 
 -- Doanh thu hàng năm của một giảng viên 
-IF OBJECT_ID('sp_AD_INS_GetAnnualRevenueOfAInnstructor', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_AD_INS_GetAnnualRevenueOfAInnstructor]
+IF OBJECT_ID('sp_AD_INS_GetAnnualRevenueOfAnInstructor', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_AD_INS_GetAnnualRevenueOfAnInstructor]
 GO
-CREATE PROCEDURE sp_AD_INS_GetAnnualRevenueOfAInnstructor
+CREATE PROCEDURE sp_AD_INS_GetAnnualRevenueOfAnInstructor
     @instructorId NVARCHAR(128),
 	@duration INT
 AS

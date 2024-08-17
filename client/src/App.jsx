@@ -17,7 +17,7 @@ import Auth from "./components/Auth";
 function App() {
   const user = useSelector((state) => state.user);
   console.log(user);
-  const VerifyRoure = () => {
+  const VerifyRoute = () => {
     switch (user.role) {
       case "AD":
         return AdminRouter;
@@ -38,7 +38,7 @@ function App() {
       <Router>
         <Suspense fallback={<Loading />}>
           <Routes>
-            {VerifyRoure().map((route, index) => {
+            {VerifyRoute().map((route, index) => {
               const Layout = route.Layout === null ? Fragment : route.Layout;
               const Page = route.component;
               return (
