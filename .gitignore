@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 .env
+server/.DS_Store
