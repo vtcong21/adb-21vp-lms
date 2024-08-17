@@ -136,7 +136,7 @@ export const getDailyRevenueForCourse = async (req, res) => {
 export const getMonthlyRevenueForCourse = async (req, res) => {
   try {
     const { courseId, duration } = req.body;
-
+    
     const pool = getPool('LMS');
 
     if (!pool) {

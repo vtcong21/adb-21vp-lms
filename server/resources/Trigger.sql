@@ -28,8 +28,8 @@ BEGIN
     LEFT JOIN [subCategory] sc ON sc.parentCategoryId = pc.categoryId
 	GROUP BY pc.categoryId;
 
-    INSERT INTO [subCategory] (id, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses)
-    SELECT ROW_NUMBER() OVER (PARTITION BY parentCategoryId ORDER BY (SELECT NULL)) + ssc.countSubCategories, parentCategoryId, name, numberOfLearners, averageRating, numberOfCourses
+    INSERT INTO [subCategory] (id, parentCategoryId, name)
+    SELECT ROW_NUMBER() OVER (PARTITION BY parentCategoryId ORDER BY (SELECT NULL)) + ssc.countSubCategories, parentCategoryId, name
     FROM inserted
     JOIN @countSubCategoriesOfCategory ssc ON inserted.parentCategoryId = ssc.categoryId;
 END

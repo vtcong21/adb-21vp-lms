@@ -264,14 +264,8 @@ CREATE TABLE [subCategory]
 (
     id INT NOT NULL,
 	parentCategoryId INT NOT NULL,
-    numberOfLearners INT NOT NULL DEFAULT 0,
-    averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
-    numberOfCourses INT NOT NULL DEFAULT 0,
     name NVARCHAR(128) NOT NULL CHECK(LEN(name) > 0),
     
-	CONSTRAINT [Number of learners must be non-negative.] CHECK(numberOfLearners >= 0),
-	CONSTRAINT [Sub Category average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
-	CONSTRAINT [Number of courses must be non-negative.] CHECK(numberOfCourses >= 0),
     CONSTRAINT [Sub category name is required.] CHECK(LEN(name) > 0),
 	CONSTRAINT [A Sub category with this name already exists.] UNIQUE(name),
 
@@ -910,4 +904,125 @@ CREATE TABLE [commentNotification]
     CONSTRAINT [FK_commentNotification_comment] FOREIGN KEY (commentId) REFERENCES [comment](id),
 	CONSTRAINT [FK_commentNotification__courseMember] FOREIGN KEY (memberNotification) REFERENCES [courseMember](id)
 );
+GO
+
+-- Partition
+
+-- FILEGROUP 1
+alter database lms
+add filegroup fg1;
+go
+
+alter database lms
+add file
+(name = lms1,
+filename = 'C:\Database\LMS\lms1.ndf',
+size=2, maxsize=100, filegrowth=1)
+to filegroup fg1;
+go
+
+-- FILEGROUP 2
+alter database lms
+add filegroup fg2;
+go
+
+alter database lms
+add file
+(name = lms2,
+filename = 'C:\Database\LMS\lms2.ndf',
+size=2, maxsize=100, filegrowth=1)
+to filegroup fg2;
+go
+
+-- CHECK FILEGROUPS AND FILENAMES
+select name as [file group name]
+from sys.filegroups
+where type = 'FG'
+go
+
+select name as [db filename], physical_name as [db filepath]
+from sys.database_files
+where type_desc = 'ROWS'
+go
+
+-- PARTITION FUNCTION
+create partition function pf_yearlyPartition (int)
+as range right for values (2023, 2024);
+go
+
+-- PARTITION SCHEME
+create partition scheme yearlyPartitionScheme
+as partition pf_yearlyPartition
+to ([primary], fg1, fg2)
+go
+
+
+-- Table instructor revenue by month
+IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
+    DROP TABLE [instructorRevenueByMonth]
+GO	
+CREATE TABLE [instructorRevenueByMonth]
+(
+    instructorId NVARCHAR(128) NOT NULL,
+    year int NOT NULL,
+	month int NOT NULL,
+	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+
+	CONSTRAINT [Year of instructor revenue by month must be greater than 1900.]  CHECK(year >= 1900),
+	CONSTRAINT [Month of instructor revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
+	CONSTRAINT [Instructor revenue by month must be non-negative.]  CHECK(revenue >= 0),
+
+    CONSTRAINT [PK_instructorRevenueByMonth] PRIMARY KEY(instructorId, year, month),
+
+    CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
+) ON yearlyPartitionScheme (year);
+GO
+
+-- Table course revenue by month
+IF OBJECT_ID('courseRevenueByMonth', 'U') IS NOT NULL
+    DROP TABLE [courseRevenueByMonth]
+GO	
+
+CREATE TABLE [courseRevenueByMonth]
+(
+    courseId INT NOT NULL,
+    year int NOT NULL,
+	month int NOT NULL,
+	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
+
+	CONSTRAINT [Year of course revenue by month must be greater than 1900.]  CHECK(year >= 1900),
+	CONSTRAINT [Month of course revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
+	CONSTRAINT [Course revenue by month must be non-negative.]  CHECK(revenue >= 0),
+
+    CONSTRAINT [PK_courseRevenueByMonth] PRIMARY KEY(courseId, year, month),
+
+    CONSTRAINT [FK_courseRevenueByMonth_course] FOREIGN KEY (courseId) REFERENCES [course](id),
+) ON yearlyPartitionScheme (year);
+GO
+
+
+-- View
+
+CREATE VIEW vw_SubCategoryDetails AS
+SELECT 
+    sc.id,
+    sc.parentCategoryId,
+    sc.name,
+    
+    -- Tổng số học viên
+    SUM(c.numberOfStudents) AS numberOfStudents,
+    
+    -- Điểm đánh giá trung bình
+    ISNULL(AVG(c.averageRating), 0) AS averageRating,
+    
+    -- Số lượng khóa học
+    COUNT(c.id) AS numberOfCourse
+
+FROM 
+    subCategory sc
+LEFT JOIN 
+    course c ON c.subCategoryId = sc.id AND c.categoryId = sc.parentCategoryId
+
+GROUP BY 
+    sc.id, sc.parentCategoryId, sc.name;
 GO
