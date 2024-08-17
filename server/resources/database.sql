@@ -303,7 +303,6 @@ CREATE TABLE [course]
     subCategoryId INT NOT NULL,
     categoryId INT NOT NULL,
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
-    revenueByMonth DECIMAL(18, 2) NOT NULL DEFAULT 0,
     language NVARCHAR(50) NOT NULL,
     price DECIMAL(18, 2) NOT NULL,
     lastUpdateTime DATETIME NOT NULL DEFAULT GETDATE(),
