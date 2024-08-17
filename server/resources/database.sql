@@ -131,7 +131,7 @@ CREATE TABLE [instructor]
     degrees NVARCHAR(512) NOT NULL,
     workplace NVARCHAR(256) NOT NULL,
     scientificBackground NVARCHAR(512) NOT NULL,
-    vipState VARCHAR(7) NOT NULL DEFAULT 'notVip',
+    vipState VARCHAR(15) NOT NULL DEFAULT 'notVip',
     totalRevenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
     
 	CONSTRAINT [Instructor id is required.] CHECK(LEN(id) > 0),
@@ -400,7 +400,7 @@ CREATE TABLE [instructorOwnCourse]
 	instructorId NVARCHAR(128) NOT NULL,
 	percentageInCome DECIMAL(5, 2) NOT NULL,
  
-	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome > 0 AND percentageInCome <= 100),
+	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome >= 0 AND percentageInCome <= 100),
     
 	CONSTRAINT [PK_instructorOwnCourse] PRIMARY KEY(courseId, instructorId),
 

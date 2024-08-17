@@ -61,18 +61,6 @@ INSERT INTO instructorRevenueByMonth (instructorId, year, month, revenue)
 VALUES
 ('user005', 2024, 1, 800.00),
 ('user005', 2024, 2, 850.00),
-('user005', 2023, 12, 10000.00),
-('user005', 2023, 11, 6000.00),
-('user005', 2023, 10, 4000.00),
-('user005', 2022, 12, 300.00),
-('user005', 2022, 11, 100.00),
-('user005', 2022, 10, 7000.00),
-('user006', 2023, 12, 800.00),
-('user006', 2023, 11, 9000.00),
-('user006', 2023, 10, 970.00),
-('user006', 2022, 12, 14200.00),
-('user006', 2022, 11, 1200.00),
-('user006', 2022, 10, 1400.00),
 ('user006', 2024, 1, 400.00),
 ('user006', 2024, 2, 450.00),
 ('user009', 2024, 1, 1200.00),
@@ -133,10 +121,13 @@ GO
 -- Insert into courseRevenueByMonth
 INSERT INTO courseRevenueByMonth (courseId, year, month, revenue)
 VALUES
-(4, 2024, 3, 2000.00),
-(4, 2024, 5, 2000.00),
-(4, 2024, 6, 2000.00),
-(4, 2024, 7, 3000.00),
+(4, 2022, 11, 2000.00),
+(4, 2022, 12, 3000.00),
+(4, 2023, 9, 2000.00),
+(4, 2023, 10, 3000.00),
+(4, 2023, 11, 2000.00),
+(4, 2023, 12, 3000.00),
+(4, 2024, 1, 2000.00),
 (4, 2024, 2, 3000.00),
 (5, 2021, 9, 1500.00),
 (5, 2022, 10, 1500.00),
@@ -282,27 +273,12 @@ SELECT * FROM course
 SELECT * FROM [user]
 SELECT * FROM paymentCard
 SELECT * FROM learnerpaymentCard
-SELECT * FROM [instructor]
-select * from vipInstructor
-select * from category;
-select * from subcategory;
-UPDATE instructor
-set vipState = 'pendingReview'
-where vipState = 'pending'
 
 -- NHỮNG CÁI LIÊN QUAN COURSE, BÀI HỌC
-select * from section order by courseId;
+select * from section;
 select * from lesson;
 select * from exercise; 
 select * from lecture;
-
-ALTER TABLE instructor
-DROP CONSTRAINT [Instructor vipState is invalid.];
-
-ALTER TABLE instructor
-ADD CONSTRAINT [Instructor vipState must be valid.]
-CHECK(vipState IN ('notVip', 'vip', 'pendingReview'));
-
 
 -- NHỮNG BẢNG LIÊN QUAN VIỆC NGƯỜI DÙNG THAM GIA KHÓA HỌC
 select * from learnerAnswerQuestion; 
@@ -383,28 +359,6 @@ insert into learnerPaymentCard values ('user003', '1111222233334444')
 -- 6. sp_LN_GetLearnerAnswersOfExercise
 -- t sửa thành trả id correct answer
 
--- sp-uyen
--- 1. sp_AD_INS_GetAnnualRevenueOfAInnstructor
--- đổi tên @duration thành @numberOfYear 
--- đổi tên sp thành sp_AD_INS_GetAnnualRevenueOfInnstructor nha, thường đặt tên
--- thì không nên có A, The, mấy cái đó. Có số nhiều thì có s thôi
-
--- 2. sp_AD_INS_GetMonthlyRevenueOfAnInstructor
--- đổi tên @duration thành @numberOfMonth nha, cho dễ hiểu
--- đổi tên sp bỏ An nha, thành sp_AD_INS_GetMonthlyRevenueOfInstructor
-
-select * from instructorRevenueByMonth
-where instructorId = 'user005'
-order by year, month
-
-
-
-
-
-
-
--- sp-chau
--- chỉnh vipState pending thành pendingReview
 
 
 -- CHECK TRIGGER ORDERID
@@ -418,27 +372,4 @@ order by year, month
 -- INSERT
 -- 1. INSERT CORRECTLY?
 
-select * from adminresponse;
-select * from course;
-insert into adminResponse (adminid, courseid, dateresponse, responseText) values
-('user001', 7, '2024-08-12 18:54:46.227', 'Need fixing'),
-('user001', 7, '2024-08-13 18:54:46.227', 'Something needs fixing'),
-('user001', 7, '2024-08-14 18:54:46.227', 'LGTM'),
-('user001', 8, '2024-08-12 18:54:46.227', 'Need fixing'),
-('user001', 8, '2024-08-13 18:54:46.227', 'Something needs fixing'),
-('user001', 8, '2024-08-14 18:54:46.227', 'LGTM');
 
-select getdate()
-
--- check partitions
-
-SELECT DISTINCT o.name as table_name, rv.value as partition_range, fg.name as file_groupName, p.partition_number, p.rows as number_of_rows
-FROM sys.partitions p
-INNER JOIN sys.indexes i ON p.object_id = i.object_id AND p.index_id = i.index_id
-INNER JOIN sys.objects o ON p.object_id = o.object_id
-INNER JOIN sys.system_internals_allocation_units au ON p.partition_id = au.container_id
-INNER JOIN sys.partition_schemes ps ON ps.data_space_id = i.data_space_id
-INNER JOIN sys.partition_functions f ON f.function_id = ps.function_id
-INNER JOIN sys.destination_data_spaces dds ON dds.partition_scheme_id = ps.data_space_id AND dds.destination_id = p.partition_number
-INNER JOIN sys.filegroups fg ON dds.data_space_id = fg.data_space_id 
-LEFT OUTER JOIN sys.partition_range_values rv ON f.function_id = rv.function_id AND p.partition_number = rv.boundary_id;
