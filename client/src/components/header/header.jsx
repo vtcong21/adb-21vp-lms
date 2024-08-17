@@ -10,7 +10,7 @@ const Account = () => {
   const dispath = useDispatch();
   const handleSignOut = async () => {
     await dispath(deleteRole());
-    await navigate("/");
+    navigate("/");
   };
   const items = [
     {
@@ -52,6 +52,7 @@ const Header = () => {
   const dispath = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
+
   return (
     <>
       <div className="bg-radial-gradient bg-cover bg-center w-full h-16 flex gap-1  justify-end  px-5 drop-shadow-lg z-50">
@@ -61,7 +62,7 @@ const Header = () => {
           </h1>
         </div>
 
-        {user.ROLE === "online" ? (
+        {user.role === "public" ? (
           <div className="flex">
             <button
               className="bg-blue-500 px-5 py-2 my-3 rounded-md text-white"

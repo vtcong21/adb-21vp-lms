@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { message, Steps } from "antd";
 import { Input } from "antd";
 const { TextArea } = Input;
-import GuestService from "../../services/guest";
+import LearnerService from "../../services/learner";
 import { useDispatch, useSelector } from "react-redux";
 import { booking, deleteOder } from "../../redux/features/orderSlice";
 import Buttons from "../../components/button";
@@ -93,7 +93,7 @@ const Ca = ({ GIOBD, GIOKT, NGAY, SOTT, MANS }) => {
 const ChonNhaSi = () => {
   const [nhasi, setNhaSi] = useState([]);
   useEffect(() => {
-    GuestService.getAllDSNS().then((res) => {
+    LearnerService.getAllDSNS().then((res) => {
       setNhaSi(res);
     });
   }, []);
@@ -131,11 +131,11 @@ const ChonCa = () => {
 
   useEffect(() => {
     if (order.mans === "") {
-      GuestService.xemLRChuaDatTatCaNSTheoNgay().then((res) => {
+      LearnerService.xemLRChuaDatTatCaNSTheoNgay().then((res) => {
         setLichRanh(res);
       });
     } else {
-      GuestService.lichRanh().then((res) => {
+      LearnerService.lichRanh().then((res) => {
         const new_lichRanh = res.filter((item) => {
           return item.MANS === order.mans;
         });
@@ -243,7 +243,7 @@ const XacNhan = () => {
   const order = useSelector((state) => state.order);
   const [nhasi, setNhaSi] = useState([]);
   useEffect(() => {
-    GuestService.getAllDSNS().then((res) => {
+    LearnerService.getAllDSNS().then((res) => {
       setNhaSi(res);
     });
   }, []);
@@ -327,7 +327,7 @@ const DatLichContainer = () => {
       return;
     }
 
-    await GuestService.taoLichHen(order).then((res) => {
+    await LearnerService.taoLichHen(order).then((res) => {
       if (res.success) {
         setTimeout(() => {
           dispatch(deleteOder());

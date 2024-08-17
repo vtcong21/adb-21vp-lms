@@ -1,4 +1,4 @@
-const GuestPage = () => {
+const LearnerPage = () => {
   return (
     <div className="  flex justify-center">
       <h1 className="text-red-800 text-3xl">
@@ -8,4 +8,4 @@ const GuestPage = () => {
   );
 };
 
-export default GuestPage;
+export default LearnerPage;

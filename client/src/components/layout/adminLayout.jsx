@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import Bread from "./breadCrumb";
-import { menuDentist, menuAdmin, menuStaff } from "./menuItem";
+import {menuAdmin,menuInstructor } from "./menuItem";
 import Account from "./Account";
 
 
@@ -45,16 +45,14 @@ const Sidebar = (props) => {
   const toggle = props.toggle;
   const user = useSelector((state) => state.user);
   const Veryrole = () => {
-    const role = user.ROLE;
+    const role = user.role;
     switch (role) {
-      case "QTV":
+      case "AD":
         return menuAdmin;
-      case "NS":
-        return menuDentist;
-      case "NV":
-        return menuStaff;
+      case "INS":
+        return menuInstructor;
       default:
-        return menuStaff;
+        return menuAdmin;
     }
   };
 

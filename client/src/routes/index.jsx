@@ -1,7 +1,6 @@
-import OnlineRouter from "./online";
-import AdminRouter from "./qtv";
-import GuestRouter from "./khachhang";
-import StaffRouter from "./nhanvien";
-import DentistRouter from "./nhasi";
+import PublicRouter from "./public";
+import AdminRouter from "./admin";
+import LearnerRouter from "./learner";
+import InstructorRouter from "./instructor";
 
-export { OnlineRouter, AdminRouter, GuestRouter, StaffRouter, DentistRouter };
+export { PublicRouter, AdminRouter, LearnerRouter, InstructorRouter};

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Select, DatePicker } from "antd";
-import GuestService from "../../services/guest";
+import LearnerService from "../../services/learner";
 import dayjs from "dayjs";
 import { changeState } from "../../redux/features/dataSlice";
 import { useSelector, useDispatch } from "react-redux";
@@ -68,7 +68,7 @@ const CapNhatTaiKhoan = () => {
       }
     });
     console.log("heree")
-    GuestService.capnhatKH({
+    LearnerService.capnhatKH({
       userId: formData.get("phone"),
       hoten: formData.get("name"),
       phai: formData.get("gender"),

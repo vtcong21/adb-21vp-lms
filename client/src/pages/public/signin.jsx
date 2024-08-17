@@ -2,7 +2,7 @@ import { setRole, updateUserInfo } from "~/redux/features/userSlice";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, message } from "antd";
-import OnlineService from "~/services/online";
+import PublicService from "~/services/public";
 import "../../assets/styles/signin.scss";
 
 import useCookie from "~/hooks/useCookie";
@@ -14,15 +14,15 @@ const SignInPage = () => {
 
   const onFinish = async (values) => {
     console.log(values);
-    await OnlineService.dangnhap({
-      matk: values.matk, //"QTV0001"
-      matkhau: values.matkhau, //"21126054",
+    await PublicService.login({
+      userId: values.userId, //"QTV0001"
+      password: values.password, //"21126054",
     })
       .then((res) => {
-        setCookie(res.accessToken);
-        setPassword(values.matkhau);
-        dispatch(setRole(res.info.ROLE));
-        dispatch(updateUserInfo(res.info));
+        setCookie(res.token);
+        setPassword(values.password);
+        dispatch(setRole(res.role));
+        dispatch(updateUserInfo(res));
         navigate("/");
       })
       .catch((err) => {
@@ -50,7 +50,7 @@ const SignInPage = () => {
           <p className="form-title">Welcome back</p>
           <p>Đăng nhập vào Tsitned.</p>
           <Form.Item
-            name="matk"
+            name="userId"
             rules={[{ required: true, message: 'Vui lòng nhập mã tài khoản / số điện thoại!' }]}
           >
             <Input
@@ -59,7 +59,7 @@ const SignInPage = () => {
           </Form.Item>
 
           <Form.Item
-            name="matkhau"
+            name="password"
             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
             <Input.Password
