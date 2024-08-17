@@ -1,7 +1,7 @@
 USE master
 GO
 
-USE LMS
+USE temp_lms
 GO
 
 --1/ All Đăng nhập
@@ -38,7 +38,7 @@ BEGIN TRAN
     END CATCH
 COMMIT TRAN
 GO
-
+EXEC sp_All_GetUserProfile 'learner1'
 --2/ All Xem thông tin cá nhân
 IF OBJECT_ID('sp_All_GetUserProfile', 'P') IS NOT NULL
     DROP PROCEDURE sp_All_GetUserProfile

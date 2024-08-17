@@ -1,14 +1,15 @@
-import expressJwt from "express-jwt";
+import { expressjwt } from "express-jwt";
+require('dotenv').config();
 
 export const requireSignin = [
-  expressJwt({
+  expressjwt({
     getToken: (req, res) => req.cookies.token,
     secret: process.env.JWT_SECRET,
     algorithms: ["HS256"],
   }),
   (req, res, next) => {
     if (req.user) {
-      req.body.userId = req.user.userId; 
+      req.body.userId = req.user.userId;
     }
     next();
   }

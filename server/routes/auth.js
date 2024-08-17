@@ -11,8 +11,8 @@ import {
   logout
 } from "../controllers/auth";
 
-router.post("/login", login);
-router.post("/logout", logout);
+router.post("/public/login", login);
+router.post("/public/logout", logout);
 
 export default router;
 

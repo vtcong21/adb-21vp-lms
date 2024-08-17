@@ -2,11 +2,13 @@ import { hashPassword, comparePassword } from "../utils/auth";
 import jwt from "jsonwebtoken";
 // import { nanoid } from "nanoid";
 import AWS from "aws-sdk";
+import getPool from "../utils/database";
 
 
 export const login = async (req, res) => {
   try {
     const { userId, password } = req.body;
+    console.log(userId);
 
     const pool = getPool("LMS");
     if (!pool) {
@@ -14,7 +16,7 @@ export const login = async (req, res) => {
     }
 
     const user = await pool.executeSP("sp_All_GetUserProfile", {id: userId});
-
+    
     
     const isMatch = await comparePassword(password, user.password);
 

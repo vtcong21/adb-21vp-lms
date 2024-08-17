@@ -109,7 +109,6 @@ const initializePools = async () => {
         console.error('Error initializing pools:', error);
     }
 };
-
 initializePools();
 
 export default getPool;
