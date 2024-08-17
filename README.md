@@ -2,6 +2,7 @@
 A learning management system.
 ## Notes
 - Code frontend dùng 100% tiếng anh để dễ debug, mấy cái linh tinh của khánh t xóa sau.
+- Tạo nhánh mới theo kiểu **gui-chau** để code.
 ## Database
 ### 1. setup
 Xóa db hiện tại, chạy 3 file:
@@ -12,7 +13,7 @@ trigger.sql
 ```
 - Chú ý file database.sql đã có partition + view.
 ### 2. store procedure
-- **Bắt buộc** chạy hết toàn bộ proc. Chạy file bat (double click) trong /resources/storeProcedures/ hoặc chạy tay. 
+- **Bắt buộc** chạy hết toàn bộ proc trong folder /resources/storePrcedures/. Chạy file bat (double click) trong /resources/storeProcedures/ hoặc chạy tay. 
 - sp-chau Của Châu có vẻ có bug nên t vẫn để ngoài /resources/.
 - Có sửa proc sp_All_GetUserProfile cho phù hợp code app.
 - Có sửa proc sp_AD_INS_GetAnnualRevenueOfAnInstructor, lỗi typo.
