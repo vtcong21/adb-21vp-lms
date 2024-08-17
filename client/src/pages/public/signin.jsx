@@ -13,12 +13,13 @@ const SignInPage = () => {
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
-    console.log(values);
+    
     await PublicService.login({
       userId: values.userId, //"QTV0001"
       password: values.password, //"21126054",
     })
       .then((res) => {
+        console.log(res);
         setCookie(res.token);
         setPassword(values.password);
         dispatch(setRole(res.role));

@@ -25,7 +25,7 @@ export const userSlice = createSlice({
     role: "public" || "AD" || "INS" || "LN",
     email: "",
     name: "",
-    profilePhot: "",
+    profilePhoto: "",
     userId: "",
     gender: "",
     phone: "",
@@ -47,7 +47,7 @@ export const userSlice = createSlice({
       state.role = "public" || "AD" || "INS" || "LN";
       state.email = "";
       state.name = "";
-      state.profilePhot = "";
+      state.profilePhoto = "";
       state.userId = "";
       state.gender = "";
       state.phone = "";
@@ -62,7 +62,7 @@ export const userSlice = createSlice({
       state.role = action.payload.role;
       state.email = action.payload.email;
       state.name = action.payload.name;
-      state.profilePhot = action.payload.profilePhot;
+      state.profilePhoto = action.payload.profilePhoto;
       state.userId = action.payload.userId;
       state.gender = action.payload.gender;
       state.phone = action.payload.phone;

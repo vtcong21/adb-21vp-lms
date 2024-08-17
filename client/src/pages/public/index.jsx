@@ -8,8 +8,7 @@ import { useNavigate } from "react-router-dom";
 const HomePage = () => {
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
-  console.log(user);
-
+  
   const handleDatLich = () => {
     message.info("Vui lòng đăng nhập để đặt lịch hẹn", 5);
 
