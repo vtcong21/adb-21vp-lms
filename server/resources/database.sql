@@ -162,27 +162,7 @@ BEGIN
 END
 GO
 
--- Table instructor revenue by month
-IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
-    DROP TABLE [instructorRevenueByMonth]
-GO	
-
-CREATE TABLE [instructorRevenueByMonth]
-(
-    instructorId NVARCHAR(128) NOT NULL,
-    year int NOT NULL,
-	month int NOT NULL,
-	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
-
-	CONSTRAINT [Year of instructor revenue by month must be greater than 1900.]  CHECK(year >= 1900),
-	CONSTRAINT [Month of instructor revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
-	CONSTRAINT [Instructor revenue by month must be non-negative.]  CHECK(revenue >= 0),
-
-    CONSTRAINT [PK_instructorRevenueByMonth] PRIMARY KEY(instructorId, year, month),
-
-    CONSTRAINT [FK_instructorRevenueByMonth_instructor] FOREIGN KEY (instructorId) REFERENCES [instructor](id),
-);
-GO
+-- Table instructor revenue by month - moved to partition
 
 -- Table payment card
 IF OBJECT_ID('paymentCard', 'U') IS NOT NULL
@@ -350,27 +330,7 @@ CREATE TABLE [course]
 );
 GO
 
--- Table course revenue by month
-IF OBJECT_ID('courseRevenueByMonth', 'U') IS NOT NULL
-    DROP TABLE [courseRevenueByMonth]
-GO	
-
-CREATE TABLE [courseRevenueByMonth]
-(
-    courseId INT NOT NULL,
-    year int NOT NULL,
-	month int NOT NULL,
-	revenue DECIMAL(18, 2) NOT NULL DEFAULT 0,
-
-	CONSTRAINT [Year of course revenue by month must be greater than 1900.]  CHECK(year >= 1900),
-	CONSTRAINT [Month of course revenue by month must be between 1 and 12.]  CHECK(month BETWEEN 1 AND 12),
-	CONSTRAINT [Course revenue by month must be non-negative.]  CHECK(revenue >= 0),
-
-    CONSTRAINT [PK_courseRevenueByMonth] PRIMARY KEY(courseId, year, month),
-
-    CONSTRAINT [FK_courseRevenueByMonth_course] FOREIGN KEY (courseId) REFERENCES [course](id),
-);
-GO
+-- Table course revenue by month - moved to partition
 
 -- Table course intended learners
 IF OBJECT_ID('courseIntendedLearners', 'U') IS NOT NULL
