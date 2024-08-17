@@ -1,7 +1,6 @@
-
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import OnlineService from "~/services/online";
+import Public from "~/services/public";
 import Axios from "~/services/axios.config";
 import GetCookie from "~/hooks/GetCookie";
 import {
@@ -16,25 +15,17 @@ const Auth = () => {
   const dispatch = useDispatch();
   const pass = GetCookie("password");
   React.useEffect(() => {
-    OnlineService.checkLogin()
-      .then((res) => {
-        if (res.message === "ok") {
-          Axios.post("/online/dangnhap", {
-            matk: user.MAQTV || user.MANS || user.MANV || user.SODT,
-            matkhau: pass,
-          })
-            .then((resp) => {
-              dispatch(setRole(resp.data.info.ROLE));
-              dispatch(updateUserInfo(resp.data.info));
-            })
-            .catch((error) => {
-              console.log("err", error);
-            });
-        }
+    Axios.post("/api/public/login", {
+      userId: user.userId,
+      matkhau: pass,
+    })
+      .then((resp) => {
+        dispatch(setRole(resp.data.info.role));
+        dispatch(updateUserInfo(resp.data.info));
       })
-      .catch((err) => {
+      .catch((error) => {
         dispatch(deleteRole());
-        console.log(err);
+        console.log("err", error);
       });
   }, [state]);
   return <></>;

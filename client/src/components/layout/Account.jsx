@@ -11,7 +11,7 @@ const Account = () => {
 
   const handleSignOut = async () => {
     await dispatch(deleteRole());
-    await navigate("/");
+    navigate("/");
   };
   const items = [
     {
@@ -31,7 +31,7 @@ const Account = () => {
             className="mx-auto text-2xl uppercase"
             onClick={() => navigate("/")}
           >
-            {user.ROLE}
+            {user.role}
           </button>
         </Tag>
 
@@ -50,7 +50,7 @@ const Account = () => {
               icon={<UserOutlined />}
             />
           </Dropdown>
-          <h1 className="">{user.HOTEN}</h1>
+          <h1 className="">{user.name}</h1>
         </Space>
       </div>
     </>

@@ -1,9 +1,8 @@
 import {
-  OnlineRouter,
+  PublicRouter,
   AdminRouter,
-  GuestRouter,
-  StaffRouter,
-  DentistRouter,
+  LearnerRouter,
+  InstructorRouter,
 } from "~/routes";
 import React, { Fragment, Suspense, lazy } from "react";
 
@@ -19,17 +18,15 @@ function App() {
   const user = useSelector((state) => state.user);
 
   const VerifyRoure = () => {
-    switch (user.ROLE) {
-      case "QTV":
+    switch (user.role) {
+      case "AD":
         return AdminRouter;
-      case "KH":
-        return GuestRouter;
-      case "NV":
-        return StaffRouter;
-      case "NS":
-        return DentistRouter;
+      case "LN":
+        return LearnerRouter;
+      case "INS":
+        return InstructorRouter;
       default:
-        return OnlineRouter;
+        return PublicRouter;
     }
   };
 
