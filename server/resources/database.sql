@@ -438,9 +438,9 @@ CREATE TABLE [instructorOwnCourse]
 (
     courseId INT NOT NULL,
 	instructorId NVARCHAR(128) NOT NULL,
-	percentageInCome DECIMAL(5, 2) NOT NULL,
+	percentageInCome DECIMAL(5, 2) NOT NULL DEFAULT 0,
  
-	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome > 0 AND percentageInCome <= 100),
+	CONSTRAINT [Instructor percentage in come must be between 0 and 100.] CHECK(percentageInCome >= 0 AND percentageInCome <= 100),
     
 	CONSTRAINT [PK_instructorOwnCourse] PRIMARY KEY(courseId, instructorId),
 
