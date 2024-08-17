@@ -19,61 +19,55 @@ VALUES
 GO
 
 -- Insert into Admin
---INSERT INTO admin (id)
---VALUES
---('user001'),
---('user002');
---GO
+INSERT INTO admin (id)
+VALUES
+('user001'),
+('user002');
+GO
 
 -- Insert into courseMember
---INSERT INTO courseMember (id, role)
---VALUES
---('user003', 'LN'),
---('user004', 'LN'),
---('user005', 'INS'),
---('user006', 'INS'),
---('user007', 'LN'),
---('user008', 'LN'),
---('user009', 'INS'),
---('user010', 'INS');
---GO
+INSERT INTO courseMember (id, role)
+VALUES
+('user003', 'LN'),
+('user004', 'LN'),
+('user005', 'INS'),
+('user006', 'INS'),
+('user007', 'LN'),
+('user008', 'LN'),
+('user009', 'INS'),
+('user010', 'INS');
+GO
 
 -- Insert into learner
---INSERT INTO learner (id)
---VALUES
---('user003'),
---('user004'),
---('user007'),
---('user008');
---GO
+INSERT INTO learner (id)
+VALUES
+('user003'),
+('user004'),
+('user007'),
+('user008');
+GO
 
 -- Insert into instructor
-INSERT INTO instructor (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, totalRevenue)
+INSERT INTO instructor (id, gender, phone, DOB, address, degrees, workplace, scientificBackground, vipState, totalRevenue)
 VALUES
-('user005', 'M', '1234567890', '1980-01-01', '123 Main St', 'PhD', 'University A', 'Physics', 10000.00),
-('user006', 'F', '0987654321', '1985-02-01', '456 Elm St', 'MSc', 'University B', 'Chemistry', 5000.00),
-('user009', 'M', '1112223334', '1975-03-01', '789 Oak St', 'PhD', 'University C', 'Mathematics', 15000.00),
-('user010', 'F', '4445556667', '1990-04-01', '101 Pine St', 'MSc', 'University D', 'Biology', 2000.00);
+('user005', 'M', '1234567890', '1980-01-01', '123 Main St', 'PhD', 'University A', 'Physics', 'vip', 10000.00),
+('user006', 'F', '0987654321', '1985-02-01', '456 Elm St', 'MSc', 'University B', 'Chemistry', 'notVip', 5000.00),
+('user009', 'M', '1112223334', '1975-03-01', '789 Oak St', 'PhD', 'University C', 'Mathematics', 'vip', 15000.00),
+('user010', 'F', '4445556667', '1990-04-01', '101 Pine St', 'MSc', 'University D', 'Biology', 'pending', 2000.00);
 GO
 
-
--- Insert into taxForm
-INSERT INTO taxForm (submissionDate, fullName, address, phone, taxCode, identityNumber, postCode, vipInstructorId)
+-- Insert into instructorRevenueByMonth
+INSERT INTO instructorRevenueByMonth (instructorId, year, month, revenue)
 VALUES
-('2024-07-15', 'Instructor One', '123 Main St', '1234567890', '123456789012', '123456789012', '12345', 'user005'),
-('2024-07-15', 'Instructor Two', '456 Main St', '1234567890', '123456789012', '123456789012', '12345', 'user010'),
-('2024-07-16', 'Instructor Three', '789 Oak St', '1112223334', '987654321098', '987654321098', '67890', 'user006');
+('user005', 2024, 1, 800.00),
+('user005', 2024, 2, 850.00),
+('user006', 2024, 1, 400.00),
+('user006', 2024, 2, 450.00),
+('user009', 2024, 1, 1200.00),
+('user009', 2024, 2, 1250.00),
+('user010', 2024, 1, 150.00),
+('user010', 2024, 2, 200.00);
 GO
-
--- Admin duyệt vip instructor
-UPDATE instructor
-SET vipState = 'vip'
-WHERE id = 'user005';
-
-UPDATE instructor
-SET vipState = 'vip'
-WHERE id = 'user006';
-
 
 -- Insert into paymentCard
 INSERT INTO paymentCard (number, type, name, CVC, expireDate)
@@ -88,16 +82,14 @@ GO
 INSERT INTO vipInstructor (id, paymentCardNumber)
 VALUES
 ('user005', '1111222233334444'),
-('user006', '9999000011112222');
+('user009', '9999000011112222');
 GO
 
--- Insert into instructorRevenueByMonth
-INSERT INTO instructorRevenueByMonth (instructorId, year, month, revenue)
+-- Insert into taxForm
+INSERT INTO taxForm (submissionDate, fullName, address, phone, taxCode, identityNumber, postCode, vipInstructorId)
 VALUES
-('user005', 2024, 1, 800.00),
-('user005', 2024, 2, 850.00),
-('user006', 2024, 1, 400.00),
-('user006', 2024, 2, 450.00);
+('2024-07-15', 'Instructor One', '123 Main St', '1234567890', '123456789012', '123456789012', '12345', 'user005'),
+('2024-07-16', 'Instructor Three', '789 Oak St', '1112223334', '987654321098', '987654321098', '67890', 'user009');
 GO
 
 -- Insert into category
@@ -129,57 +121,57 @@ GO
 -- Insert into courseRevenueByMonth
 INSERT INTO courseRevenueByMonth (courseId, year, month, revenue)
 VALUES
-(1, 2022, 11, 2000.00),
-(1, 2022, 12, 3000.00),
-(1, 2023, 9, 2000.00),
-(1, 2023, 10, 3000.00),
-(1, 2023, 11, 2000.00),
-(1, 2023, 12, 3000.00),
-(1, 2024, 1, 2000.00),
-(1, 2024, 2, 3000.00),
-(2, 2021, 9, 1500.00),
-(2, 2022, 10, 1500.00),
-(2, 2022, 11, 1500.00),
-(2, 2022, 12, 1500.00),
-(2, 2023, 9, 1500.00),
-(2, 2023, 10, 1500.00),
-(2, 2023, 11, 1500.00),
-(2, 2023, 12, 1500.00),
-(2, 2024, 1, 1500.00),
-(2, 2024, 2, 2500.00);
+(4, 2022, 11, 2000.00),
+(4, 2022, 12, 3000.00),
+(4, 2023, 9, 2000.00),
+(4, 2023, 10, 3000.00),
+(4, 2023, 11, 2000.00),
+(4, 2023, 12, 3000.00),
+(4, 2024, 1, 2000.00),
+(4, 2024, 2, 3000.00),
+(5, 2021, 9, 1500.00),
+(5, 2022, 10, 1500.00),
+(5, 2022, 11, 1500.00),
+(5, 2022, 12, 1500.00),
+(5, 2023, 9, 1500.00),
+(5, 2023, 10, 1500.00),
+(5, 2023, 11, 1500.00),
+(5, 2023, 12, 1500.00),
+(5, 2024, 1, 1500.00),
+(5, 2024, 2, 2500.00);
 GO
 
 -- Insert into courseIntendedLearners
 INSERT INTO courseIntendedLearners (courseId, intendedLearnerId, intendedLearner)
 VALUES
-(1, 1, 'High school students'),
-(1, 2, 'Undergraduates'),
-(2, 3, 'Chemistry majors'),
-(2, 4, 'Science enthusiasts');
+(4, 1, 'High school students'),
+(4, 2, 'Undergraduates'),
+(5, 3, 'Chemistry majors'),
+(5, 4, 'Science enthusiasts');
 GO
 
 -- Insert into courseRequirements
 INSERT INTO courseRequirements (courseId, requirementId, requirement)
 VALUES
-(1, 1, 'Basic Math knowledge'),
-(1, 2, 'Interest in Physics'),
-(2, 3, 'Understanding of basic Chemistry concepts');
+(4, 1, 'Basic Math knowledge'),
+(4, 2, 'Interest in Physics'),
+(5, 3, 'Understanding of basic Chemistry concepts');
 GO
 
 -- Insert into courseObjectives
 INSERT INTO courseObjectives (courseId, objectiveId, objective)
 VALUES
-(1, 1, 'Understand fundamental Physics concepts'),
-(1, 2, 'Apply Physics in real-life scenarios'),
-(2, 3, 'Master advanced Chemistry topics');
+(4, 1, 'Understand fundamental Physics concepts'),
+(4, 2, 'Apply Physics in real-life scenarios'),
+(5, 3, 'Master advanced Chemistry topics');
 GO
 
 -- Insert into instructorOwnCourse
 INSERT INTO instructorOwnCourse (courseId, instructorId, percentageInCome)
 VALUES
-(1, 'user005', 80.00),
-(1, 'user006', 70.00),
-(2, 'user010', 0);
+(4, 'user005', 80.00),
+(5, 'user006', 70.00),
+(6, 'user009', 90.00);
 GO
 
 -- Insert into coupon
@@ -190,85 +182,85 @@ VALUES
 GO
 
 -- Insert into section
-INSERT INTO section (courseId, id, title, learnTime)
+INSERT INTO section (id, courseId, title, learnTime)
 VALUES
-(1, 1, 'Introduction', 2.5),
-(1, 2, 'Basic Concepts', 3.0),
-(1, 3, 'Advanced Topics 1', 4.0),
-(2, 1, 'Advanced Topics 1', 4.0),
-(2, 2, 'Advanced Topics 2', 4.0),
-(2, 3, 'Advanced Topics 3', 4.0);
+(1, 4, 'Introduction', 2.5),
+(2, 4, 'Basic Concepts', 3.0),
+(3, 4, 'Advanced Topics 1', 4.0),
+(1, 5, 'Advanced Topics 1', 4.0),
+(2, 5, 'Advanced Topics 2', 4.0),
+(3, 5, 'Advanced Topics 3', 4.0);
 
 GO
 
 INSERT INTO lesson (id, sectionId, courseId, title, learnTime, type)
 VALUES
-(1, 1, 1, 'Introduction to Physics', 100, 'lecture'),
-(2, 1, 1, 'Prerequisite Test', 100, 'exercise'),
-(1, 2, 1, 'Motions and Velocity', 40, 'lecture'),
-(2, 2, 1, 'Motions and Velocity Test', 40, 'exercise'),
-(1, 3, 2, 'Bonds of atoms', 70, 'lecture');
+(1, 1, 4, 'Introduction to Physics', 100, 'lecture'),
+(2, 1, 4, 'Prerequisite Test', 100, 'exercise'),
+(1, 2, 4, 'Motions and Velocity', 40, 'lecture'),
+(2, 2, 4, 'Motions and Velocity Test', 40, 'exercise'),
+(1, 3, 5, 'Bonds of atoms', 70, 'lecture');
 GO
 
 -- Insert into lecture
 INSERT INTO lecture (id, sectionId, courseId, resource)
 VALUES
-(1, 1, 1, 'intro.mp4'),
-(1, 2, 1, 'motion.mp4'),
-(1, 3, 2, 'bonds.mp4');
+(1, 1, 4, 'intro.mp4'),
+(1, 2, 4, 'motion.mp4'),
+(1, 3, 5, 'bonds.mp4');
 GO
 
 -- Insert into exam
---INSERT INTO exercise (id, sectionId, courseId)
---VALUES
---(2, 1, 1),
---(2, 2, 1);
---GO
+INSERT INTO exercise (id, sectionId, courseId)
+VALUES
+(2, 1, 4),
+(2, 2, 4);
+GO
 
 -- Insert into question
 INSERT INTO question (id, exerciseId, sectionId, courseId, question)
 VALUES
-(1, 2, 1, 1, 'What is Newton''s First Law?'),
-(2, 2, 1, 1, 'Explain the concept of inertia.'),
-(3, 2, 1, 1, 'Some physics question 1.'),
-(4, 2, 1, 1, 'Some physics question 2.'),
-(1, 2, 2, 1, 'Describe the different types of chemical bonds.'),
-(2, 2, 2, 1, 'What is bond?'),
-(3, 2, 2, 1, 'Some physics question 1.'),
-(4, 2, 2, 1, 'Some physics question 2.'),
-(5, 2, 2, 1, 'Some physics question 3.');
+(1, 2, 1, 4, 'What is Newton''s First Law?'),
+(2, 2, 1, 4, 'Explain the concept of inertia.'),
+(3, 2, 1, 4, 'Some physics question 1.'),
+(4, 2, 1, 4, 'Some physics question 2.'),
+(1, 2, 2, 4, 'Describe the different types of chemical bonds.'),
+(2, 2, 2, 4, 'What is bond?'),
+(3, 2, 2, 4, 'Some physics question 1.'),
+(4, 2, 2, 4, 'Some physics question 2.'),
+(5, 2, 2, 4, 'Some physics question 3.');
 GO
 
 insert into questionAnswer (id, questionId, exerciseId, sectionId, courseId, questionAnswers, isCorrect) values
-(1, 1, 2, 1, 1, 'Newton''s First Law is something incorrect', 0),
-(2, 1, 2, 1, 1, 'Newton''s First Law is something incorrect', 0),
-(3, 1, 2, 1, 1, 'Newton''s First Law is something correct', 1),
-(1, 2, 2, 1, 1, 'Inertia is a phenomenon when you incorrect.', 0),
-(2, 2, 2, 1, 1, 'Inertia is a phenomenon when you correct.', 1),
-(1, 3, 2, 1, 1, 'Some physics answer 1 incorrect.', 0),
-(2, 3, 2, 1, 1, 'Some physics answer 1 incorrect.', 0),
-(3, 3, 2, 1, 1, 'Some physics answer 1 correct.', 1),
-(1, 4, 2, 1, 1, 'Some physics answer 2 incorrect.', 0),
-(2, 4, 2, 1, 1, 'Some physics answer 2 correct.', 1),
-(1, 1, 2, 2, 1, 'Describe the different types of chemical bonds.', 0),
-(2, 1, 2, 2, 1, 'Hexagonal bond appears in metal material like Fe, Cu, etc.', 1),
-(3, 1, 2, 2, 1, 'Something something incorrect.', 0),
-(4, 1, 2, 2, 1, 'Something something incorrect.', 0),
-(1, 2, 2, 2, 1, 'Bond is how atoms are bound to each others to create a structure that ...', 1),
-(2, 2, 2, 2, 1, 'Incorrect ...', 0),
-(3, 2, 2, 2, 1, 'Incorrect ...', 0),
-(1, 3, 2, 2, 1, 'Incorrect.', 0),
-(2, 3, 2, 2, 1, 'Incorrect.', 0),
-(3, 3, 2, 2, 1, 'Incorrect.', 0),
-(4, 3, 2, 2, 1, 'All are incorrect.', 1),
-(1, 4, 2, 2, 1, 'Correct.', 0),
-(2, 4, 2, 2, 1, 'Correct.', 0),
-(3, 4, 2, 2, 1, 'Correct.', 0),
-(4, 4, 2, 2, 1, 'All are correct.', 1),
-(1, 5, 2, 2, 1, 'Correct.', 0),
-(2, 5, 2, 2, 1, 'Correct.', 0),
-(3, 5, 2, 2, 1, 'Incorrect.', 0),
-(4, 5, 2, 2, 1, '1 and 2 are correct.', 1);
+(1, 1, 2, 1, 4, 'Newton''s First Law is something incorrect', 0),
+(2, 1, 2, 1, 4, 'Newton''s First Law is something incorrect', 0),
+(3, 1, 2, 1, 4, 'Newton''s First Law is something correct', 1),
+(1, 2, 2, 1, 4, 'Inertia is a phenomenon when you incorrect.', 0),
+(2, 2, 2, 1, 4, 'Inertia is a phenomenon when you correct.', 1),
+(1, 3, 2, 1, 4, 'Some physics answer 1 incorrect.', 0),
+(2, 3, 2, 1, 4, 'Some physics answer 1 incorrect.', 0),
+(3, 3, 2, 1, 4, 'Some physics answer 1 correct.', 1),
+(1, 4, 2, 1, 4, 'Some physics answer 2 incorrect.', 0),
+(2, 4, 2, 1, 4, 'Some physics answer 2 correct.', 1),
+(1, 1, 2, 2, 4, 'Describe the different types of chemical bonds.', 0),
+(2, 1, 2, 2, 4, 'Hexagonal bond appears in metal material like Fe, Cu, etc.', 1),
+(3, 1, 2, 2, 4, 'Something something incorrect.', 0),
+(4, 1, 2, 2, 4, 'Something something incorrect.', 0),
+(1, 2, 2, 2, 4, 'Bond is how atoms are bound to each others to create a structure that ...', 1),
+(2, 2, 2, 2, 4, 'Incorrect ...', 0),
+(3, 2, 2, 2, 4, 'Incorrect ...', 0),
+(1, 3, 2, 2, 4, 'Incorrect.', 0),
+(2, 3, 2, 2, 4, 'Incorrect.', 0),
+(3, 3, 2, 2, 4, 'Incorrect.', 0),
+(4, 3, 2, 2, 4, 'All are incorrect.', 1),
+(1, 4, 2, 2, 4, 'Correct.', 0),
+(2, 4, 2, 2, 4, 'Correct.', 0),
+(3, 4, 2, 2, 4, 'Correct.', 0),
+(4, 4, 2, 2, 4, 'All are correct.', 1),
+(1, 5, 2, 2, 4, 'Correct.', 0),
+(2, 5, 2, 2, 4, 'Correct.', 0),
+(3, 5, 2, 2, 4, 'Incorrect.', 0),
+(4, 5, 2, 2, 4, '1 and 2 are correct.', 1);
 GO
 
 
@@ -281,7 +273,6 @@ SELECT * FROM course
 SELECT * FROM [user]
 SELECT * FROM paymentCard
 SELECT * FROM learnerpaymentCard
-SELECT * FROM instructor
 
 -- NHỮNG CÁI LIÊN QUAN COURSE, BÀI HỌC
 select * from section;
@@ -380,3 +371,5 @@ insert into learnerPaymentCard values ('user003', '1111222233334444')
 
 -- INSERT
 -- 1. INSERT CORRECTLY?
+
+
