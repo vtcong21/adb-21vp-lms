@@ -24,10 +24,10 @@ BEGIN TRAN
 			RETURN
 		END
 
-		SELECT name, user, profilePhoto
+		SELECT name, user, profilePhoto, role, password
 		FROM [user]
 		WHERE id = @id
-		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;;
+		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
 
     END TRY
@@ -58,7 +58,7 @@ BEGIN TRAN
 			RETURN
 		END
 
-		SELECT name, user, profilePhoto
+		SELECT name, user, profilePhoto, role, password
 		FROM [user]
 		WHERE id = @id
 		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
@@ -114,14 +114,15 @@ IF OBJECT_ID('sp_All_GetCourseByName', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_All_GetCourseByName
-    @courseName NVARCHAR(128)
+    @courseName NVARCHAR(256),
+	@CourseState NVARCHAR(15)
 AS
 BEGIN TRAN
 	BEGIN TRY
 		SET NOCOUNT ON;
 
 		SELECT c.id courseId, title, subTitle, image, numberOfLectures, totalTime, c.averageRating courseAverageRating,
-			   subCategoryId, categoryId, s.name subCatgoryName, ca.name catgoryName, language, price,
+			   subCategoryId, categoryId, s.name subCatgoryName, ca.name catgoryName, language, price, lastUpdateTime,
 			   (	
 					SELECT i.id instructorId,u.name instructorName 
 					FROM [instructorOwnCourse] ioc
@@ -134,6 +135,8 @@ BEGIN TRAN
 		JOIN [subCategory] s ON c.subCategoryId = s.id AND c.categoryId = s.parentCategoryId
 		JOIN [category] ca ON ca.id = s.parentCategoryId
 		WHERE c.title LIKE @courseName + '%'
+		AND (@CourseState IS NULL OR c.state = @CourseState) 
+		ORDER  BY c.lastUpdateTime ASC
 		FOR JSON PATH;
 
 	END TRY
@@ -248,8 +251,8 @@ IF OBJECT_ID('sp_All_GetCourseByCategoryId', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE sp_All_GetCourseByCategoryId
-    @categoryId NVARCHAR(128),
-	@subcategoryId NVARCHAR(128)
+    @categoryId INT,
+	@subcategoryId INT
 AS
 BEGIN TRAN
 	BEGIN TRY
@@ -269,7 +272,7 @@ BEGIN TRAN
 		FROM [course] c 
 		JOIN [subCategory] s ON c.subCategoryId = s.id AND c.categoryId = s.parentCategoryId
 		JOIN [category] ca ON ca.id = s.parentCategoryId
-		WHERE c.categoryId = @categoryId
+		WHERE s.id = @subcategoryId AND s.parentCategoryId = @categoryId
 		FOR JSON PATH;
 
 	END TRY
@@ -286,7 +289,7 @@ GO
 IF OBJECT_ID('sp_All_GetCoupons', 'P') IS NOT NULL
     DROP PROCEDURE sp_All_GetCoupons
 GO
-	
+
 CREATE PROCEDURE sp_All_GetCoupons
 	@isAvailable BIT
 AS
@@ -354,7 +357,7 @@ BEGIN TRAN
 		SET name = COALESCE(@name, name),
 			email = COALESCE(@email, email),
 			password = COALESCE(@password, password),
-			profilePhoto = COALESCE(@profilePhoto, ~profilePhoto)
+			profilePhoto = COALESCE(@profilePhoto, profilePhoto)
 		WHERE id = @userId
 
 	END TRY
