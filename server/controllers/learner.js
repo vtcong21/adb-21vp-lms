@@ -62,7 +62,7 @@ export const getCartDetails = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_LN_GetCartDetails', { learnerId:userId });
+    const jsonResult = await pool.executeSP('sp_LN_GetCartDetails', { learnerId: userId });
 
     return res.status(200).json(jsonResult);
 
@@ -106,7 +106,7 @@ export const viewOrders = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_LN_ViewOrders', { learnerId :userId});
+    const jsonResult = await pool.executeSP('sp_LN_ViewOrders', { learnerId: userId });
 
     return res.status(200).json(jsonResult);
 

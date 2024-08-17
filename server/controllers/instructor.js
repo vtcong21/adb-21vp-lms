@@ -62,7 +62,7 @@ export const getMonthlyRevenueForInstructor = async (req, res) => {
     if (!userId || !duration) {
       return res.status(400).json({ message: "duration and userId art required" });
     }
-    const jsonResult = await pool.executeSP('sp_AD_INS_GetMonthlyRevenueForInstructor', { userId, duration });
+    const jsonResult = await pool.executeSP('sp_AD_INS_GetMonthlyRevenueOfAnInstructor', { instructorId: userId, duration });
 
     return res.status(200).json(jsonResult);
 
@@ -86,7 +86,7 @@ export const getAunnualRevenueForInstructor = async (req, res) => {
     if (!userId || !duration) {
       return res.status(400).json({ message: "duration and userId art required" });
     }
-    const jsonResult = await pool.executeSP('sp_AD_INS_GetAnnualRevenueForInstructor', { instructorId: userId, duration });
+    const jsonResult = await pool.executeSP('sp_AD_INS_GetAnnualRevenueOfAnInstructor', { instructorId: userId, duration });
 
     return res.status(200).json(jsonResult);
 

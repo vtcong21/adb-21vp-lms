@@ -7,14 +7,14 @@ const OnlineService = {
       userId: data.userId,
       password: data.password,
     });
-    if(res && res.response)
-    {
+    if (res && res.response) {
       if (res.response.status === 400) {
         message.error(res.response.data.error);
       }
-     
+
     }
     return res;
   },
+ 
 };
 export default OnlineService;

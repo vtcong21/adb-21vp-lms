@@ -3,7 +3,7 @@ import getPool from "../utils/database";
 export const createCoupon = async (req, res) => {
   try {
 
-      const { code, quantity, startDate, adminId, discountPercent } = req.body;
+      const { code, quantity, startDate, userId, discountPercent } = req.body;
 
       const pool = getPool('LMS');
 
@@ -12,9 +12,9 @@ export const createCoupon = async (req, res) => {
       }
 
       if (!instructorId) {
-          return res.status(400).json({ message: "adminId is required" });
+          return res.status(400).json({ message: "userId is required" });
       }
-      await pool.executeSP('sp_AD_InsertCoupon', { code, quantity, startDate, adminId, discountPercent } );
+      await pool.executeSP('sp_AD_InsertCoupon', { code, quantity, startDate, userId, discountPercent } );
 
       return res.status(200).json({ message: "created coupon successfully" });
 

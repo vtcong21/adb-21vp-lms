@@ -67,7 +67,9 @@ const createPool = async (loginType) => {
                         const firstRow = recordset[0];
                         const columnName = Object.keys(firstRow)[0];
                         const jsonResult = firstRow[columnName];
-                        return JSON.parse(jsonResult);
+                        if(jsonResult)
+                            return JSON.parse(jsonResult);
+                        else return [];
                     }
                 }
         

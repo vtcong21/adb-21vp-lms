@@ -8,14 +8,13 @@ import getPool from "../utils/database";
 export const login = async (req, res) => {
   try {
     const { userId, password } = req.body;
-    console.log(userId);
 
     const pool = getPool("LMS");
     if (!pool) {
       return res.status(500).send("Database connection failed.");
     }
 
-    const user = await pool.executeSP("sp_All_GetUserProfile", {id: userId});
+    let user = await pool.executeSP("sp_All_GetUserProfile", {id: userId});
     
     
     const isMatch = await comparePassword(password, user.password);
@@ -23,6 +22,8 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).send("Invalid password.");
     }
+
+    if(user.role == 'INS') user = await pool.executeSP("sp_All_GetInstructorProfile", {id: userId});
 
     const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "30d",
