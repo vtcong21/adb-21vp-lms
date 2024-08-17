@@ -563,7 +563,7 @@ BEGIN
         END
 
         INSERT INTO instructorOwnCourse(courseId, instructorId, percentageInCome)
-        VALUES (@courseId, @instructorId, ISNULL(@percentageInCome, 0));
+        VALUES (@courseId, @instructorId, @percentageInCome);
 
         COMMIT TRANSACTION;
     END TRY
