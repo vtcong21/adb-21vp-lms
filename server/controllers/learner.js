@@ -9,11 +9,11 @@ export const addCourseToCart = async (req, res) => {
     const pool = getPool('LMS');
 
     if (!pool) {
-      return res.status(500).json({ message: "Database pool is not available" });
+      return res.status(500).json({ error: "Database pool is not available" });
     }
 
     if (!userId || !courseId) {
-      return res.status(400).json({ message: "userId and courseId are required" });
+      return res.status(400).json({ error: "userId and courseId are required" });
     }
     await pool.executeSP('sp_LN_AddCourseToCart', { learnerId: userId, courseId });
 
@@ -52,7 +52,8 @@ export const removeCourseFromCart = async (req, res) => {
 
 export const getCartDetails = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.query;
+   
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -74,7 +75,7 @@ export const getCartDetails = async (req, res) => {
 
 export const makeOrder = async (req, res) => {
   try {
-    const { userId, paymentCardNumber, couponCode } = req.body;
+    const { userId, paymentCardNumber, couponCode } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -96,7 +97,7 @@ export const makeOrder = async (req, res) => {
 
 export const viewOrders = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -118,7 +119,7 @@ export const viewOrders = async (req, res) => {
 
 export const viewOrderDetails = async (req, res) => {
   try {
-    const { userId, orderId } = req.body;
+    const { userId, orderId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {

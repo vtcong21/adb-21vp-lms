@@ -27,7 +27,7 @@ export const createCoupon = async (req, res) => {
 
 export const getAllCoupons = async (req, res) => {
     try {
-        const { isAvailable } = req.body;
+        const { isAvailable } = req.query;
 
         const pool = getPool('LMS');
 

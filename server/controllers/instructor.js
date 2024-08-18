@@ -3,17 +3,17 @@ import getPool from "../utils/database";
 
 export const getInstructorProfile = async (req, res) => {
   try {
-
+    const {userId} = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!instructorId) {
+    if (!userId) {
       return res.status(400).json({ message: "instructorId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_All_GetInstructorProfile', { id: req.user.userId });
+    const jsonResult = await pool.executeSP('sp_All_GetInstructorProfile', { id: userId });
 
     return res.status(200).json(jsonResult);
 
@@ -51,7 +51,7 @@ export const updateInstructorInfo = async (req, res) => {
 
 export const getMonthlyRevenueForInstructor = async (req, res) => {
   try {
-    const { userId, duration } = req.body;
+    const { userId, duration } = req.query;
 
     const pool = getPool('LMS');
 
@@ -75,7 +75,7 @@ export const getMonthlyRevenueForInstructor = async (req, res) => {
 
 export const getAunnualRevenueForInstructor = async (req, res) => {
   try {
-    const { userId, duration } = req.body;
+    const { userId, duration } = req.query;
 
     const pool = getPool('LMS');
 

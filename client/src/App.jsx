@@ -16,7 +16,7 @@ import Auth from "./components/Auth";
 
 function App() {
   const user = useSelector((state) => state.user);
-  console.log(user);
+  
   const VerifyRoute = () => {
     switch (user.role) {
       case "AD":
