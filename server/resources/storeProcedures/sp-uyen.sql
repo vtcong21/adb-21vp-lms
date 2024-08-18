@@ -239,7 +239,7 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-		SELECT C.id, C.title, C.subTitle, C.image, C.state, C.numberOfStudents, 
+		SELECT C.id, C.title, C.subTitle, C.image, C.state, C.numberOfLearners, 
 			C.numberOfLectures, C.totalTime, C.averageRating, C.price, C.lastUpdateTime,
 			(SELECT SC.name FROM subCategory SC WHERE SC.parentCategoryId = C.categoryId AND SC.id = C.subCategoryId) as subCategory, 
 			(SELECT PC.name FROM category PC WHERE PC.id = C.categoryId) as category,
@@ -333,7 +333,7 @@ BEGIN
 				SC.id as subCategoryId, SC.name as subCategoryName, 
 				C.id as categoryId, C.name as categoryName, 
 				SC.numberOfLearners, SC.averageRating
-		FROM subCategory SC JOIN category C ON (SC.parentCategoryId = C.id)
+		FROM vw_SubCategoryDetails SC JOIN category C ON (SC.parentCategoryId = C.id)
 		ORDER BY SC.numberOfLearners DESC, SC.averageRating DESC
 		FOR JSON PATH;
 
