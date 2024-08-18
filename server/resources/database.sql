@@ -289,7 +289,7 @@ CREATE TABLE [course]
     image NVARCHAR(256) NOT NULL,
     video NVARCHAR(256) NOT NULL,
     state NVARCHAR(15) NOT NULL DEFAULT 'draft',
-    numberOfStudents INT NOT NULL DEFAULT 0,
+    numberOfLearners INT NOT NULL DEFAULT 0,
     numberOfLectures INT NOT NULL DEFAULT 0,
     totalTime DECIMAL(10, 2) NOT NULL DEFAULT 0,
     averageRating DECIMAL(3, 2) NOT NULL DEFAULT 0,
@@ -308,7 +308,7 @@ CREATE TABLE [course]
 	CONSTRAINT [Course image is required.] CHECK(LEN(image) > 0),
 	CONSTRAINT [Course video is required.] CHECK(LEN(video) > 0),
 	CONSTRAINT [Course state is invalid.] CHECK(state IN ('draft', 'pendingReview', 'public')),
-	CONSTRAINT [Number of students must be non-negative.] CHECK(numberOfStudents >= 0),
+	CONSTRAINT [Number of students must be non-negative.] CHECK(numberOfLearners >= 0),
 	CONSTRAINT [Number of lectures must be non-negative.] CHECK(numberOfLectures >= 0),
 	CONSTRAINT [Course total time must be non-negative.]  CHECK(totalTime >= 0),
 	CONSTRAINT [Course average rating must be from 0 to 5.] CHECK(averageRating BETWEEN 0 AND 5),
@@ -957,6 +957,7 @@ to ([primary], fg1, fg2)
 go
 
 
+
 -- Table instructor revenue by month
 IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
     DROP TABLE [instructorRevenueByMonth]
@@ -1002,6 +1003,10 @@ GO
 
 
 -- View
+IF OBJECT_ID('vw_SubCategoryDetails', 'V') IS NOT NULL
+    DROP VIEW [vw_SubCategoryDetails];
+GO
+
 
 CREATE VIEW vw_SubCategoryDetails AS
 SELECT 
@@ -1010,7 +1015,7 @@ SELECT
     sc.name,
     
     -- Tổng số học viên
-    SUM(c.numberOfStudents) AS numberOfStudents,
+    SUM(c.numberOfLearners) AS numberOfLearners,
     
     -- Điểm đánh giá trung bình
     ISNULL(AVG(c.averageRating), 0) AS averageRating,
