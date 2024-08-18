@@ -24,9 +24,9 @@ BEGIN
         END
 
 		-- có 2 trường hợp
-		-- từ chối phê duyệt khóa học (pendingReview --> pendingReview)
-		-- ẩn khóa học (public --> pendingReview)
-		ELSE IF (@vipState = 'pendingReview' 
+		-- từ chối phê duyệt khóa học (pendingReview --> draft) + responseText
+		-- ẩn khóa học (public --> draft) + responseText
+		ELSE IF (@vipState = 'draft' 
 				AND @responseText IS NOT NULL AND @adminId IS NOT NULL)
 		BEGIN
 			
@@ -36,11 +36,13 @@ BEGIN
 
 			INSERT INTO adminResponse(adminId, courseId, responseText, dateResponse)
 			VALUES (@adminId, @courseId, @responseText, GETDATE());
-		END
+
+        END
 
 		-- giảng viên gửi yêu cầu đc đăng khóa học
 		-- draft --> pendingReview
-		ELSE IF (@responseText IS NULL AND @adminId IS NULL)
+		ELSE IF (@vipState = 'pendingReview'  
+				AND @responseText IS NULL AND @adminId IS NULL)
         BEGIN
             UPDATE course
             SET state = @vipState
