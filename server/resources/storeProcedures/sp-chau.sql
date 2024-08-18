@@ -352,45 +352,39 @@ GO
 
 -- finished and untested
 CREATE OR ALTER PROC sp_INS_LN_CommentInPost (
-	@courseId INT,
 	@postId INT,
-	@postPublisher NVARCHAR(128),
 	@commenter NVARCHAR(128),
 	@commentContent NVARCHAR(MAX)
 )
 AS
 BEGIN TRAN
-	SET XACT_ABORT ON
-	SET NOCOUNT ON
+	SET XACT_ABORT ON;
+	SET NOCOUNT ON;
 	BEGIN TRY
-		IF (@postId IS NULL OR @courseId IS NULL OR @postPublisher IS NULL OR @commenter IS NULL OR @commentContent IS NULL)
-		BEGIN
+		IF (@postId IS NULL OR @commenter IS NULL OR @commentContent IS NULL)
+		BEGIN;
 			THROW 52000, 'Post ID, Course ID, Post Publisher ID, Commenter ID and Message Content are required.', 1;
 		END
-		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId AND courseId = @courseId AND publisher = @postPublisher)
-		BEGIN
+		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId)
+		BEGIN;
 			THROW 51000, 'Post does not exist', 1;
 		END
 
 		DECLARE @inserted TABLE (
 			commentId INT,
-			postId INT,
-			courseId INT,
-			postPublisher NVARCHAR(128),
 			dateCommented DATE,
 			commenter NVARCHAR(128),
 			commentContent NVARCHAR(MAX)
 		)
 		
-		INSERT INTO [comment](postId, [date], courseId, postPublisher, commenter, content)
-		OUTPUT inserted.id, inserted.postId, inserted.courseId, inserted.postPublisher, inserted.[date], inserted.commenter, inserted.content
+		INSERT INTO [comment](postId, [date], commenter, content)
+		OUTPUT inserted.id, inserted.[date], inserted.commenter, inserted.content
 		INTO @inserted
-		VALUES (@postId, GETDATE(), @courseId, @postPublisher, @commenter, @commentContent)
+		VALUES (@postId, GETDATE(), @commenter, @commentContent)
 
 		SELECT *
 		FROM @inserted
 		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
-
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;
@@ -414,15 +408,15 @@ BEGIN TRAN
 	SET NOCOUNT ON
 	BEGIN TRY
 		IF (@postId IS NULL OR @offset IS NULL OR @limit IS NULL)
-		BEGIN
+		BEGIN;
 			THROW 52000, 'Course ID, Post ID, Post Publisher ID, Offset and Limit are required.', 1;
 		END;
 		IF NOT EXISTS(SELECT 1 FROM [post] WHERE id = @postId)
-		BEGIN
+		BEGIN;
 			THROW 51000, 'Post does not exist', 1;
 		END;
 		
-		SELECT id as commentId, commenter, postId, postPublisher, content
+		SELECT id as commentId, commenter, content
 		FROM [comment]
 		WHERE postId = @postId
 		ORDER BY date asc
