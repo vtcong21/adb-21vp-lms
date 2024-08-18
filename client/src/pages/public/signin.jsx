@@ -19,7 +19,7 @@ const SignInPage = () => {
       password: values.password, //"21126054",
     })
       .then((res) => {
-        console.log(res);
+        
         setCookie(res.token);
         setPassword(values.password);
         dispatch(setRole(res.role));

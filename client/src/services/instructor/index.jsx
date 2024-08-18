@@ -1,8 +1,8 @@
 import Axios from "../Axios";
 import { message } from "antd";
 
-const DentistService = {
-  dangKyLichRanh: async (data) => {
+const InstructorService = {
+  getInstructorProfile: async (data) => {
     const res = await Axios.post("/nhasi/lichRanh", {
       mans: data.mans,
       maca: data.maca,
@@ -137,4 +137,4 @@ const DentistService = {
     return res;
   },
 };
-export default DentistService;
+export default InstructorService;

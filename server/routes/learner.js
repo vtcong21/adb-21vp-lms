@@ -37,7 +37,7 @@ router.get("/learner/order",
   // requireSignin,
   // isLearner,
   viewOrders);
-router.get("/learner/order", 
+router.get("/learner/order/details", 
   // requireSignin,
   // isLearner,
   viewOrderDetails);
