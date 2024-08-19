@@ -21,7 +21,7 @@ import getPool from "../utils/database";
 
 export const getCourseByName = async (req, res) => {
   try {
-    const { courseName } = req.body;
+    const { courseName } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -43,7 +43,7 @@ export const getCourseByName = async (req, res) => {
 
 export const getCourseById = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -65,7 +65,7 @@ export const getCourseById = async (req, res) => {
 
 export const getCourseByCategoryId = async (req, res) => {
   try {
-    const { categoryId, subCategoryId } = req.body;
+    const { categoryId, subCategoryId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
@@ -111,7 +111,7 @@ export const changeStateOfCourse = async (req, res) => {
 
 export const getDailyRevenueForCourse = async (req, res) => {
   try {
-    const { courseId, duration } = req.body;
+    const { courseId, duration } = req.query;
 
     const pool = getPool('LMS');
 
@@ -135,7 +135,7 @@ export const getDailyRevenueForCourse = async (req, res) => {
 
 export const getMonthlyRevenueForCourse = async (req, res) => {
   try {
-    const { courseId, duration } = req.body;
+    const { courseId, duration } = req.query;
     
     const pool = getPool('LMS');
 
@@ -159,7 +159,7 @@ export const getMonthlyRevenueForCourse = async (req, res) => {
 
 export const getAunnualRevenueOfACourse = async (req, res) => {
   try {
-    const { courseId, duration } = req.body;
+    const { courseId, duration } = req.query;
 
     const pool = getPool('LMS');
 
@@ -201,7 +201,7 @@ export const getTop50CoursesByRevenue = async (req, res) => {
 
 export const getOwnCourses = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.query;
 
     const pool = getPool('LMS');
 
@@ -271,7 +271,7 @@ export const createCourse = async (req, res) => {
 
 export const getAdminResponseInACourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseId } = req.query;
 
     const pool = getPool('LMS');
 
@@ -295,7 +295,7 @@ export const getAdminResponseInACourse = async (req, res) => {
 
 export const getLearnerInCourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseId } = req.query;
 
     const pool = getPool('LMS');
 
