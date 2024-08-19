@@ -1,11 +1,10 @@
 import {
-  OnlineRouter,
+  PublicRouter,
   AdminRouter,
-  GuestRouter,
-  StaffRouter,
-  DentistRouter,
+  LearnerRouter,
+  InstructorRouter,
 } from "~/routes";
-import React, { Fragment, Suspense, lazy } from "react";
+import React, { Fragment, Suspense, lazy, useEffect } from "react";
 
 import { useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -17,30 +16,29 @@ import Auth from "./components/Auth";
 
 function App() {
   const user = useSelector((state) => state.user);
-
-  const VerifyRoure = () => {
-    switch (user.ROLE) {
-      case "QTV":
+  
+  const VerifyRoute = () => {
+    switch (user.role) {
+      case "AD":
         return AdminRouter;
-      case "KH":
-        return GuestRouter;
-      case "NV":
-        return StaffRouter;
-      case "NS":
-        return DentistRouter;
+      case "LN":
+        return LearnerRouter;
+      case "INS":
+        return InstructorRouter;
       default:
-        return OnlineRouter;
+        return PublicRouter;
     }
   };
+
 
   return (
     <>
       {/* <Test /> */}
-      <Auth />
+      {/* <Auth /> */}
       <Router>
         <Suspense fallback={<Loading />}>
           <Routes>
-            {VerifyRoure().map((route, index) => {
+            {VerifyRoute().map((route, index) => {
               const Layout = route.Layout === null ? Fragment : route.Layout;
               const Page = route.component;
               return (

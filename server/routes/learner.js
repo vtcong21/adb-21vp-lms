@@ -15,14 +15,36 @@ import {
   viewOrderDetails,
   completeLesson
 } from "../controllers/learner";
+import { isLearner, requireSignin } from "../middlewares";
 
-router.post("/learner/cart/course", addCourseToCart);
-router.delete("/learner/cart/course", removeCourseFromCart);
-router.get("/learner/cart", getCartDetails);
-router.post("/learner/order", makeOrder);
-router.get("/learner/order", viewOrders);
-router.get("/learner/order", viewOrderDetails);
-router.post("/learner/lesson/complete", completeLesson);
+router.post("/learner/cart/course", 
+  // requireSignin,
+  // isLearner,
+  addCourseToCart);
+router.delete("/learner/cart/course", 
+  // requireSignin,
+  // isLearner,
+  removeCourseFromCart);
+router.get("/learner/cart", 
+  // requireSignin,
+  // isLearner,
+  getCartDetails);
+router.post("/learner/order", 
+  // requireSignin,
+  // isLearner,
+  makeOrder);
+router.get("/learner/order", 
+  // requireSignin,
+  // isLearner,
+  viewOrders);
+router.get("/learner/order/details", 
+  // requireSignin,
+  // isLearner,
+  viewOrderDetails);
+router.post("/learner/lesson/complete", 
+  // requireSignin,
+  // isLearner,
+  completeLesson);
 
 export default router;
 

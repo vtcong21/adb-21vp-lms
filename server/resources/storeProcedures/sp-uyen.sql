@@ -24,9 +24,9 @@ BEGIN
         END
 
 		-- có 2 trường hợp
-		-- từ chối phê duyệt khóa học (pendingReview --> pendingReview)
-		-- ẩn khóa học (public --> pendingReview)
-		ELSE IF (@vipState = 'pendingReview' 
+		-- từ chối phê duyệt khóa học (pendingReview --> draft) + responseText
+		-- ẩn khóa học (public --> draft) + responseText
+		ELSE IF (@vipState = 'draft' 
 				AND @responseText IS NOT NULL AND @adminId IS NOT NULL)
 		BEGIN
 			
@@ -36,11 +36,13 @@ BEGIN
 
 			INSERT INTO adminResponse(adminId, courseId, responseText, dateResponse)
 			VALUES (@adminId, @courseId, @responseText, GETDATE());
-		END
+
+        END
 
 		-- giảng viên gửi yêu cầu đc đăng khóa học
 		-- draft --> pendingReview
-		ELSE IF (@responseText IS NULL AND @adminId IS NULL)
+		ELSE IF (@vipState = 'pendingReview'  
+				AND @responseText IS NULL AND @adminId IS NULL)
         BEGIN
             UPDATE course
             SET state = @vipState
@@ -156,10 +158,10 @@ END
 GO
 
 -- Doanh thu hàng năm của một giảng viên 
-IF OBJECT_ID('sp_AD_INS_GetAnnualRevenueOfAInnstructor', 'P') IS NOT NULL
-    DROP PROCEDURE [sp_AD_INS_GetAnnualRevenueOfAInnstructor]
+IF OBJECT_ID('sp_AD_INS_GetAnnualRevenueOfAnInstructor', 'P') IS NOT NULL
+    DROP PROCEDURE [sp_AD_INS_GetAnnualRevenueOfAnInstructor]
 GO
-CREATE PROCEDURE sp_AD_INS_GetAnnualRevenueOfAInnstructor
+CREATE PROCEDURE sp_AD_INS_GetAnnualRevenueOfAnInstructor
     @instructorId NVARCHAR(128),
 	@duration INT
 AS
@@ -239,7 +241,7 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-		SELECT C.id, C.title, C.subTitle, C.image, C.state, C.numberOfStudents, 
+		SELECT C.id, C.title, C.subTitle, C.image, C.state, C.numberOfLearners, 
 			C.numberOfLectures, C.totalTime, C.averageRating, C.price, C.lastUpdateTime,
 			(SELECT SC.name FROM subCategory SC WHERE SC.parentCategoryId = C.categoryId AND SC.id = C.subCategoryId) as subCategory, 
 			(SELECT PC.name FROM category PC WHERE PC.id = C.categoryId) as category,
@@ -333,7 +335,7 @@ BEGIN
 				SC.id as subCategoryId, SC.name as subCategoryName, 
 				C.id as categoryId, C.name as categoryName, 
 				SC.numberOfLearners, SC.averageRating
-		FROM subCategory SC JOIN category C ON (SC.parentCategoryId = C.id)
+		FROM vw_SubCategoryDetails SC JOIN category C ON (SC.parentCategoryId = C.id)
 		ORDER BY SC.numberOfLearners DESC, SC.averageRating DESC
 		FOR JSON PATH;
 

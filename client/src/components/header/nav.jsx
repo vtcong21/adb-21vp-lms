@@ -1,42 +1,17 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-const KhachHangItem = [
- 
+const learnerItems = [
   {
-    name: `Đặt lịch hẹn`,
-    path: "/dat-lich-hen",
-  },
-  {
-    name: "Xem lich hen",
-    path: "/xem-lich-hen",
-  },
-  {
-    name: "Xem hồ sơ bệnh",
-    path: "/xem-ho-so-benh",
-  },
-  {
-    name: "Cập nhật tài khoản",
-    path: "/cap-nhat-tai-khoan",
-  },
-  {
-    name: "Đổi mật khẩu",
-    path: "/doi-mat-khau",
-  },
-];
+    name: `Do st`,
+    path: "/do-st",
+  },];
 
-const OnlineItem = [
+const publicItems = [
   {
     name: "Home",
     path: "/",
   },
-  {
-    name: `Đội ngũ nha khoa`,
-    path: "/doi-ngu-nha-khoa",
-  },
-  {
-    name: "Bảng giá dịch vụ",
-    path: "/bang-gia-dich-vu",
-  },
+  
 ];
 const Menu = ({ name, path }) => {
   const navigate = useNavigate();
@@ -72,7 +47,7 @@ const Menu = ({ name, path }) => {
 
 const Nav = () => {
   const user = useSelector((state) => state.user);
-  const menuItem = user.ROLE === "KH" ? KhachHangItem : OnlineItem;
+  const menuItem = user.role === "LN" ? learnerItems : publicItems;
   return (
     <>
       <div className="bg-[#f7f7f7] w-full min-h-14 flex gap-1 justify-center align-middle items-center px-5 drop-shadow-lg py-2 z-50">

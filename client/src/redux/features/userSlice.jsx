@@ -1,15 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import ConvertRole from "~/hooks/ConvertRole";
-import OnlineService from "~/services/online";
+import PublicService from "~/services/public";
 export const GetUserInfo = createAsyncThunk(
   "user/getUserInfo",
-  async ({ matk, matkhau }, { rejectWithValue }) => {
-    console.log(matk, matkhau);
+  async ({ userId, password }, { rejectWithValue }) => {
+    
     try {
-      const res = await OnlineService.dangnhap({
-        matk: matk,
-        matkhau: matkhau,
+      const res = await PublicService.login({
+        userId: userId,
+        password: password,
       });
 
       return res;
@@ -22,46 +22,56 @@ export const GetUserInfo = createAsyncThunk(
 export const userSlice = createSlice({
   name: "user",
   initialState: {
-    ROLE: "online" || "KH" || "NS" || "NV" || "QTV",
-    SODT: "",
-    MANS: "",
-    MAQTV: "",
-    MANV: "1",
-    HOTEN: "",
-    PHAI: "",
-    NGAYSINH: "",
-    DIACHI: "",
-    VITRICV: "",
+    role: "public" || "AD" || "INS" || "LN",
+    email: "",
+    name: "",
+    profilePhoto: "",
+    userId: "",
+    gender: "",
+    phone: "",
+    DOB: "",
+    address: "",
+    degrees: "",
+    workplace: "",
+    scientitficBackground: "",
+    vipState: "",
     loading: false,
     status: "idle",
     error: null,
   },
   reducers: {
     setRole: (state, action) => {
-      state.ROLE = action.payload;
+      state.role = action.payload;
     },
     deleteRole: (state) => {
-      state.ROLE = "online";
-      state.SODT = "";
-      state.MANS = "";
-      state.MAQTV = "";
-      state.MANV = "";
-      state.HOTEN = "";
-      state.PHAI = "";
-      state.NGAYSINH = "";
-      state.DIACHI = "";
-      state.VITRICV = "";
+      state.role = "public" || "AD" || "INS" || "LN";
+      state.email = "";
+      state.name = "";
+      state.profilePhoto = "";
+      state.userId = "";
+      state.gender = "";
+      state.phone = "";
+      state.DOB = "";
+      state.address = "";
+      state.degrees = "";
+      state.workplace = "";
+      state.scientitficBackground = "";
+      state.vipState = "";
     },
     updateUserInfo: (state, action) => {
-      state.SODT = action.payload.SODT;
-      state.MANS = action.payload.MANS;
-      state.MANV = action.payload.MANV;
-      state.MAQTV = action.payload.MAQTV;
-      state.HOTEN = action.payload.HOTEN;
-      state.PHAI = action.payload.PHAI;
-      state.NGAYSINH = action.payload.NGAYSINH;
-      state.DIACHI = action.payload.DIACHI;
-      state.VITRICV = action.payload.VITRICV;
+      state.role = action.payload.role;
+      state.email = action.payload.email;
+      state.name = action.payload.name;
+      state.profilePhoto = action.payload.profilePhoto;
+      state.userId = action.payload.id;
+      state.gender = action.payload.gender;
+      state.phone = action.payload.phone;
+      state.DOB = action.payload.DOB;
+      state.address = action.payload.address;
+      state.degrees = action.payload.degrees;
+      state.workplace = action.payload.workplace;
+      state.scientitficBackground = action.payload.scientitficBackground;
+      state.vipState = action.payload.vipState;
     },
   },
   extraReducers: (builder) => {

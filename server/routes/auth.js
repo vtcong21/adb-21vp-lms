@@ -8,9 +8,11 @@ const router = express.Router();
 // controllers
 import {
   login,
+  logout
 } from "../controllers/auth";
 
-router.post("/login", login);
+router.post("/public/login", login);
+router.post("/public/logout", logout);
 
 export default router;
 

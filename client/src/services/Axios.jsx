@@ -2,14 +2,17 @@ import instance from "./axios.config";
 import { message } from "antd";
 
 const Axios = {
-  get: async (url) => {
+  get: async (url, params = {}) => {
     try {
-      const res = await instance.get(url);
+      const res = await instance.get(url, { params });
       if (res.status === 500) {
         message.error("Thất bại");
       }
       return res.data;
-    } catch (err) {}
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
   },
   post: async (url, data) => {
     try {

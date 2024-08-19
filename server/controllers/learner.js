@@ -3,19 +3,19 @@ import getPool from "../utils/database";
 export const addCourseToCart = async (req, res) => {
   try {
 
-    const { learnerId, courseId } = req.body;
+    const { userId, courseId } = req.body;
     //console.log(req.body);
 
     const pool = getPool('LMS');
 
     if (!pool) {
-      return res.status(500).json({ message: "Database pool is not available" });
+      return res.status(500).json({ error: "Database pool is not available" });
     }
 
-    if (!learnerId || !courseId) {
-      return res.status(400).json({ message: "learnerId and courseId are required" });
+    if (!userId || !courseId) {
+      return res.status(400).json({ error: "userId and courseId are required" });
     }
-    await pool.executeSP('sp_LN_AddCourseToCart', { learnerId, courseId });
+    await pool.executeSP('sp_LN_AddCourseToCart', { learnerId: userId, courseId });
 
     return res.status(200).json({ message: "Course added to cart successfully" });
 
@@ -28,7 +28,7 @@ export const addCourseToCart = async (req, res) => {
 export const removeCourseFromCart = async (req, res) => {
   try {
 
-    const { learnerId, courseId } = req.body;
+    const { userId, courseId } = req.body;
     //console.log(req.body);
 
     const pool = getPool('LMS');
@@ -37,10 +37,10 @@ export const removeCourseFromCart = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId || !courseId) {
-      return res.status(400).json({ message: "learnerId and courseId are required" });
+    if (!userId || !courseId) {
+      return res.status(400).json({ message: "userId and courseId are required" });
     }
-    await pool.executeSP('sp_LN_RemoveCourseFromCart', { learnerId, courseId });
+    await pool.executeSP('sp_LN_RemoveCourseFromCart', { learnerId: userId, courseId });
 
     return res.status(200).json({ message: "Course remove from cart successfully" });
 
@@ -52,17 +52,18 @@ export const removeCourseFromCart = async (req, res) => {
 
 export const getCartDetails = async (req, res) => {
   try {
-    const { learnerId } = req.body;
+    const { userId } = req.query;
+   
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId) {
-      return res.status(400).json({ message: "learnerId is required" });
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_LN_GetCartDetails', { learnerId });
+    const jsonResult = await pool.executeSP('sp_LN_GetCartDetails', { learnerId: userId });
 
     return res.status(200).json(jsonResult);
 
@@ -74,17 +75,17 @@ export const getCartDetails = async (req, res) => {
 
 export const makeOrder = async (req, res) => {
   try {
-    const { learnerId, paymentCardNumber, couponCode } = req.body;
+    const { userId, paymentCardNumber, couponCode } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId || !paymentCardNumber) {
-      return res.status(400).json({ message: "learnerId and payment card are required" });
+    if (!userId || !paymentCardNumber) {
+      return res.status(400).json({ message: "userId and payment card are required" });
     }
-    await pool.executeSP('sp_LN_MakeOrder', { learnerId, paymentCardNumber, couponCode });
+    await pool.executeSP('sp_LN_MakeOrder', { learnerId: userId, paymentCardNumber, couponCode });
 
     return res.status(200).json({ message: "Paid successfully" });
 
@@ -96,17 +97,17 @@ export const makeOrder = async (req, res) => {
 
 export const viewOrders = async (req, res) => {
   try {
-    const { learnerId } = req.body;
+    const { userId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId) {
-      return res.status(400).json({ message: "learnerId is required" });
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_LN_ViewOrders', { learnerId });
+    const jsonResult = await pool.executeSP('sp_LN_ViewOrders', { learnerId: userId });
 
     return res.status(200).json(jsonResult);
 
@@ -118,17 +119,17 @@ export const viewOrders = async (req, res) => {
 
 export const viewOrderDetails = async (req, res) => {
   try {
-    const { learnerId, orderId } = req.body;
+    const { userId, orderId } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId || !orderId) {
-      return res.status(400).json({ message: "learnerId and orderId are required" });
+    if (!userId || !orderId) {
+      return res.status(400).json({ message: "userId and orderId are required" });
     }
-    const jsonResult = await pool.executeSP('sp_LN_ViewOrderDetails', { learnerId, orderId });
+    const jsonResult = await pool.executeSP('sp_LN_ViewOrderDetails', { learnerId: userId, orderId });
 
     return res.status(200).json(jsonResult);
 
@@ -140,7 +141,7 @@ export const viewOrderDetails = async (req, res) => {
 
 export const completeLesson = async (req, res) => {
   try {
-    const { learnerId, courseId, sectionId, lessonId } = req.body;
+    const { userId, courseId, sectionId, lessonId } = req.body;
 
     const pool = getPool('LMS');
 
@@ -148,10 +149,10 @@ export const completeLesson = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!learnerId || !courseId || !sectionId || !lessonId) {
-      return res.status(400).json({ message: "learnerId, courseId, sectionId, lessonId are required" });
+    if (!userId || !courseId || !sectionId || !lessonId) {
+      return res.status(400).json({ message: "userId, courseId, sectionId, lessonId are required" });
     }
-    await pool.executeSP('sp_LN_CompleteLesson', { learnerId, courseId, sectionId, lessonId });
+    await pool.executeSP('sp_LN_CompleteLesson', { learnerId: userId, courseId, sectionId, lessonId });
 
     return res.status(200).json({ message: "Paid successfully" });
 

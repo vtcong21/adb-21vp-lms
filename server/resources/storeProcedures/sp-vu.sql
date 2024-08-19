@@ -58,7 +58,7 @@ BEGIN TRAN
 			RETURN
 		END
 
-		SELECT name, user, profilePhoto, role, password
+		SELECT *
 		FROM [user]
 		WHERE id = @id
 		FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
