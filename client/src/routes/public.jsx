@@ -8,6 +8,10 @@ const DanhSachDichVu = lazy(() => import("~/pages/public/ListDV"));
 const SignUpPage = lazy(() => import("../pages/public/signup"));
 const SignInPage = lazy(() => import("~/pages/public/signin"));
 const SignIns = lazy(() => import("../pages/public/signinss"));
+const CourseFilter = lazy(() => import("../pages/public/CourseFilter"));
+const CourseDetail = lazy(() => import("../pages/public/CourseDetail"));
+
+
 const PublicRouter = [{
   path: "/",
   component: HomePage,

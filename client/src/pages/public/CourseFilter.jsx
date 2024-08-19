@@ -21,8 +21,9 @@ const Filter = () => {
   const [subcategories, setSubcategories] = useState([]);
 
   useEffect(() => {
-    GuestService.getAllSubCategory().then((res) => {
-      setSubcategories(res.data || []);
+    GuestService.getTopHotCategories().then((res) => {
+      console.log(res);
+      setSubcategories(res || []);
     });
   }, []);
 
@@ -96,14 +97,20 @@ const Filter = () => {
         </Panel>
 
         {/* Subcategory */}
-        <Panel header="Subcategory" key="3" className="bg-gray-50">
-          <Radio.Group>
-            {subcategories.map((subcategory) => (
-              <Radio key1={subcategory.id} key2={subcategory.parentCategoryId} value={subcategory.name}>
-                {subcategory.name}
-              </Radio>
-            ))}
-          </Radio.Group>
+        <Panel header="Hot categories" key="3" className="bg-gray-50">
+          <Checkbox.Group>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {subcategories.map((subcategory) => (
+                <Checkbox
+                  key={`${subcategory.subCategoryId}_${subcategory.categoryId}`}
+                  value={`${subcategory.subCategoryId}_${subcategory.categoryId}`}
+                  style={{ marginBottom: 8 }}
+                >
+                  {subcategory.subCategoryName}
+                </Checkbox>
+              ))}
+            </div>
+          </Checkbox.Group>
         </Panel>
 
         {/* Price */}
@@ -117,6 +124,7 @@ const Filter = () => {
     </div>
   );
 };
+
 const CourseCard = ({
   title,
   subTitle,
@@ -136,6 +144,7 @@ const CourseCard = ({
           style={{ width: 150, height: 150, objectFit: "cover" }}
         />
       </Col>
+
       <Col span={16}>
         {/* Title */}
         <div style={{ fontSize: 18, fontWeight: "bold" }}>{title}</div>
@@ -177,6 +186,7 @@ const CourseCard = ({
           }
         />
       </Col>
+
       <Col span={3} style={{ textAlign: "left" }}>
         <div
           style={{
@@ -235,7 +245,7 @@ const CourseList = () => {
   );
 };
 
-const CoursePage = () => (
+const CourseFilter = () => (
   <Row gutter={[16, 16]} style={{ padding: 16 }}>
     <Col span={6}>
       <Filter />
@@ -246,4 +256,4 @@ const CoursePage = () => (
   </Row>
 );
 
-export default CoursePage;
+export default CourseFilter;

@@ -394,3 +394,21 @@ export const updateLesson = async (req, res) => {
     return res.status(400).send("Update lesson failed");
   }
 };
+
+export const getTopHotCategories = async (req, res) => {
+  try {
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    const jsonResult = await pool.executeSP('sp_INS_GetTopHotCategories', { });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+};
