@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import AdminLayout from "../components/layout/AdminLayout";
 
 const AdminPage = lazy(() => import("~/pages/admin"));
 const Revenue = lazy(() => import("../pages/admin/Revenue"));
