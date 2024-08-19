@@ -304,7 +304,7 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	BEGIN TRY
-		SELECT LER.learnerId, U.name
+		SELECT LER.learnerId, LER.learnerScore, LER.completionPercentInCourse, U.name
 		FROM learnerEnrollCourse LER JOIN [user] U ON (LER.learnerId = U.id)
 		WHERE LER.courseId = @courseId
 		FOR JSON PATH;
