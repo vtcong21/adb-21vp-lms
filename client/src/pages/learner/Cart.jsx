@@ -3,22 +3,25 @@ import { Layout, Row, Col, Table, Divider, Statistic, Button, Typography, Modal,
 import { CreditCardOutlined, DeleteOutlined, GiftOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 import LearnerService from '../../services/learner';
+import PublicService from '../../services/public'; // Make sure you import PublicService
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
 
 const Cart = () => {
-  const user = useSelector((state) => state.user); 
+  const user = useSelector((state) => state.user);
   const [cartData, setCartData] = useState([]);
   const [total, setTotal] = useState(0);
-  const [originalTotal, setOriginalTotal] = useState(0); 
+  const [originalTotal, setOriginalTotal] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [coupon, setCoupon] = useState(null);
-  const [appliedCoupon, setAppliedCoupon] = useState(null); 
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [availableCoupons, setAvailableCoupons] = useState([]); // State to store coupons
 
   useEffect(() => {
-    LearnerService.getCartDetails()
+    // Fetch cart details
+    LearnerService.getCartDetails(user.userId)
       .then((data) => {
         setCartData(data);
         const totalPrice = data.reduce((acc, item) => acc + item.price, 0);
@@ -27,6 +30,17 @@ const Cart = () => {
       })
       .catch(error => {
         console.error('Failed to fetch cart details:', error);
+      });
+
+    // Fetch available coupons
+    PublicService.getCoupons(true)
+      .then((data) => {
+        console.log('Coupons fetched:', data);
+        setAvailableCoupons(data);
+
+      })
+      .catch(error => {
+        console.error('Failed to fetch coupons:', error);
       });
   }, [user.userId]);
 
@@ -50,13 +64,16 @@ const Cart = () => {
 
   const handleApplyCoupon = () => {
     if (coupon) {
-      const discountPercent = parseFloat(coupon) / 100;
-      const discountedTotal = originalTotal - (originalTotal * discountPercent);
+      const selectedCoupon = availableCoupons.find(c => c.code === coupon);
+      if (selectedCoupon) {
+        const discountPercent = selectedCoupon.discountPercent / 100;
+        const discountedTotal = originalTotal - (originalTotal * discountPercent);
 
-      setTotal(discountedTotal);
-      setAppliedCoupon(coupon);
-      message.success('Coupon applied successfully');
-      setIsModalVisible(false);
+        setTotal(discountedTotal);
+        setAppliedCoupon(coupon);
+        message.success('Coupon applied successfully');
+        setIsModalVisible(false);
+      }
     } else {
       message.error('Please select a coupon');
     }
@@ -76,7 +93,7 @@ const Cart = () => {
     <Layout style={{ padding: '24px', backgroundColor: '#fff' }}>
       <Content className="content-wrapper">
         <Title level={2}>Your Shopping Cart</Title>
-        
+
         <Row justify="end">
           <Col>
             <Button type="danger">
@@ -85,16 +102,13 @@ const Cart = () => {
             </Button>
           </Col>
         </Row>
-        
-        <Divider />
 
-        <Table columns={columns} dataSource={cartData} pagination={false} />
-        
+        <Divider />
+        <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '16px' }}>
+          <Table columns={columns} dataSource={cartData} pagination={false} />
+        </div>
         <Row justify="end" style={{ marginTop: 16 }}>
           <Col>
-            <Button type="default" onClick={showModal} icon={<GiftOutlined />}>
-              Apply Coupon
-            </Button>
             {appliedCoupon && (
               <Button
                 type="link"
@@ -105,26 +119,38 @@ const Cart = () => {
                 Remove Coupon
               </Button>
             )}
-            <Divider />
-            {originalTotal > total && (
-              <div>
-                <div style={{ textDecoration: 'line-through', color: 'gray' }}>
-                  Original Price: ${originalTotal.toFixed(2)}
-                </div>
-                <div style={{ color: 'red' }}>
-                  Discounted Price: ${total.toFixed(2)}
-                </div>
-              </div>
-            )}
-            <Statistic
-              title="Total (tax incl.)"
-              value={`$${total.toFixed(2)}`}
-              precision={2}
-              style={{ marginTop: 16 }}
-            />
-            <Button style={{ marginTop: 16 }} type="primary">
-              Pay Now <CreditCardOutlined />
+            <Button type="default" onClick={showModal} icon={<GiftOutlined />}>
+              Apply Coupon
             </Button>
+            <Divider />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                {originalTotal > total && (
+                  <div>
+                    <div style={{ textDecoration: 'line-through', color: 'gray' }}>
+                      Original Price: ${originalTotal.toFixed(2)}
+                    </div>
+                    <div style={{ color: 'red' }}>
+                      Discounted Price: ${total.toFixed(2)}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div>
+                <Statistic
+                  title="Total (tax incl.)"
+                  value={`$${total.toFixed(2)}`}
+                  precision={2}
+                />
+              </div>
+            </div>
+            <Row justify="end" style={{ marginTop: 16 }}>
+              <Col>
+                <Button type="primary">
+                  Pay Now <CreditCardOutlined />
+                </Button>
+              </Col>
+            </Row>
           </Col>
         </Row>
       </Content>
@@ -141,10 +167,16 @@ const Cart = () => {
               placeholder="Select a coupon"
               onChange={value => setCoupon(value)}
             >
-              <Option value="10">10% Off</Option>
-              <Option value="20">20% Off</Option>
-              <Option value="30">30% Off</Option>
-              
+              {availableCoupons.length > 0 ? (
+                availableCoupons.map(coupon => (
+                  <Option key={coupon.code} value={coupon.code}>
+                    {coupon.code} - {coupon.discountPercent}% Off
+                  </Option>
+                ))
+              ) : (
+
+                <Option disabled>No coupons available</Option>
+              )}
             </Select>
           </Form.Item>
         </Form>

@@ -15,6 +15,18 @@ const OnlineService = {
     }
     return res;
   },
- 
+  getCoupons: async (isAvailable) => {
+    const res = await Axios.get("/api/coupon", {
+      isAvailable
+    });
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+
+    }
+    return res;
+  }
+
 };
 export default OnlineService;
