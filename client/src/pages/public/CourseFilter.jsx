@@ -17,12 +17,16 @@ const { Meta } = Card;
 const { Search } = Input;
 const { Panel } = Collapse;
 
-const Filter = () => {
+const Filter = ({
+  onSearch,
+  onRatingChange,
+  onPriceChange,
+  onSubcategoryChange,
+}) => {
   const [subcategories, setSubcategories] = useState([]);
 
   useEffect(() => {
     GuestService.getTopHotCategories().then((res) => {
-      console.log(res);
       setSubcategories(res || []);
     });
   }, []);
@@ -34,12 +38,13 @@ const Filter = () => {
         style={{ marginBottom: 16 }}
         placeholder="Input course title"
         enterButton
+        onSearch={onSearch}
       />
 
       <Collapse>
         {/* Ratings */}
         <Panel header="Ratings" key="1" className="bg-gray-50">
-          <Radio.Group>
+          <Radio.Group onChange={(e) => onRatingChange(e.target.value)}>
             <Radio value={4.5}>
               <span style={{ display: "inline-flex", alignItems: "center" }}>
                 <Rate
@@ -93,12 +98,18 @@ const Filter = () => {
                 3 & up
               </span>
             </Radio>
+
+            <Radio value={0}>
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                None
+              </span>
+            </Radio>
           </Radio.Group>
         </Panel>
 
         {/* Subcategory */}
         <Panel header="Hot categories" key="3" className="bg-gray-50">
-          <Checkbox.Group>
+          <Checkbox.Group onChange={onSubcategoryChange}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {subcategories.map((subcategory) => (
                 <Checkbox
@@ -115,9 +126,9 @@ const Filter = () => {
 
         {/* Price */}
         <Panel header="Price" key="4" className="bg-gray-50">
-          <Checkbox>Paid</Checkbox>
+          <Checkbox onChange={() => onPriceChange("paid")}>Paid</Checkbox>
           <br />
-          <Checkbox>Free</Checkbox>
+          <Checkbox onChange={() => onPriceChange("free")}>Free</Checkbox>
           <br />
         </Panel>
       </Collapse>
@@ -129,18 +140,18 @@ const CourseCard = ({
   title,
   subTitle,
   instructor,
-  rating,
+  courseAverageRating,
   totalTime,
-  numOfLessons,
+  numberOfLectures,
   price,
-  imgSrc,
+  image,
 }) => (
   <Card hoverable style={{ marginBottom: 16 }}>
     <Row gutter={[16, 16]}>
       <Col span={5} style={{ textAlign: "right" }}>
         <img
           alt="course"
-          src={imgSrc}
+          src={image}
           style={{ width: 150, height: 150, objectFit: "cover" }}
         />
       </Col>
@@ -169,10 +180,10 @@ const CourseCard = ({
 
               {/* Rating */}
               <div style={{ marginTop: 8 }}>
-                {rating}
+                {courseAverageRating}
                 <Rate
                   allowHalf
-                  defaultValue={rating}
+                  defaultValue={courseAverageRating}
                   disabled
                   style={{ fontSize: 16, marginLeft: 6 }}
                 />
@@ -180,7 +191,7 @@ const CourseCard = ({
 
               {/* Total hours */}
               <div style={{ marginTop: 8, color: "gray", fontSize: 14 }}>
-                {totalTime} total hours <span>•</span> {numOfLessons} lessons{" "}
+                {totalTime} total hours <span>•</span> {numberOfLectures} lessons{" "}
               </div>
             </>
           }
@@ -196,24 +207,47 @@ const CourseCard = ({
             color: "red",
           }}
         >
-          {price}
+          ${price}
         </div>
       </Col>
     </Row>
   </Card>
 );
 
-const CourseList = () => {
+const CourseList = ({ courseName, rating, price, selectedSubcategories }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const coursesPerPage = 5;
+  const [courses, setCourses] = useState([]);
+  const coursesPerPage = 15;
 
-  const courses = [
-    // Thêm các đối tượng CourseCard tại đây
-  ];
+  useEffect(() => {
+    if (courseName.trim() !== "") {
+      GuestService.getCourseByName(courseName, "public").then((res) => {
+        setCourses(res || []);
+      });
+    }
+  }, [courseName]);
+
+  // Apply filters
+  const filteredCourses = courses
+    .filter((course) => !rating || course.rating >= rating)
+    .filter(
+      (course) =>
+        !price || (price === "paid" ? course.price > 0 : course.price === 0)
+    )
+    .filter(
+      (course) =>
+        selectedSubcategories.length === 0 ||
+        selectedSubcategories.includes(
+          `${course.subCategoryId}_${course.categoryId}`
+        )
+    );
 
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
-  const currentCourses = courses.slice(indexOfFirstCourse, indexOfLastCourse);
+  const currentCourses = filteredCourses.slice(
+    indexOfFirstCourse,
+    indexOfLastCourse
+  );
 
   const onChangePage = (page) => {
     setCurrentPage(page);
@@ -236,7 +270,7 @@ const CourseList = () => {
         <Pagination
           current={currentPage}
           pageSize={coursesPerPage}
-          total={courses.length}
+          total={filteredCourses.length}
           onChange={onChangePage}
           style={{ textAlign: "center", marginTop: 16 }}
         />
@@ -245,15 +279,36 @@ const CourseList = () => {
   );
 };
 
-const CourseFilter = () => (
-  <Row gutter={[16, 16]} style={{ padding: 16 }}>
-    <Col span={6}>
-      <Filter />
-    </Col>
-    <Col span={18}>
-      <CourseList />
-    </Col>
-  </Row>
-);
+const CourseFilter = () => {
+  const [courseName, setCourseName] = useState("");
+  const [rating, setRating] = useState(null);
+  const [price, setPrice] = useState(null);
+  const [selectedSubcategories, setSelectedSubcategories] = useState([]);
+
+  const handleSearch = (value) => {
+    setCourseName(value);
+  };
+
+  return (
+    <Row gutter={[16, 16]} style={{ padding: 16 }}>
+      <Col span={6}>
+        <Filter
+          onSearch={handleSearch}
+          onRatingChange={setRating}
+          onPriceChange={setPrice}
+          onSubcategoryChange={setSelectedSubcategories}
+        />
+      </Col>
+      <Col span={18}>
+        <CourseList
+          courseName={courseName}
+          rating={rating}
+          price={price}
+          selectedSubcategories={selectedSubcategories}
+        />
+      </Col>
+    </Row>
+  );
+};
 
 export default CourseFilter;

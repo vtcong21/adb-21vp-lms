@@ -21,17 +21,14 @@ import getPool from "../utils/database";
 
 export const getCourseByName = async (req, res) => {
   try {
-    const { courseName } = req.query;
+    const { courseName, courseState } = req.query;
     const pool = getPool('LMS');
 
     if (!pool) {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (!courseName) {
-      return res.status(400).json({ message: "courseName is required" });
-    }
-    const jsonResult = await pool.executeSP('sp_All_GetCourseByName', { courseName });
+    const jsonResult = await pool.executeSP('sp_All_GetCourseByName', { courseName, courseState});
 
     return res.status(200).json(jsonResult);
 

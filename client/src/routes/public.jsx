@@ -11,14 +11,21 @@ const SignIns = lazy(() => import("../pages/public/signinss"));
 const CourseFilter = lazy(() => import("../pages/public/CourseFilter"));
 const CourseDetail = lazy(() => import("../pages/public/CourseDetail"));
 
-
-const PublicRouter = [{
-  path: "/",
-  component: HomePage,
-  Layout: DefaultLayout
-}, {
-  path: "/signin",
-  component: SignInPage,
-  Layout: null
-}];
+const PublicRouter = [
+  {
+    path: "/",
+    component: HomePage,
+    Layout: DefaultLayout,
+  },
+  {
+    path: "/signin",
+    component: SignInPage,
+    Layout: null,
+  },
+  {
+    path: "/courseFilter",
+    component: CourseFilter,
+    Layout: null,
+  },
+];
 export default PublicRouter;

@@ -24,5 +24,16 @@ const OnlineService = {
     }
     return res;
   },
+
+  getCourseByName: async (courseName, courseState) => {
+    const res = await Axios.get("/api/course/name", {courseName, courseState});
+    console.log(res);
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+    }
+    return res;
+  },
 };
 export default OnlineService;
