@@ -1,11 +1,49 @@
-import React from "react";
-import { Row, Col, Card, Typography, Button, Rate, Tabs, List } from "antd";
-import { PlayCircleOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  Row,
+  Col,
+  Card,
+  Typography,
+  Button,
+  Rate,
+  Tabs,
+  List,
+  message,
+  Collapse,
+} from "antd";
+import {
+  PlayCircleOutlined,
+  TranslationOutlined,
+  CheckCircleOutlined,
+  YoutubeOutlined,
+  FormOutlined,
+} from "@ant-design/icons";
+import GuestService from "../../services/public";
 
 const { Title, Paragraph } = Typography;
 const { TabPane } = Tabs;
+const { Panel } = Collapse;
 
-const CourseInfo = () => {
+function formatTime(totalHours) {
+  const hours = Math.floor(totalHours);
+  const minutes = Math.round((totalHours - hours) * 60);
+
+  return `${hours}hr${minutes}min`;
+}
+
+const CourseDetail = () => {
+  const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
+
+  useEffect(() => {
+    GuestService.getCourseById(courseId).then((res) => {
+      console.log(res);
+
+      setCourse(res || []);
+    });
+  }, [courseId]);
+  if (!course) return <p>Loading...</p>;
   return (
     <>
       <Row
@@ -21,7 +59,7 @@ const CourseInfo = () => {
               <iframe
                 width="100%"
                 height="400"
-                src="https://www.youtube.com/embed/ionizQJWsok"
+                src={course.video}
                 title="Course Video"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -49,70 +87,229 @@ const CourseInfo = () => {
               height: "100%",
             }}
           >
-            <Title level={3}>courseTitle</Title>
-            <Paragraph>courseSubTitle</Paragraph>
-            <Paragraph>
-              <strong>Free tutorial</strong>
+            <Title level={3} style={{ fontWeight: "bold", fontSize: "28px" }}>
+              {course.courseTitle}
+            </Title>
+            <Paragraph style={{ fontSize: "18px", fontStyle: "italic" }}>
+              {course.subTitle}
             </Paragraph>
             <Paragraph>
-              <Rate disabled defaultValue={3.8} />
-              <span style={{ marginLeft: 8 }}>3.8 (14 ratings)</span>
+              <span>
+                <b>{course.courseAverageRating}</b>
+                <Rate
+                  disabled
+                  defaultValue={course.courseAverageRating}
+                  style={{ fontSize: 16, marginLeft: -20, marginRight: 30 }}
+                />
+              </span>
+              <span style={{ marginLeft: 8 }}>
+                {course.numberOfLearners} learners
+              </span>
+              <br />
+              <YoutubeOutlined style={{ marginRight: 4 }} />
+
+              <strong>{formatTime(course.totalTime)} of on-demand video</strong>
+            </Paragraph>
+            <Paragraph style={{ marginTop: 24, fontSize: "13px" }}>
+              <strong>
+                <span style={{ marginRight: 4 }}>Created by</span>
+                {course.instructorsOwnCourse.map((instructor, index) => (
+                  <React.Fragment key={instructor.instructorId}>
+                    <Link
+                      to={`/profile/${instructor.instructorId}`}
+                      style={{ color: "inherit" }}
+                    >
+                      <span
+                        style={{
+                          color: "#1890ff",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {instructor.instructorName}
+                      </span>
+                    </Link>
+                    {index < course.instructorsOwnCourse.length - 1 && ", "}
+                  </React.Fragment>
+                ))}
+              </strong>
             </Paragraph>
             <Paragraph>
-              <strong>944 students</strong>
+              <TranslationOutlined style={{ marginRight: 4 }} />
+              <strong style={{ fontSize: "13px" }}>{course.language}</strong>
             </Paragraph>
             <Paragraph>
-              <strong>40min of on-demand video</strong>
-            </Paragraph>
-            <Paragraph>
-              <strong>Created by MUHAMMAD USMAN ALI</strong>
-            </Paragraph>
-            <Paragraph>
-              <strong>English</strong>
-            </Paragraph>
-            <Paragraph>
-              <strong>Current price: Free</strong>
+              <b style={{ fontSize: 20 }}>${course.price}</b>
             </Paragraph>
             <Button
               type="primary"
               size="large"
-              icon={<PlayCircleOutlined />}
-              style={{ userSelect: "none" }}
+              style={{
+                width: "100%",
+                userSelect: "none",
+              }}
             >
-              Đăng ký ngay
+              <b>ENROLL NOW</b>
             </Button>
           </Card>
         </Col>
+
         {/* Tabs Section */}
         <Tabs defaultActiveKey="1" style={{ padding: 16, userSelect: "none" }}>
+          {/* Course Objectives */}
           <TabPane tab="What you'll learn" key="1">
             <List
-              dataSource={[
-                "Speak English with more confidence and clarity",
-                "Use the target English with precision",
-                "Understand the areas of English that must be mastered to become more fluent",
-                "Have deeper knowledge of English and how it works",
-              ]}
+              dataSource={course.courseObjectives.map((obj) => obj.objective)}
               renderItem={(item) => (
                 <List.Item style={{ userSelect: "none" }}>
-                  <Paragraph style={{ userSelect: "none" }}>{item}</Paragraph>
+                  <div style={{ display: "inline-flex" }}>
+                    <CheckCircleOutlined
+                      style={{ color: "#52c41a", marginRight: 8 }}
+                    />
+                    <Paragraph style={{ userSelect: "none", margin: 0 }}>
+                      {item}
+                    </Paragraph>
+                  </div>
                 </List.Item>
               )}
             />
           </TabPane>
+
           <TabPane tab="Course content" key="2">
-            <Paragraph style={{ userSelect: "none" }}>
-              Course content details will go here.
-            </Paragraph>
+            {/* Course requirements */}
+            <Title level={3} style={{ fontWeight: "bold" }}>
+              Requirements
+            </Title>
+            <List
+              dataSource={course.courseRequirements.map(
+                (req) => req.requirement
+              )}
+              renderItem={(item) => (
+                <List.Item style={{ padding: 0 }}>
+                  <Paragraph style={{ margin: 0 }}>
+                    <span style={{ marginRight: 8 }}>•</span>
+                    {item}
+                  </Paragraph>
+                </List.Item>
+              )}
+            />
+
+            {/* Course Description */}
+            <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
+              Description
+            </Title>
+            <Paragraph>{course.description}</Paragraph>
+
+            {/* Course Intended Learners */}
+            <Title level={3} style={{ fontWeight: "bold" }}>
+              Who this course is for:
+            </Title>
+            <List
+              dataSource={course.courseIntendedLearners.map(
+                (learner) => learner.intendedLearner
+              )}
+              renderItem={(item) => (
+                <List.Item style={{ padding: 0 }}>
+                  <Paragraph style={{ margin: 0 }}>
+                    <span style={{ marginRight: 8 }}>•</span>
+                    {item}
+                  </Paragraph>
+                </List.Item>
+              )}
+            />
+
+            {/*Course Contents*/}
+            <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
+              Course content
+            </Title>
+
+            <Collapse
+              defaultActiveKey={
+                course.sections.length > 0
+                  ? [course.sections[0].sectionId.toString()]
+                  : []
+              }
+              style={{ borderRadius: 0 }}
+            >
+              {course.sections.map((section) => (
+                <Panel
+                  header={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>{section.sectionTitle}</span>
+                      <span>{`${
+                        section.lectures ? section.lectures.length : 0
+                      } lectures • ${formatTime(
+                        section.sectionLearnTime
+                      )}`}</span>
+                    </div>
+                  }
+                  key={section.sectionId}
+                  style={{ borderRadius: 0 }}
+                  className="bg-gray-50"
+                >
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {section.lectures &&
+                      section.lectures.map((lecture) => (
+                        <div
+                          key={lecture.lectureId}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            margin: "8px 0",
+                            alignItems: "center",
+                          }}
+                        >
+                          <p
+                            style={{
+                              margin: 0,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <YoutubeOutlined style={{ marginRight: 6 }} />
+                            {lecture.lectureTitle}
+                          </p>
+                          <span>{formatTime(lecture.lectureLearnTime)}</span>
+                        </div>
+                      ))}
+                    {section.exercises &&
+                      section.exercises.map((exercise) => (
+                        <div
+                          key={exercise.exerciseId}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            margin: "8px 0",
+                            alignItems: "center",
+                          }}
+                        >
+                          <p
+                            style={{
+                              margin: 0,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <FormOutlined style={{ marginRight: 6 }} />
+                            {exercise.exerciseTitle}
+                          </p>
+                          <span>{formatTime(exercise.exerciseLearnTime)}</span>
+                        </div>
+                      ))}
+                  </div>
+                </Panel>
+              ))}
+            </Collapse>
           </TabPane>
+
           <TabPane tab="Reviews" key="3">
             <Paragraph style={{ userSelect: "none" }}>
               Reviews section will go here.
-            </Paragraph>
-          </TabPane>
-          <TabPane tab="Instructors" key="4">
-            <Paragraph style={{ userSelect: "none" }}>
-              Instructors information will go here.
             </Paragraph>
           </TabPane>
         </Tabs>
@@ -121,4 +318,4 @@ const CourseInfo = () => {
   );
 };
 
-export default CourseInfo;
+export default CourseDetail;

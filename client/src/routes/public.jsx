@@ -25,7 +25,12 @@ const PublicRouter = [
   {
     path: "/courseFilter",
     component: CourseFilter,
-    Layout: null,
+    Layout: DefaultLayout,
+  },
+  {
+    path: "/courseDetail/:courseId",
+    component: CourseDetail,
+    Layout: DefaultLayout,
   },
 ];
 export default PublicRouter;
