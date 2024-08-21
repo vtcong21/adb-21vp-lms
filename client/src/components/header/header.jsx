@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteRole } from "~/redux/features/userSlice";
 import { UserOutlined, SearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { Avatar, Space, Button, Tag, Dropdown, Input } from "antd";
+import { Avatar, Space, Button, Tag, Dropdown, Input, Drawer } from "antd";
+import { useState } from "react";
 
 const Account = () => {
   const user = useSelector((state) => state.user);
@@ -52,10 +53,26 @@ const Header = () => {
   const dispath = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
+  const [isOpenedMenu, setIsOpenedMenu] = useState(false);
+
+  const showMenu = () => {
+    setIsOpenedMenu(true);
+  }
+  const closeMenu = () => {
+    setIsOpenedMenu(false);
+  }
 
   return (
     <>
+      <Drawer title="Menu" onClose={closeMenu} open={isOpenedMenu}>
+        <p>Hey</p>
+      </Drawer>
       <div className="bg-radial-gradient bg-cover bg-center w-full h-16 flex gap-1  justify-end  px-5 drop-shadow-lg z-50">
+        <div className="flex my-auto">
+          <Button type="primary" onClick={showMenu}>
+            Open
+          </Button>
+        </div>
         <div className=" h-full text-center  flex mr-auto ml-4">
           <h1 className="my-auto mr-3 text-white text-xl font-sans font-bold tracking-widest">
               udemy
