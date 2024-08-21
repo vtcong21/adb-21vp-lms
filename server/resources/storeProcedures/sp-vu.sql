@@ -134,7 +134,10 @@ BEGIN TRAN
 		FROM [course] c 
 		JOIN [subCategory] s ON c.subCategoryId = s.id AND c.categoryId = s.parentCategoryId
 		JOIN [category] ca ON ca.id = s.parentCategoryId
-		WHERE c.title LIKE @courseName + '%'
+		WHERE (c.title LIKE '% ' + @courseName + ' %' 
+               OR c.title LIKE @courseName + ' %'
+               OR c.title LIKE '% ' + @courseName
+               OR c.title = @courseName)
 		AND (@CourseState IS NULL OR c.state = @CourseState) 
 		ORDER  BY c.lastUpdateTime ASC
 		FOR JSON PATH;
@@ -189,6 +192,14 @@ BEGIN TRAN
 				WHERE courseId = c.id
 				FOR JSON PATH, INCLUDE_NULL_VALUES
 			) AS courseIntendedLearners, 
+			(	
+				SELECT learnerId, u.name, u.profilePhoto, rating, review
+				FROM [learnerReviewCourse]  lrc
+				JOIN [learner] l ON lrc.learnerId = l.id
+				JOIN [user] u ON u.id = l.id
+				WHERE courseId = c.id
+				FOR JSON PATH, INCLUDE_NULL_VALUES
+			) AS learnerReviews,
 			(	
 				SELECT i.id instructorId,u.name instructorName 
 				FROM [instructorOwnCourse] ioc
