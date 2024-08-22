@@ -1,4 +1,4 @@
-import getPool from "../utils/database";
+import getPool from "../utils/database.js";
 
 export const addCourseToCart = async (req, res) => {
   try {

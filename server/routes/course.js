@@ -1,6 +1,6 @@
 import express from "express";
 import formidable from "express-formidable";
-import { isAdmin, isAdminOrInstructor, isInstructor, requireSignin } from "../middlewares";
+import { isAdmin, isAdminOrInstructor, isInstructor, requireSignin } from "../middlewares/index.js";
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ import {
     createCourse,
     getAdminResponseInACourse,
     getLearnerInCourse,
-} from "../controllers/course";
+} from "../controllers/course.js";
 
 router.get("/course/category",
     getCourseByCategoryId);

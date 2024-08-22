@@ -14,8 +14,8 @@ import {
   viewOrders,
   viewOrderDetails,
   completeLesson
-} from "../controllers/learner";
-import { isLearner, requireSignin } from "../middlewares";
+} from "../controllers/learner.js";
+import { isLearner, requireSignin } from "../middlewares/index.js";
 
 router.post("/learner/cart/course", 
   // requireSignin,

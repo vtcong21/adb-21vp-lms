@@ -1,5 +1,5 @@
-import getPool from "../utils/database";
-import { hashPassword } from "../utils/auth";
+import getPool from "../utils/database.js";
+import { hashPassword } from "../utils/auth.js";
 
 export const getUserProfile = async (req, res) => {
     try {
