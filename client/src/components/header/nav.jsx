@@ -2,9 +2,19 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 const learnerItems = [
   {
-    name: `Do st`,
-    path: "/do-st",
-  },];
+    name: `Home`,
+    path: "/",
+  },
+  {
+    name: `Cart`,
+    path: "/cart",
+  },
+  {
+    name: `Orders`,
+    path: "/orders",
+  },
+
+];
 
 const publicItems = [
   {
