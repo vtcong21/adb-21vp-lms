@@ -1,8 +1,6 @@
-import { Button, Calendar, Select } from "antd";
-import HoSoBenh from "~/components/HoSoBenh";
 import React, { useState } from "react";
-import HoaDon from "~/components/HoaDon";
-const DentistPage = () => {
-  return <></>;
+
+const InstructorPage = () => {
+  return <><h1>Instructor Page</h1></>;
 };
-export default DentistPage;
+export default InstructorPage;

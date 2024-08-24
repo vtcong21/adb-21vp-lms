@@ -2,139 +2,171 @@ import Axios from "../Axios";
 import { message } from "antd";
 
 const InstructorService = {
-  getInstructorProfile: async (data) => {
-    const res = await Axios.post("/nhasi/lichRanh", {
-      mans: data.mans,
-      maca: data.maca,
-      ngay: data.ngay,
-    });
-    if (res && res.response) {
-      if (res.response.status === 400) {
-        message.error(res.response.data.error);
+  createCourse: async (instructorId1, instructorId2, title, subTitle, description, image, video, subCategoryId, categoryId, language, price) => {
+    try {
+      const res = await Axios.post("/api/instructor/course", {
+        instructorId1,
+        instructorId2,
+        title,
+        subTitle,
+        description,
+        image,
+        video,
+        subCategoryId,
+        categoryId,
+        language,
+        price
+      });
+
+      if (res.status === 200) {
+        return res.data.courseId;
+      } else {
+        message.error(res.data.message || "Error creating course.");
       }
-      if (res.response.status === 409) {
-        message.error(res.response.data.error);
-      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
-    return res;
   },
-  huyLichRanh: async (data) => {
-    const res = await Axios.delete("/nhasi/lichRanh", {
-      mans: data.mans,
-      stt: data.stt,
-    });
-    if (res && res.response) {
-      if (res.response.status === 409) {
-        message.error(res.response.data.error);
+  createInstructorOwnCourse: async (courseId, instructorId, percentageInCome) => {
+    try {
+      const res = await Axios.post("/api/instructor/owncourse", {
+        courseId,
+        instructorId,
+        percentageInCome
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error creating instructor-own-course record.");
       }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
-    return res;
   },
-  taoBenhAn: async (data) => {
-    const res = await Axios.post("/nhasi/benhAn", {
-      sdt: data.sdt,
-      ngaykham: data.ngaykham,
-      mans: data.mans,
-      DanDo: data.DanDo,
-    });
-    return res;
-  },
-  themCTDV: async (data) => {
-    const res = await Axios.post("/nhasi/CTDV", {
-      madv: data.madv,
-      stt: data.stt,
-      sdt: data.sdt,
-      sldv: data.sldv,
-    });
-    if (res && res.response) {
-      if (res.response.status === 400) {
-        message.error(res.response.data.error);
+  createCourseRequirement: async (courseId, requirement) => {
+    try {
+      const res = await Axios.post("/api/course/requirement", {
+        courseId,
+        requirement
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error adding course requirement.");
       }
-      if (res.response.status === 404) {
-        message.error(res.response.data.error);
-      }
-      if (res.response.status === 409) {
-        message.error(res.response.data.error);
-      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
-    return res;
   },
-  themCTTHUOC: async (data) => {
-    const res = await Axios.post("/nhasi/CTThuoc", {
-      mathuoc: data.mathuoc,
-      stt: data.stt,
-      sdt: data.sdt,
-      slthuoc: data.slthuoc,
-      thoidiemdung: data.thoidiemdung,
-    });
-    if (res && res.response) {
-      if (res.response.status === 400) {
-        message.error(res.response.data.error);
+  createCourseObjective: async (courseId, objective) => {
+    try {
+      const res = await Axios.post("/api/course/objective", {
+        courseId,
+        objective
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error adding course objective.");
       }
-      if (res.response.status === 404) {
-        message.error(res.response.data.error);
-      }
-      if (res.response.status === 409) {
-        message.error(res.response.data.error);
-      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
-    return res;
   },
-  doiMatKhau: async (data) => {
-    const res = await Axios.put("/nhasi/matKhau", {
-      mans: data.mans,
-      matkhaucu: data.matkhaucu,
-      matkhaumoi: data.matkhaumoi,
-    });
-    if (res && res.response) {
-      if (res.response.status === 422) {
-        message.error(res.response.data.error);
+  createSection: async (courseId, title) => {
+    try {
+      const res = await Axios.post("/api/section", {
+        courseId,
+        title
+      });
+
+      if (res.status === 200) {
+        return res.data.sectionId;
+      } else {
+        message.error(res.data.message || "Error adding section.");
       }
-      if (res.response.status === 404) {
-        message.error(res.response.data.error);
-      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
-    return res;
   },
-  xemCaDu2NguoiTruc: async (mans) => {
-    const res = await Axios.get(`/nhasi/caDu2NguoiTruc/${mans}`);
-    return res;
+  createLesson: async (courseId, sectionId, title, learnTime, type) => {
+    try {
+      const res = await Axios.post("/api/lesson", {
+        courseId,
+        sectionId,
+        title,
+        learnTime,
+        type
+      });
+
+      if (res.status === 200) {
+        return res.data.lessonId;
+      } else {
+        message.error(res.data.message || "Error adding lesson.");
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
   },
-  xemLichRanhChuaDuocDat: async (mans) => {
-    const res = await Axios.get(`/nhasi/lichRanhChuaDuocDat/${mans}`);
-    return res;
+  createLecture: async (courseId, sectionId, lessonId, resource) => {
+    try {
+      const res = await Axios.post("/api/lecture", {
+        courseId,
+        sectionId,
+        lessonId,
+        resource
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error adding lecture.");
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
   },
-  getAllThuoc: async () => {
-    const res = await Axios.get("/nhasi/getAllThuoc");
-    return res;
+  createQuestion: async (courseId, sectionId, exerciseId, question) => {
+    try {
+      const res = await Axios.post("/api/question", {
+        courseId,
+        sectionId,
+        exerciseId,
+        question
+      });
+
+      if (res.status === 200) {
+        return res.data.questionId;
+      } else {
+        message.error(res.data.message || "Error adding question.");
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
   },
-  getAllDV: async () => {
-    const res = await Axios.get("/nhasi/getAllDV");
-    return res;
-  },
-  getAllCa: async () => {
-    const res = await Axios.get("/nhasi/getAllCa");
-    return res;
-  },
-  xemLichHen: async (mans) => {
-    const res = await Axios.get(`/nhasi/lichHen/${mans}`);
-    return res;
-  },
-  getAllDSNhaSi: async () => {
-    const res = await Axios.get("/nhasi/getAllDSNhaSi");
-    return res;
-  },
-  xemBenhAn: async (sdt) => {
-    const res = await Axios.get(`/nhasi/benhAn/${sdt}`);
-    return res;
-  },
-  xemTableLichNS: async (mans) => {
-    const res = await Axios.get(`/nhasi/tableLichNS/${mans}`);
-    return res;
-  },
-  matKhau: async (data) => {
-    const res = await Axios.put("/nhasi/matKhau", data);
-    return res;
+  createQuestionAnswer: async (courseId, sectionId, exerciseId, questionId, questionAnswers, isCorrect) => {
+    try {
+      const res = await Axios.post("/api/question/answer", {
+        courseId,
+        sectionId,
+        exerciseId,
+        questionId,
+        questionAnswers,
+        isCorrect
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error adding question answer.");
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
   },
 };
+
 export default InstructorService;

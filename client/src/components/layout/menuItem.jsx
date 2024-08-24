@@ -7,9 +7,19 @@ import { BsCalendar2PlusFill } from "react-icons/bs";
 
 const menuInstructor = [
   {
-    name: "do-st",
+    name: "Home",
     icon: <BsCalendar2PlusFill size={30} />,
-    path: "/instructor/do-st",
+    path: "/",
+  },
+  {
+    name: "Create a course",
+    icon: <BsCalendar2PlusFill size={30} />,
+    path: "/createCourse",
+  },
+  {
+    name: "Profile",
+    icon: <BsCalendar2PlusFill size={30} />,
+    path: "/profile",
   },
 ];
 import { GiMedicines } from "react-icons/gi";
