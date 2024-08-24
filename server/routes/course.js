@@ -11,20 +11,21 @@ const router = express.Router();
 
 // // controllers
 import {
-  getCourseByCategoryId,
-  getCourseByName,
-  getCourseById,
-  changeStateOfCourse,
-  getMonthlyRevenueForCourse,
-  getDailyRevenueForCourse,
-  getAunnualRevenueOfACourse,
-  getTop50CoursesByRevenue,
-  getOwnCourses,
-  createCourse,
-  getAdminResponseInACourse,
-  getLearnerInCourse,
+    getCourseByCategoryId,
+    getCourseByName,
+    getCourseById,
+    changeStateOfCourse,
+    getMonthlyRevenueForCourse,
+    getDailyRevenueForCourse,
+    getAunnualRevenueOfACourse,
+    getTop50CoursesByRevenue,
+    getOwnCourses,
+    createCourse,
+    getAdminResponseInACourse,
+    getLearnerInCourse,
+    getLearnerInCourse,
   getTopHotCategories
-} from "../controllers/course";
+} from "../controllers/course.js";
 
 router.get("/course/category", getCourseByCategoryId);
 router.get("/course/name", getCourseByName);

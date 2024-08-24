@@ -9,7 +9,7 @@ const router = express.Router();
 import {
   login,
   logout
-} from "../controllers/auth";
+} from "../controllers/auth.js";
 
 router.post("/public/login", login);
 router.post("/public/logout", logout);

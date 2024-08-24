@@ -14,7 +14,19 @@ const OnlineService = {
     }
     return res;
   },
+  getCoupons: async (isAvailable) => {
+    const res = await Axios.get("/api/coupon", {
+      isAvailable
+    });
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
 
+    }
+    return res;
+  }
+  ,
   getTopHotCategories: async () => {
     const res = await Axios.get("/api/course/topHotCategories", {});
     if (res && res.response) {
@@ -47,5 +59,6 @@ const OnlineService = {
     }
     return res;
   },
+
 };
 export default OnlineService;

@@ -1,5 +1,5 @@
 import express from "express";
-import { requireSignin } from "../middlewares";
+import { requireSignin } from "../middlewares/index.js";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ import {
     getUserProfile,
     updateUserInfo,
     
-} from "../controllers/user";
+} from "../controllers/user.js";
 
 router.get("/user/profile",
     // requireSignin,

@@ -1,5 +1,6 @@
 import sql from 'mssql-plus';
-require("dotenv").config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const PORT = Number(process.env.MSSQL_PORT);
 

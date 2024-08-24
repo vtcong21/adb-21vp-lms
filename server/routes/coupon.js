@@ -1,6 +1,6 @@
 import express from "express";
-import { isAdmin } from "../middlewares";
-import { requireSignin } from "../middlewares";
+import { isAdmin } from "../middlewares/index.js";
+import { requireSignin } from "../middlewares/index.js";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 import {
     createCoupon,
     getAllCoupons
-} from "../controllers/coupon";
+} from "../controllers/coupon.js";
 
 router.post("/coupon",
 //    requireSignin,
