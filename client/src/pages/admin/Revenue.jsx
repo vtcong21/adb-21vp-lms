@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Line, Column, Pie } from '@ant-design/plots';
 import { Card, Col, Row, Space, Table, Typography } from 'antd';
-import styles from './Revenue.css'
+import styles from '../../assets/styles/Revenue.css?inline'
 
 const { Text, Title } = Typography;
 
