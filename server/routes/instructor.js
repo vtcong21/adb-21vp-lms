@@ -36,6 +36,7 @@ router.post("/instructor/payment-card",
     // requireSignin,
     // isInstructor,
     updateInstructorPaymentCard);
+    
 
 
 export default router;
