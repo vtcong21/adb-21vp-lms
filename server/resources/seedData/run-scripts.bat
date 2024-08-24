@@ -16,7 +16,7 @@ sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"12-orders-learner-reviews.sql"
 sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"13-pending-review-courses.sql"
 sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"14-draft-courses.sql"
 sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"15-course-instructor-revenue.sql"
-sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"16-reset-make-order-proc.sql"
+sqlcmd /S KONG /d LMS -U LoginLMS -P 123 -i"16-reset-things.sql"
 
 
 REM Pause to keep the Command Prompt window open
