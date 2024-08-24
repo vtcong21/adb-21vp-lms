@@ -360,14 +360,15 @@ GO
 
 CREATE PROCEDURE sp_UpdateCourseRevenueAndInstructorRevenue
     @courseId INT,
-    @amount DECIMAL(18, 2)
+    @amount DECIMAL(18, 2),
+    @date DATETIME
 AS
 BEGIN
     BEGIN TRANSACTION;
     BEGIN TRY
 
         DECLARE @currentDate DATE;
-        SET @currentDate = CONVERT(DATE, GETDATE());
+        SET @currentDate =@date;
 
         -- update course total revenue
         UPDATE [course]
@@ -444,7 +445,8 @@ GO
 CREATE PROCEDURE sp_LN_MakeOrder
     @learnerId NVARCHAR(128),
     @paymentCardNumber VARCHAR(16),
-    @couponCode VARCHAR(20) = NULL
+    @couponCode VARCHAR(20) = NULL,
+    @dateCreated DATETIME = NULL
 AS
 BEGIN
     BEGIN TRANSACTION;
@@ -502,10 +504,13 @@ BEGIN
         
         SET @totalAmountAfterDiscount = @totalAmount / 100 * (100 - @discountPercent);
 		
-        SELECT @newOrderId =  ISNULL(MAX(id), 0) FROM [order] WHERE learnerId = @learnerId;
+        SELECT @newOrderId =  ISNULL(MAX(id), 0) FROM [order];
 		SET @newOrderId = @newOrderId + 1;
-        INSERT INTO [order] (id, learnerId, total, paymentCardNumber, couponCode)
-        VALUES (@newOrderId, @learnerId, @totalAmountAfterDiscount, @paymentCardNumber, @couponCode);
+        IF @DateCreated IS NULL
+			SET @DateCreated = GETDATE();
+
+        INSERT INTO [order] (id, learnerId, total, paymentCardNumber, couponCode, dateCreated)
+        VALUES (@newOrderId, @learnerId, @totalAmountAfterDiscount, @paymentCardNumber, @couponCode, @dateCreated);
 
         -- Insert into order details and delete from cart details
         DECLARE cart_cursor CURSOR LOCAL FOR
@@ -551,6 +556,9 @@ BEGIN
             FROM [section] s
             JOIN [exercise] e ON s.id = e.sectionId AND s.courseId = e.courseId
             WHERE s.courseId = @courseId;
+
+            -- Update course numberOf learner
+			UPDATE [course] SET numberOfLearners = numberOfLearners + 1 WHERE course.id = @courseId
             
             -- Delete from cartDetails
             DELETE FROM [cartDetail]
@@ -558,7 +566,7 @@ BEGIN
 
             -- Update course total revenue, course revenue by month, instructor revenue by month
             SET @coursePrice = @coursePrice / 100 * (100 - @discountPercent);
-            EXEC [sp_UpdateCourseRevenueAndInstructorRevenue] @courseId = @courseId, @amount = @coursePrice;
+            EXEC [sp_UpdateCourseRevenueAndInstructorRevenue] @courseId = @courseId, @amount = @coursePrice, @date = @dateCreated;
 
             FETCH NEXT FROM cart_cursor INTO @courseId;
         END
