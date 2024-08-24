@@ -5,25 +5,24 @@ import {
   isAdminOrInstructor,
   isInstructor,
   requireSignin,
-} from "../middlewares";
+} from "../middlewares/index.js";
 
 const router = express.Router();
 
 // // controllers
 import {
-    getCourseByCategoryId,
-    getCourseByName,
-    getCourseById,
-    changeStateOfCourse,
-    getMonthlyRevenueForCourse,
-    getDailyRevenueForCourse,
-    getAunnualRevenueOfACourse,
-    getTop50CoursesByRevenue,
-    getOwnCourses,
-    createCourse,
-    getAdminResponseInACourse,
-    getLearnerInCourse,
-    getLearnerInCourse,
+  getCourseByCategoryId,
+  getCourseByName,
+  getCourseById,
+  changeStateOfCourse,
+  getMonthlyRevenueForCourse,
+  getDailyRevenueForCourse,
+  getAunnualRevenueOfACourse,
+  getTop50CoursesByRevenue,
+  getOwnCourses,
+  createCourse,
+  getAdminResponseInACourse,
+  getLearnerInCourse,
   getTopHotCategories
 } from "../controllers/course.js";
 

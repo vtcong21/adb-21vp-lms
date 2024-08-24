@@ -1,7 +1,6 @@
 import { hashPassword, comparePassword } from "../utils/auth.js";
 import jwt from "jsonwebtoken";
 // import { nanoid } from "nanoid";
-import AWS from "aws-sdk";
 import getPool from "../utils/database.js";
 
 

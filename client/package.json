@@ -13,7 +13,6 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^1.9.5",
-    "@uploadthing/react": "^6.7.2",
     "antd": "^5.11.1",
     "axios": "^1.6.2",
     "js-cookie": "^3.0.5",
@@ -27,7 +26,8 @@
     "react-router-dom": "^6.16.0",
     "redux": "^4.2.1",
     "redux-persist": "^6.0.0",
-    "swr": "^2.2.2"
+    "swr": "^2.2.2",
+    "react-player": "^2.16.0"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
