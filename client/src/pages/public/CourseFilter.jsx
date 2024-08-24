@@ -11,6 +11,7 @@ import {
   Pagination,
   Empty,
 } from "antd";
+import { useNavigate } from "react-router-dom";
 import GuestService from "../../services/public";
 
 const { Meta } = Card;
@@ -137,6 +138,7 @@ const Filter = ({
 };
 
 const CourseCard = ({
+  courseId,
   title,
   subTitle,
   instructor,
@@ -145,74 +147,110 @@ const CourseCard = ({
   numberOfLectures,
   price,
   image,
-}) => (
-  <Card hoverable style={{ marginBottom: 16 }}>
-    <Row gutter={[16, 16]}>
-      <Col span={5} style={{ textAlign: "right" }}>
-        <img
-          alt="course"
-          src={image}
-          style={{ width: 150, height: 150, objectFit: "cover" }}
-        />
-      </Col>
+}) => {
+  const navigate = useNavigate();
 
-      <Col span={16}>
-        {/* Title */}
-        <div style={{ fontSize: 18, fontWeight: "bold" }}>{title}</div>
+  const handleClickTitle = (e) => {
+    e.preventDefault(); // Prevent default link behavior
 
-        {/* Subtitle */}
-        <div
-          style={{
-            fontSize: 14,
-            color: "gray",
-            marginTop: 4,
-            marginBottom: 7,
-          }}
-        >
-          {subTitle}
-        </div>
+    if (e.button === 1) {
+      // Middle mouse button
+      window.open(`/courseDetail/${courseId}`, "_blank", "noopener,noreferrer");
+    } else if (e.button === 0) {
+      // Left mouse button
+      navigate(`/courseDetail/${courseId}`);
+    }
+  };
 
-        <Meta
-          description={
-            <>
-              {/* Instructor */}
-              <div>{instructor}</div>
+  return (
+    <Card
+      hoverable
+      style={{ marginBottom: 16, cursor: "default" }}
+      onClick={(e) => {
+        if (e.button === 0) {
+          // Left mouse button
+          navigate(`/courseDetail/${courseId}`);
+        }
+      }}
+    >
+      <Row gutter={[16, 16]}>
+        <Col span={5} style={{ textAlign: "right" }}>
+          <img
+            alt="course"
+            src={image}
+            style={{ width: 150, height: 150, objectFit: "cover" }}
+          />
+        </Col>
 
-              {/* Rating */}
-              <div style={{ marginTop: 8 }}>
-                {courseAverageRating}
-                <Rate
-                  allowHalf
-                  defaultValue={courseAverageRating}
-                  disabled
-                  style={{ fontSize: 16, marginLeft: 6 }}
-                />
-              </div>
+        <Col span={16}>
+          {/* Title */}
+          <div
+            onMouseDown={handleClickTitle} // Use onMouseDown to capture the click
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            {title}
+          </div>
 
-              {/* Total hours */}
-              <div style={{ marginTop: 8, color: "gray", fontSize: 14 }}>
-                {totalTime} total hours <span>•</span> {numberOfLectures} lessons{" "}
-              </div>
-            </>
-          }
-        />
-      </Col>
+          {/* Subtitle */}
+          <div
+            style={{
+              fontSize: 14,
+              color: "gray",
+              marginTop: 4,
+              marginBottom: 7,
+            }}
+          >
+            {subTitle}
+          </div>
 
-      <Col span={3} style={{ textAlign: "left" }}>
-        <div
-          style={{
-            marginTop: 0,
-            fontSize: 16,
-            fontWeight: "bold",
-            color: "red",
-          }}
-        >
-          ${price}
-        </div>
-      </Col>
-    </Row>
-  </Card>
-);
+          <Meta
+            description={
+              <>
+                {/* Instructor */}
+                <div>{instructor}</div>
+
+                {/* Rating */}
+                <div style={{ marginTop: 8 }}>
+                  {courseAverageRating}
+                  <Rate
+                    allowHalf
+                    defaultValue={courseAverageRating}
+                    disabled
+                    style={{ fontSize: 16, marginLeft: 6 }}
+                  />
+                </div>
+
+                {/* Total hours */}
+                <div style={{ marginTop: 8, color: "gray", fontSize: 14 }}>
+                  {totalTime} total hours <span>•</span> {numberOfLectures}{" "}
+                  lessons{" "}
+                </div>
+              </>
+            }
+          />
+        </Col>
+
+        <Col span={3} style={{ textAlign: "left" }}>
+          <div
+            style={{
+              marginTop: 0,
+              fontSize: 16,
+              fontWeight: "bold",
+              color: "red",
+            }}
+          >
+            ${price}
+          </div>
+        </Col>
+      </Row>
+    </Card>
+  );
+};
 
 const CourseList = ({ courseName, rating, price, selectedSubcategories }) => {
   const [currentPage, setCurrentPage] = useState(1);

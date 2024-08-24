@@ -13,7 +13,6 @@ import {
   Collapse,
 } from "antd";
 import {
-  PlayCircleOutlined,
   TranslationOutlined,
   CheckCircleOutlined,
   YoutubeOutlined,
@@ -28,22 +27,30 @@ const { Panel } = Collapse;
 function formatTime(totalHours) {
   const hours = Math.floor(totalHours);
   const minutes = Math.round((totalHours - hours) * 60);
-
-  return `${hours}hr${minutes}min`;
+  return `${hours}hr ${minutes}min`;
 }
 
 const CourseDetail = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
+  const [learnerReviews, setLearnerReviews] = useState([]);
 
   useEffect(() => {
-    GuestService.getCourseById(courseId).then((res) => {
-      console.log(res);
+    const fetchCourseData = async () => {
+      try {
+        const res = await GuestService.getCourseById(courseId);
+        setCourse(res || {});
+        setLearnerReviews(res.learnerReviews || []);
+      } catch (error) {
+        message.error("Cannot load course data.");
+      }
+    };
 
-      setCourse(res || []);
-    });
+    fetchCourseData();
   }, [courseId]);
+
   if (!course) return <p>Loading...</p>;
+
   return (
     <>
       <Row
@@ -56,16 +63,18 @@ const CourseDetail = () => {
         <Col span={12}>
           <Card
             cover={
-              <iframe
-                width="100%"
-                height="400"
-                src={course.video}
-                title="Course Video"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ borderRadius: 8 }}
-              />
+              course.video ? (
+                <iframe
+                  width="100%"
+                  height="400"
+                  src={course.video}
+                  title="Course Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ borderRadius: 8 }}
+                />
+              ) : null
             }
             style={{
               borderRadius: 8,
@@ -88,32 +97,31 @@ const CourseDetail = () => {
             }}
           >
             <Title level={3} style={{ fontWeight: "bold", fontSize: "28px" }}>
-              {course.courseTitle}
+              {course.courseTitle || "Course Title"}
             </Title>
             <Paragraph style={{ fontSize: "18px", fontStyle: "italic" }}>
-              {course.subTitle}
+              {course.subTitle || "Subtitle"}
             </Paragraph>
             <Paragraph>
               <span>
-                <b>{course.courseAverageRating}</b>
+                <b>{course.courseAverageRating || 0}</b>
                 <Rate
                   disabled
-                  defaultValue={course.courseAverageRating}
+                  defaultValue={course.courseAverageRating || 0}
                   style={{ fontSize: 16, marginLeft: -20, marginRight: 30 }}
                 />
               </span>
               <span style={{ marginLeft: 8 }}>
-                {course.numberOfLearners} learners
+                {course.numberOfLearners || 0} learners
               </span>
               <br />
               <YoutubeOutlined style={{ marginRight: 4 }} />
-
-              <strong>{formatTime(course.totalTime)} of on-demand video</strong>
+              <strong>{formatTime(course.totalTime || 0)} video hours</strong>
             </Paragraph>
             <Paragraph style={{ marginTop: 24, fontSize: "13px" }}>
               <strong>
                 <span style={{ marginRight: 4 }}>Created by</span>
-                {course.instructorsOwnCourse.map((instructor, index) => (
+                {course.instructorsOwnCourse?.map((instructor, index) => (
                   <React.Fragment key={instructor.instructorId}>
                     <Link
                       to={`/profile/${instructor.instructorId}`}
@@ -135,10 +143,12 @@ const CourseDetail = () => {
             </Paragraph>
             <Paragraph>
               <TranslationOutlined style={{ marginRight: 4 }} />
-              <strong style={{ fontSize: "13px" }}>{course.language}</strong>
+              <strong style={{ fontSize: "13px" }}>
+                {course.language || "Language"}
+              </strong>
             </Paragraph>
             <Paragraph>
-              <b style={{ fontSize: 20 }}>${course.price}</b>
+              <b style={{ fontSize: 20 }}>${course.price || 0}</b>
             </Paragraph>
             <Button
               type="primary"
@@ -154,11 +164,16 @@ const CourseDetail = () => {
         </Col>
 
         {/* Tabs Section */}
-        <Tabs defaultActiveKey="1" style={{ padding: 16, userSelect: "none" }}>
+        <Tabs
+          defaultActiveKey="1"
+          style={{ padding: 16, userSelect: "none", width: "100%" }}
+        >
           {/* Course Objectives */}
-          <TabPane tab="What you'll learn" key="1">
+          <TabPane tab="What You Will Learn" key="1">
             <List
-              dataSource={course.courseObjectives.map((obj) => obj.objective)}
+              dataSource={
+                course.courseObjectives?.map((obj) => obj.objective) || []
+              }
               renderItem={(item) => (
                 <List.Item style={{ userSelect: "none" }}>
                   <div style={{ display: "inline-flex" }}>
@@ -174,15 +189,15 @@ const CourseDetail = () => {
             />
           </TabPane>
 
-          <TabPane tab="Course content" key="2">
-            {/* Course requirements */}
+          <TabPane tab="Course Content" key="2">
+            {/* Course Requirements */}
             <Title level={3} style={{ fontWeight: "bold" }}>
               Requirements
             </Title>
             <List
-              dataSource={course.courseRequirements.map(
-                (req) => req.requirement
-              )}
+              dataSource={
+                course.courseRequirements?.map((req) => req.requirement) || []
+              }
               renderItem={(item) => (
                 <List.Item style={{ padding: 0 }}>
                   <Paragraph style={{ margin: 0 }}>
@@ -197,16 +212,18 @@ const CourseDetail = () => {
             <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
               Description
             </Title>
-            <Paragraph>{course.description}</Paragraph>
+            <Paragraph>{course.description || "Course description"}</Paragraph>
 
-            {/* Course Intended Learners */}
+            {/* Intended Learners */}
             <Title level={3} style={{ fontWeight: "bold" }}>
-              Who this course is for:
+              This Course is For:
             </Title>
             <List
-              dataSource={course.courseIntendedLearners.map(
-                (learner) => learner.intendedLearner
-              )}
+              dataSource={
+                course.courseIntendedLearners?.map(
+                  (learner) => learner.intendedLearner
+                ) || []
+              }
               renderItem={(item) => (
                 <List.Item style={{ padding: 0 }}>
                   <Paragraph style={{ margin: 0 }}>
@@ -217,20 +234,20 @@ const CourseDetail = () => {
               )}
             />
 
-            {/*Course Contents*/}
+            {/* Course Content */}
             <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
-              Course content
+              Course Content
             </Title>
 
             <Collapse
               defaultActiveKey={
-                course.sections.length > 0
+                course.sections?.length > 0
                   ? [course.sections[0].sectionId.toString()]
                   : []
               }
               style={{ borderRadius: 0 }}
             >
-              {course.sections.map((section) => (
+              {course.sections?.map((section) => (
                 <Panel
                   header={
                     <div
@@ -244,7 +261,7 @@ const CourseDetail = () => {
                       <span>{`${
                         section.lectures ? section.lectures.length : 0
                       } lectures • ${formatTime(
-                        section.sectionLearnTime
+                        section.sectionLearnTime || 0
                       )}`}</span>
                     </div>
                   }
@@ -253,54 +270,54 @@ const CourseDetail = () => {
                   className="bg-gray-50"
                 >
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    {section.lectures &&
-                      section.lectures.map((lecture) => (
-                        <div
-                          key={lecture.lectureId}
+                    {section.lectures?.map((lecture) => (
+                      <div
+                        key={lecture.lectureId}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          margin: "8px 0",
+                          alignItems: "center",
+                        }}
+                      >
+                        <p
                           style={{
+                            margin: 0,
                             display: "flex",
-                            justifyContent: "space-between",
-                            margin: "8px 0",
                             alignItems: "center",
                           }}
                         >
-                          <p
-                            style={{
-                              margin: 0,
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <YoutubeOutlined style={{ marginRight: 6 }} />
-                            {lecture.lectureTitle}
-                          </p>
-                          <span>{formatTime(lecture.lectureLearnTime)}</span>
-                        </div>
-                      ))}
-                    {section.exercises &&
-                      section.exercises.map((exercise) => (
-                        <div
-                          key={exercise.exerciseId}
+                          <YoutubeOutlined style={{ marginRight: 6 }} />
+                          {lecture.lectureTitle}
+                        </p>
+                        <span>{formatTime(lecture.lectureLearnTime || 0)}</span>
+                      </div>
+                    ))}
+                    {section.exercises?.map((exercise) => (
+                      <div
+                        key={exercise.exerciseId}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          margin: "8px 0",
+                          alignItems: "center",
+                        }}
+                      >
+                        <p
                           style={{
+                            margin: 0,
                             display: "flex",
-                            justifyContent: "space-between",
-                            margin: "8px 0",
                             alignItems: "center",
                           }}
                         >
-                          <p
-                            style={{
-                              margin: 0,
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <FormOutlined style={{ marginRight: 6 }} />
-                            {exercise.exerciseTitle}
-                          </p>
-                          <span>{formatTime(exercise.exerciseLearnTime)}</span>
-                        </div>
-                      ))}
+                          <FormOutlined style={{ marginRight: 6 }} />
+                          {exercise.exerciseTitle}
+                        </p>
+                        <span>
+                          {formatTime(exercise.exerciseLearnTime || 0)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </Panel>
               ))}
@@ -308,9 +325,53 @@ const CourseDetail = () => {
           </TabPane>
 
           <TabPane tab="Reviews" key="3">
-            <Paragraph style={{ userSelect: "none" }}>
-              Reviews section will go here.
-            </Paragraph>
+            <div style={{ minHeight: "200px" }}>
+              {" "}
+              {/* Adjust minHeight as needed */}
+              {learnerReviews.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={learnerReviews}
+                  renderItem={(item) => (
+                    <List.Item
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 0",
+                      }}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          item.profilePhoto ? (
+                            <img
+                              src={item.profilePhoto}
+                              alt={item.name || "Profile"}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : null
+                        }
+                        title={item.name || "Anonymous"}
+                        description={item.review || "No review content"}
+                        style={{ flex: 1 }}
+                      />
+                      <Rate
+                        disabled
+                        defaultValue={item.rating || 0}
+                        style={{ fontSize: "12px" }}
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <p>No reviews yet.</p>
+              )}
+            </div>
           </TabPane>
         </Tabs>
       </Row>
