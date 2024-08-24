@@ -236,11 +236,12 @@ SET sec.learnTime = ISNULL(lectureSum.totalLearnTime, 0)
 FROM section sec
 INNER JOIN (
     SELECT 
+		l.courseId,
         l.sectionId,
         SUM(l.learnTime) AS totalLearnTime
     FROM lesson l
-    GROUP BY l.sectionId
-) AS lectureSum ON sec.id = lectureSum.sectionId;
+    GROUP BY l.courseId, l.sectionId
+) AS lectureSum ON sec.id = lectureSum.sectionId AND sec.courseId =lectureSum.courseId;
 
 -- Update totalTime in course
 UPDATE c
@@ -253,3 +254,6 @@ INNER JOIN (
     FROM section s
     GROUP BY s.courseId
 ) AS sectionSum ON c.id = sectionSum.courseId;
+
+EXEC sp_columns @table_name = 'section';
+
