@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Row, Col, Button, Typography, Divider, Statistic, message } from 'antd';
 import { CreditCardOutlined, DeleteOutlined, GiftOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
 import LearnerService from '../../services/learner';
 import PublicService from '../../services/public';
 
@@ -12,6 +11,7 @@ import PaymentModal from "../../components/cart/PaymentModal";
 const { Content } = Layout;
 const { Title } = Typography;
 
+import { useSelector } from 'react-redux';
 const Cart = () => {
   const user = useSelector((state) => state.user);
   const [cartData, setCartData] = useState([]);

@@ -48,7 +48,7 @@ app.use(
     config: {
       uploadthingId: process.env.UPLOADTHING_APP_ID,
       uploadthingSecret: process.env.UPLOADTHING_SECRET,
-      logLevel: "trace"
+      //logLevel: "trace"
     }
     //secret: process.env.UPLOADTHING_SECRET,
   }),
