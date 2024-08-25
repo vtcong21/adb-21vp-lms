@@ -1,10 +1,10 @@
-import getPool from "../utils/database";
+import getPool from "../utils/database.js";
 
 export const addCourseToCart = async (req, res) => {
   try {
 
     const { userId, courseId } = req.body;
-    //console.log(req.body);
+    // console.log(req.body);
 
     const pool = getPool('LMS');
 
@@ -176,6 +176,49 @@ export const getLearnerProgressInCourse = async (req, res) => {
     }
 
     const jsonResult = await pool.executeSP('sp_LN_GetLearnerProgressInCourse', {learnerId, courseId});
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+
+export const getPaymentCards = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+    const jsonResult =await pool.executeSP('sp_LN_GetLearnerPaymentCards', { learnerId: userId });
+
+    return res.status(200).json(jsonResult);
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+export const getLearnerEnrolledCourse  = async (req, res) => {
+  try {
+    const { learnerId } = req.query;
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    const jsonResult = await pool.executeSP('sp_LN_GetEnrolledCourse', {learnerId});
 
     return res.status(200).json(jsonResult);
 

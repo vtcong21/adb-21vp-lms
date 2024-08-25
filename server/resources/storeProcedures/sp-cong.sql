@@ -622,7 +622,7 @@ BEGIN
             [user] u
         WHERE
             u.id = @learnerId
-        FOR JSON PATH;
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
 
         COMMIT TRANSACTION;
     END TRY

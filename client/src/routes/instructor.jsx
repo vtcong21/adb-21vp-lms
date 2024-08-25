@@ -1,15 +1,24 @@
 // Nha si
 import { lazy } from "react";
 const AdminLayout = lazy(() => import("~/components/layout/adminLayout"));
-const DentistPage = lazy(() => import("~/pages/instructor"));
-const DangKiLichRanh = lazy(() => import("~/pages/instructor/DkLichRanh"));
-const XemBenhAnCu = lazy(() => import("~/pages/instructor/XemBenhAnCu"));
-const XemLichTruc = lazy(() => import("~/pages/instructor/XemLichTruc"));
-const DoiMatKhau = lazy(() => import("../pages/instructor/DoiMatKhau"));
+const InstructorPage = lazy(() => import("~/pages/instructor"));
+const CreateCourse = lazy(() => import("../pages/instructor/CreateCourse"));
+const Profile = lazy(() => import("../pages/instructor/Profile"));
+
 const InstructorRouter = [{
-  path: "/",
-  component: DentistPage,
-  Layout: AdminLayout
-}
+    path: "/",
+    component: InstructorPage,
+    Layout: AdminLayout
+  }, 
+  {
+    path: "/createCourse",
+    component: CreateCourse,
+    Layout: AdminLayout
+  },
+  {
+    path: "/profile",
+    component: Profile,
+    Layout: AdminLayout
+  },
 ];
 export default InstructorRouter;

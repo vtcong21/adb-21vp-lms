@@ -14,7 +14,17 @@ const OnlineService = {
     }
     return res;
   },
-
+  getCoupons: async (isAvailable) => {
+    const res = await Axios.get("/api/coupon", {
+      isAvailable,
+    });
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+    }
+    return res;
+  },
   getTopHotCategories: async () => {
     const res = await Axios.get("/api/course/topHotCategories", {});
     if (res && res.response) {
@@ -40,6 +50,15 @@ const OnlineService = {
 
   getCourseById: async (courseId) => {
     const res = await Axios.get("/api/course/id", { courseId });
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+    }
+    return res;
+  },
+  getFile: async (fileName) => {
+    const res = await Axios.get(`/api/files/${fileName}`);
     if (res && res.response) {
       if (res.response.status === 400) {
         message.error(res.response.data.error);

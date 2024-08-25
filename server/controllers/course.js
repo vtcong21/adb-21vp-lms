@@ -1,7 +1,7 @@
 // dont touch this
 
 import { json } from "express";
-import getPool from "../utils/database";
+import getPool from "../utils/database.js";
 
 // import AWS from "aws-sdk";
 // import { nanoid } from "nanoid";
