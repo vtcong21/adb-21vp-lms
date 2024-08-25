@@ -72,14 +72,7 @@ const Header = () => {
             >
               Đăng nhập
             </button>
-            <button
-              className="bg-blue-500 px-5 py-2 my-3 rounded-lg text-white border-white border-2"
-              onClick={() => {
-                navigate("/signup");
-              }}
-            >
-              Đăng ký
-            </button>
+           
           </div>
         ) : (
           <Account />

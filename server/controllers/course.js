@@ -186,7 +186,7 @@ export const getTop50CoursesByRevenue = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    const jsonResult = await pool.executeSP('sp_AD_GetTop50CoursesByRevenue');
+    const jsonResult = await pool.executeSP('sp_AD_GetTop50CoursesByRevenue', {});
 
     return res.status(200).json(jsonResult);
 
