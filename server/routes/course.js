@@ -5,7 +5,7 @@ import {
   isAdminOrInstructor,
   isInstructor,
   requireSignin,
-} from "../middlewares";
+} from "../middlewares/index.js";
 
 const router = express.Router();
 
@@ -22,7 +22,6 @@ import {
     getOwnCourses,
     createCourse,
     getAdminResponseInACourse,
-    getLearnerInCourse,
     getLearnerInCourse,
   getTopHotCategories
 } from "../controllers/course.js";
