@@ -307,13 +307,13 @@ const Curriculum = () => {
                 <span className="ml-2">
                   {lesson.type === 'lecture' ? 'Lecture' : 'Quiz'}
                 </span>
+                {section.lessons.length > 1 && (
+                  <MinusCircleOutlined
+                    onClick={() => removeLesson(sectionIndex, lessonIndex)}
+                    style={{ fontSize: '20px', color: 'red', marginLeft: '8px' }}
+                  />
+                )}
               </div>
-              {section.lessons.length > 1 && (
-                <MinusCircleOutlined
-                  onClick={() => removeLesson(sectionIndex, lessonIndex)}
-                  style={{ fontSize: '20px', color: 'red' }}
-                />
-              )}
               <Button>+ Content</Button>
             </div>
           ))}
@@ -355,7 +355,7 @@ const Pricing = () => (
     <p className="text-gray-600 mb-6">
       Information about pricing options for the course.
     </p>
-    {/* Add more content specific to Pricing */}
+    {/* code cho tôi */}
     <Divider />
   </section>
 );
