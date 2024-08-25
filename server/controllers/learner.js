@@ -154,7 +154,30 @@ export const completeLesson = async (req, res) => {
     }
     await pool.executeSP('sp_LN_CompleteLesson', { learnerId: userId, courseId, sectionId, lessonId });
 
-    return res.status(200).json({ message: "Paid successfully" });
+    return res.status(200).json({ message: "Completed lesson" });
+
+  } catch (err) {
+    console.log("ERR ", err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+export const getLearnerProgressInCourse = async (req, res) => {
+  try {
+    const { learnerId, courseId } = req.query;
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: "Database pool is not available" });
+    }
+
+    if (!courseId) {
+      return res.status(400).json({ message: "courseId are required" });
+    }
+
+    const jsonResult = await pool.executeSP('sp_LN_GetLearnerProgressInCourse', {learnerId, courseId});
+
+    return res.status(200).json(jsonResult);
 
   } catch (err) {
     console.log("ERR ", err);

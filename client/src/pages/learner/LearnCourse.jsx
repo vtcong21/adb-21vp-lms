@@ -1,25 +1,45 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Collapse, message, Button } from "antd";
+import { Layout, Collapse, message, Button, Progress } from "antd";
 import ReactPlayer from "react-player";
 import { useParams } from "react-router-dom";
-import GuestService from "../../services/public"; // Adjust the import path as needed
+import GuestService from "../../services/public";
+import LearnerService from "../../services/learner";
 import { YoutubeOutlined, FormOutlined } from "@ant-design/icons";
 
 const { Sider, Content } = Layout;
 const { Panel } = Collapse;
 
 const LearnCourse = () => {
+  const learnerId = "learner000021";
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); // Track selected answers
-  const [submittedAnswers, setSubmittedAnswers] = useState({}); // Track submitted answers
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [submittedAnswers, setSubmittedAnswers] = useState({});
+  const [sectionProgress, setSectionProgress] = useState([]);
+  const [currentSectionId, setCurrentSectionId] = useState(null);
+  const [currentLessonId, setCurrentLessonId] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState(new Set()); // Track completed lessons and exercises
 
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const res = await GuestService.getCourseById(courseId);
-        setCourse(res || {});
+        const courseRes = await GuestService.getCourseById(courseId);
+        setCourse(courseRes || {});
+
+        // Fetch progress data
+        const progressRes = await LearnerService.getLearnerProgressInCourse(learnerId, courseId);
+        setSectionProgress(progressRes || []);
+        // Extract completed lessons and exercises
+        const completed = new Set();
+        progressRes.forEach(section => {
+          section.LessonProgress.forEach(lesson => {
+            if (lesson.isCompletedLesson) {
+              completed.add(lesson.lessonId);
+            }
+          });
+        });
+        setCompletedLessons(completed);
       } catch (error) {
         message.error("Cannot load course data.");
       }
@@ -28,20 +48,38 @@ const LearnCourse = () => {
     fetchCourseData();
   }, [courseId]);
 
-  const handleLectureClick = (lecture) => {
+  const markLessonAsCompleted = async (sectionId, lessonId) => {
+    if (completedLessons.has(lessonId)) return; // Skip if already completed
+    try {
+      await LearnerService.completeLesson(learnerId, courseId, sectionId, lessonId);
+      message.success("Lesson marked as completed.");
+      setCompletedLessons(prev => new Set(prev).add(lessonId)); // Update completed lessons
+    } catch (error) {
+      message.error("Failed to mark lesson as completed.");
+    }
+  };
+
+  const handleLectureClick = (lecture, sectionId) => {
     setSelectedResource({
       type: 'lecture',
       url: lecture.lectureResource,
     });
+    setCurrentSectionId(sectionId);
+    setCurrentLessonId(lecture.lectureId);
+    if (!completedLessons.has(lecture.lectureId)) {
+      markLessonAsCompleted(sectionId, lecture.lectureId);
+    }
   };
 
-  const handleExerciseClick = (exercise) => {
+  const handleExerciseClick = (exercise, sectionId) => {
     setSelectedResource({
       type: 'exercise',
       questions: exercise.questions,
     });
-    // Clear any previously submitted answers
+    setSelectedAnswers({});
     setSubmittedAnswers({});
+    setCurrentSectionId(sectionId);
+    setCurrentLessonId(exercise.exerciseId);
   };
 
   const handleAnswerSelect = (questionId, answerId) => {
@@ -53,8 +91,21 @@ const LearnCourse = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmittedAnswers(selectedAnswers);
+    if (completedLessons.has(currentLessonId)) return; // Skip if already completed
+    try {
+      await LearnerService.completeLesson(learnerId, courseId, currentSectionId, currentLessonId);
+      message.success("Exercise marked as completed.");
+      setCompletedLessons(prev => new Set(prev).add(currentLessonId)); // Update completed lessons
+    } catch (error) {
+      message.error("Failed to mark exercise as completed.");
+    }
+  };
+
+  const getProgressForSection = (sectionId) => {
+    const section = sectionProgress.find(sec => sec.sectionId === sectionId);
+    return section ? section.completionPercentSection : 0;
   };
 
   return (
@@ -68,7 +119,7 @@ const LearnCourse = () => {
             controls
           />
         ) : selectedResource && selectedResource.type === 'exercise' ? (
-          <div style={{ color: "#fff", padding: "20px", overflowY: "auto" }}>
+          <div style={{ color: "#fff", padding: "20px", overflowY: "auto", maxHeight: "500px" }}>
             <h2 style={{ marginBottom: "20px" }}>Exercises</h2>
             {selectedResource.questions.map(question => (
               <div key={question.questionId} style={{ marginBottom: "20px", border: "1px solid #444", borderRadius: "8px", padding: "15px", backgroundColor: "#333" }}>
@@ -121,18 +172,19 @@ const LearnCourse = () => {
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "flex-start",
                     fontSize: "15px",
                     padding: "10px",
                   }}
                 >
                   <span>{section.sectionTitle}</span>
-                  <span>{`${
-                    section.lectures ? section.lectures.length : 0
-                  } lectures • ${formatTime(
-                    section.sectionLearnTime || 0
-                  )}`}</span>
+                  <Progress 
+                    percent={getProgressForSection(section.sectionId)} 
+                    strokeColor="#52c41a" 
+                    style={{ marginTop: "10px", width: "100%" }} 
+                  />
                 </div>
               }
               key={section.sectionId}
@@ -165,7 +217,10 @@ const LearnCourse = () => {
                       {lecture.lectureTitle}
                     </p>
                     <span>{formatTime(lecture.lectureLearnTime || 0)}</span>
-                    <Button onClick={() => handleLectureClick(lecture)} type="link">
+                    <Button 
+                      onClick={() => handleLectureClick(lecture, section.sectionId)} 
+                      type="link"
+                    >
                       View
                     </Button>
                   </div>
@@ -192,7 +247,10 @@ const LearnCourse = () => {
                       {exercise.exerciseTitle}
                     </p>
                     <span>{formatTime(exercise.exerciseLearnTime || 0)}</span>
-                    <Button onClick={() => handleExerciseClick(exercise)} type="link">
+                    <Button 
+                      onClick={() => handleExerciseClick(exercise, section.sectionId)} 
+                      type="link"
+                    >
                       View
                     </Button>
                   </div>

@@ -13,7 +13,8 @@ import {
   makeOrder,
   viewOrders,
   viewOrderDetails,
-  completeLesson
+  completeLesson,
+  getLearnerProgressInCourse
 } from "../controllers/learner";
 import { isLearner, requireSignin } from "../middlewares";
 
@@ -41,10 +42,17 @@ router.get("/learner/order/details",
   // requireSignin,
   // isLearner,
   viewOrderDetails);
-router.post("/learner/lesson/complete", 
+router.put("/learner/lesson/complete", 
   // requireSignin,
   // isLearner,
   completeLesson);
+
+router.get(
+    "/learner/course-progress",
+    // requireSignin,
+    // isLearner,
+    getLearnerProgressInCourse
+);
 
 export default router;
 

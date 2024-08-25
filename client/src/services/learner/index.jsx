@@ -47,8 +47,16 @@ const LearnerService = {
     }
     return res;
   },
-  completeLesson: async (userId, courseId, sectionId, lesstionId) => {
-    const res = await Axios.get(`/api/learner/lesson/complete`, { userId, courseId, sectionId, lesstionId });
+  completeLesson: async (userId, courseId, sectionId, lessonId) => {
+    const res = await Axios.put(`/api/learner/lesson/complete`, { userId, courseId, sectionId, lessonId });
+    if (res.status == 400) {
+      message.error(res.message || res.error);
+    }
+    return res;
+  },
+  getLearnerProgressInCourse: async (learnerId, courseId) => {
+    const res = await Axios.get(`/api/learner/course-progress`, { learnerId, courseId });
+
     if (res.status == 400) {
       message.error(res.message || res.error);
     }
