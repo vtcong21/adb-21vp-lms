@@ -4,7 +4,8 @@ import { useForm } from "antd/es/form/Form";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import LearnerList from "./LearnerList";
-import Revenue from "./Revenue";
+import Revenue from "./CourseRevenue";
+import CourseDetail from "../public/CourseDetail"
 
 const courseDetails = {
     "id": 1,
@@ -86,6 +87,7 @@ const ReviewCourse = () => {
     const contentList = {
         course_details: 
         <>
+            <CourseDetail />
             <Modal 
                 title='Submit Response' 
                 open={isModalOpen} 

@@ -2,7 +2,7 @@ import { lazy } from "react";
 import AdminLayout from "../components/layout/AdminLayout";
 
 const AdminPage = lazy(() => import("~/pages/admin"));
-const Revenue = lazy(() => import("../pages/admin/Revenue"));
+const Revenue = lazy(() => import("../pages/admin/CourseRevenue"));
 const AdminCourses = lazy(() => import("../pages/admin/AdminCourses"));
 const ReviewCourse = lazy(() => import("../pages/admin/ReviewCourse"));
 const LearnerList = lazy(() => import("../pages/admin/LearnerList"));
@@ -19,7 +19,7 @@ const AdminRouter = [
         Layout: AdminLayout,
     },
     {
-      path: "/admin/course/:courseId",
+      path: "/admin/courses/:courseId",
       component: ReviewCourse,
       Layout: AdminLayout,
     },

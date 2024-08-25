@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import { Line, Column, Pie } from '@ant-design/plots';
 import { Card, Col, Row, Segmented, Space, Table, Typography } from 'antd';
 import styles from '../../assets/styles/Revenue.css?inline'
+import AdminService from '../../services/admin';
+import { useParams } from 'react-router-dom';
 
 const { Text, Title } = Typography;
 
@@ -95,6 +97,8 @@ const courses = []
 const courseRevenueByMonth = []
 
 const Revenue = () => {
+  const {courseId} = useParams();
+  const [duration, setDuration] = useState(12);
   const [activeTabKey, setActiveTabKey] = useState('graph');
   const [revenueData, setRevenueData] = useState([])
   const [revenueType, setRevenueType] = useState('monthly')
@@ -172,6 +176,29 @@ const Revenue = () => {
     setActiveTabKey(key);
   };
 
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      try {
+        if (revenueType === 'daily' ) {
+          const temp = await AdminService.getDailyRevenueForCourse( courseId, duration );
+          console.log(temp);
+        }
+        if (revenueType === 'monthly') {
+          const res = await AdminService.getMonthlyRevenueForCourse( courseId, duration );
+        }
+        else if (revenueType === 'annual') {
+          const res = await AdminService.getMonthlyRevenueForCourse( courseId, duration );
+        }
+        console.log()
+        // setRevenueData(res || []);
+      } catch (error) {
+        message.error("Cannot load course revenue data.");
+      }
+    };
+
+    fetchRevenueData();
+  })
+
   return (
     <div className='px-20'>
       <Segmented 
@@ -183,8 +210,8 @@ const Revenue = () => {
               value: 'monthly'
           },
           {
-              label: 'Yearly',
-              value: 'yearly'
+              label: 'Annual',
+              value: 'annual'
           }
         ]}
       />

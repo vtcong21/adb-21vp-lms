@@ -1,7 +1,7 @@
 
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Space, Table, Tag, Button, Input } from 'antd';
+import { Space, Table, Tag, Button, Input, message } from 'antd';
 import {
   CheckCircleOutlined,
   SyncOutlined,
@@ -9,12 +9,17 @@ import {
   EditOutlined
 } from '@ant-design/icons'
 import Highlighter from 'react-highlight-words';
+import OnlineService from '../../services/public';
+import { useNavigate } from 'react-router-dom';
 
 const AdminCourses = () => {
   const [course, setCourse] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+  const states = ['public', 'pendingReview', 'draft'];
+  const navigate = useNavigate();
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -24,6 +29,32 @@ const AdminCourses = () => {
     clearFilters();
     setSearchText('');
   };
+  const handleEditCourse = (courseId) => {
+    navigate(`${courseId}`)
+  } 
+
+  useEffect(() => {
+    setCourse([]);
+
+    const fetchCourseData = async ( searchText, state ) => {
+      try {
+        const res = await OnlineService.getCourseByName( searchText , state )
+        const resWithState = await res.map((data, row) => ({
+          ...data,
+          key: row,
+          state: state
+        }));
+        setCourse(course => [...course, ...resWithState])
+      } catch (error) {
+        message.error("Cannot load course revenue data.");
+      }
+    };
+
+    states.map(state => {
+      fetchCourseData((searchText === '') ? 'advanced' : searchText, state );
+    })
+  }, [searchText]);
+
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
       <div
@@ -121,21 +152,18 @@ const AdminCourses = () => {
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: 'Course ID',
+      dataIndex: 'courseId',
     },
     {
       title: 'Title',
       dataIndex: 'title',
-      key: 'title',
       render: (text) => <a>{text}</a>,
       ...getColumnSearchProps('title')
     },
     {
       title: 'Last Update',
       dataIndex: 'lastUpdateTime',
-      key: 'lastUpdateTime',
       render: (lastUpdateTime) => {
         const formattedDate = new Date(lastUpdateTime).toLocaleString()
         return <>{formattedDate}</>
@@ -148,7 +176,6 @@ const AdminCourses = () => {
     },
     {
       title: 'State',
-      key: 'state',
       dataIndex: 'state',
       filters: [
         {
@@ -196,22 +223,16 @@ const AdminCourses = () => {
     },  
     {
       title: 'Action',
-      key: 'action',
       render: (_, record) => (
         <Space type='middle'>
-          <Button icon={<SearchOutlined />}/>
-          <Button icon={<EditOutlined/>}/>
+          <Button 
+          icon={<EditOutlined/>}
+          onClick={() => handleEditCourse(record.courseId)}
+          />
         </Space>
       ),
     },
   ];
-
-  useEffect(() => {
-    fetch('./json/tmp_courses.json')
-      .then(response => response.json())
-      .then(data => setCourse(data))
-      .catch(error => console.error('Error displaying Admin\'s Course Review list: ', error))
-  }, []);
 
   return (
     <div>
@@ -221,6 +242,7 @@ const AdminCourses = () => {
           position: ['bottomCenter'],
         }}
         dataSource={course}
+        rowKey={record => record.courseId}
       />
     </div>
   );

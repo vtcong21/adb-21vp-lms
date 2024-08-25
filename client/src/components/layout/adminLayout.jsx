@@ -52,7 +52,7 @@ const Sidebar = (props) => {
       case "INS":
         return menuInstructor;
       default:
-        return menuInstructor;
+        return menuAdmin;
     }
   };
 

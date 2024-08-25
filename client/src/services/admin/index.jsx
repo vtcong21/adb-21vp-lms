@@ -42,5 +42,13 @@ const AdminService = {
     return res;
 
   },
+  getOwnCourses: async ( instructorId ) => {
+    const res = await Axios.get(`/api/course/instructor-course`, { instructorId });
+    if (res.status == 400) {
+      message.error(res.message || res.error);
+    }
+    return res;
+
+  },
 };
 export default AdminService;

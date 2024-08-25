@@ -145,6 +145,22 @@ const LearnerList = () => {
             text
         ),
     });
+    useEffect(() => {
+        // const fetchLearnerList = async ( searchText, state ) => {
+        //     try {
+        //         const res = await OnlineService.getCourseByName( searchText , state )
+        //         const resWithState = await res.map((data, row) => ({
+        //         ...data,
+        //         key: row,
+        //         state: state
+        //         }));
+        //         setCourse(course => [...course, ...resWithState])
+        //     } catch (error) {
+        //         message.error("Cannot load course revenue data.");
+        //     }
+        // };
+        // fetch
+    })
     // table
     const columns = [
         {
