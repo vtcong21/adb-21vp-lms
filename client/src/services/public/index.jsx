@@ -16,15 +16,17 @@ const OnlineService = {
   },
   getCoupons: async (isAvailable) => {
     const res = await Axios.get("/api/coupon", {
-      isAvailable,
+      isAvailable
     });
     if (res && res.response) {
       if (res.response.status === 400) {
         message.error(res.response.data.error);
       }
+
     }
     return res;
-  },
+  }
+  ,
   getTopHotCategories: async () => {
     const res = await Axios.get("/api/course/topHotCategories", {});
     if (res && res.response) {
