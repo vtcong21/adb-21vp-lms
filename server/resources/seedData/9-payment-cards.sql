@@ -1,4 +1,6 @@
 -- Create a temporary table to hold payment card data
+DROP TABLE IF EXISTS #tempPaymentCard;
+
 CREATE TABLE #tempPaymentCard
 (
     number VARCHAR(16) NOT NULL,

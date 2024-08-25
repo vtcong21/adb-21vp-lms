@@ -154,7 +154,7 @@ export const getMonthlyRevenueForCourse = async (req, res) => {
 }
 
 
-export const getAunnualRevenueOfACourse = async (req, res) => {
+export const getAnnualRevenueOfACourse = async (req, res) => {
   try {
     const { courseId, duration } = req.query;
 
@@ -186,7 +186,7 @@ export const getTop50CoursesByRevenue = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    const jsonResult = await pool.executeSP('sp_AD_GetTop50CoursesByRevenue');
+    const jsonResult = await pool.executeSP('sp_AD_GetTop50CoursesByRevenue', {});
 
     return res.status(200).json(jsonResult);
 
@@ -209,7 +209,7 @@ export const getOwnCourses = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_INS_GetOwnCourses', { idInstructor: userId });
+    const jsonResult = await pool.executeSP('sp_INS_GetOwnCourses', { userId: userId });
 
     return res.status(200).json(jsonResult);
 
@@ -293,6 +293,7 @@ export const getAdminResponseInACourse = async (req, res) => {
 export const getLearnerInCourse = async (req, res) => {
   try {
     const { courseId } = req.query;
+    console.log('server: ' + courseId);
 
     const pool = getPool('LMS');
 
@@ -300,10 +301,10 @@ export const getLearnerInCourse = async (req, res) => {
       return res.status(500).json({ message: "Database pool is not available" });
     }
 
-    if (courseId) {
+    if (!courseId) {
       return res.status(400).json({ message: "courseId is required" });
     }
-    const jsonResult = await pool.executeSP('sp_INS_GetLearnerInCourse', { courseId });
+    const jsonResult = await pool.executeSP('sp_INS_GetLearnersInCourse', { courseId });
 
     return res.status(200).json(jsonResult);
 

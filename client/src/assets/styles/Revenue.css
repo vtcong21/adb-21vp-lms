@@ -1,0 +1,3 @@
+.flexible-card .ant-card-body {
+    flex-grow: 1;
+}
