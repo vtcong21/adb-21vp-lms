@@ -155,10 +155,10 @@ const CourseCard = ({
 
     if (e.button === 1) {
       // Middle mouse button
-      window.open(`/courseDetail/${courseId}`, "_blank", "noopener,noreferrer");
+      window.open(`/course-detail/${courseId}`, "_blank", "noopener,noreferrer");
     } else if (e.button === 0) {
       // Left mouse button
-      navigate(`/courseDetail/${courseId}`);
+      navigate(`/course-detail/${courseId}`);
     }
   };
 
@@ -169,7 +169,7 @@ const CourseCard = ({
       onClick={(e) => {
         if (e.button === 0) {
           // Left mouse button
-          navigate(`/courseDetail/${courseId}`);
+          navigate(`/course-detail/${courseId}`);
         }
       }}
     >
@@ -267,7 +267,7 @@ const CourseList = ({ courseName, rating, price, selectedSubcategories }) => {
 
   // Apply filters
   const filteredCourses = courses
-    .filter((course) => !rating || course.rating >= rating)
+    .filter((course) => !rating || course.courseAverageRating >= rating)
     .filter(
       (course) =>
         !price || (price === "paid" ? course.price > 0 : course.price === 0)

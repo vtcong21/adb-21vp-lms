@@ -14,12 +14,12 @@ const InstructorRouter = [{
     Layout: AdminLayout
   }, 
   {
-    path: "/createCourse",
+    path: "/instructor/create-course",
     component: CreateCourse,
     Layout: AdminLayout
   },
   {
-    path: "/profile",
+    path: "/instructor/profile",
     component: Profile,
     Layout: AdminLayout
   },

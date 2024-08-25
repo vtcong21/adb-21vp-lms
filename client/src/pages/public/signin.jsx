@@ -49,7 +49,7 @@ const SignInPage = () => {
           onFinishFailed={onFinishFailed}
         >
           <p className="form-title">Welcome back</p>
-          <p>Đăng nhập vào Tsitned.</p>
+          <p>Sing in Udemy.</p>
           <Form.Item
             name="userId"
             rules={[{ required: true, message: 'Vui lòng nhập mã tài khoản / số điện thoại!' }]}
@@ -72,11 +72,11 @@ const SignInPage = () => {
 
           <Form.Item>
             <Button type="primary" htmlType="submit" className="font-semibold login-form-button">
-              Đăng nhập
+              Sign in
             </Button>
           </Form.Item>
 
-          <p className="mb-0 mt-2 pt-1 text-sm font-semibold text-center">
+          {/* <p className="mb-0 mt-2 pt-1 text-sm font-semibold text-center">
             Chưa có tài khoản?{" "}
             <a
               onClick={() => navigate("/signup")}
@@ -84,7 +84,7 @@ const SignInPage = () => {
             >
               Đăng ký
             </a>
-          </p>
+          </p> */}
 
         </Form>
 

@@ -14,51 +14,58 @@ const CourseFilter = lazy(() => import("../pages/public/CourseFilter"));
 const CourseDetail = lazy(() => import("../pages/public/CourseDetail"));
 const Cart = lazy(() => import("../pages/learner/Cart"));
 const OrdersPage = lazy(() => import("../pages/learner/OrdersPage"));
-const OrderDetailsPage = lazy(()=> import("../pages/learner/OrderDetailsPage"));
-const MyCourse = lazy(()=> import("../pages/learner/MyCourse"));
-
+const OrderDetailsPage = lazy(() => import("../pages/learner/OrderDetailsPage"));
+const MyCourse = lazy(() => import("../pages/learner/MyCourse"));
+const HomePage = lazy(() => import("~/pages/public/homepage"));
+const Profile = lazy(() => import("../pages/instructor/Profile"));
 
 const LearnerRouter = [{
   path: "/",
-  component: LearnerPage,
+  component: HomePage,
   Layout: DefaultLayout
 },
 {
-  path: "/cart",
+  path: "/learner/cart",
   component: Cart,
   Layout: DefaultLayout
 },
 
 {
-  path: "/orders",
+  path: "/learner/orders",
   component: OrdersPage,
   Layout: DefaultLayout
 },
 
 {
-  path: "/order-details/:orderId",
+  path: "/learner/order-details/:orderId",
   component: OrderDetailsPage,
   Layout: DefaultLayout
 },
 {
-  path: "/courseFilter",
+  path: "/course-filter",
   component: CourseFilter,
   Layout: DefaultLayout,
 },
 {
-  path: "/courseDetail/:courseId",
+  path: "/course-detail/:courseId",
   component: CourseDetail,
   Layout: DefaultLayout,
 },
 {
-  path: "/learnCourse/:courseId",
+  path: "/learner/learn-course/:courseId",
   component: LearnCourse,
   Layout: DefaultLayout,
 },
 {
-  path: "/myCourse",
+  path: "/learner/my-course",
   component: MyCourse,
   Layout: DefaultLayout,
 },
+{
+  path: "/profile/:instructorId",
+  component: Profile,
+  Layout: DefaultLayout,
+},
+
 ];
 export default LearnerRouter;
