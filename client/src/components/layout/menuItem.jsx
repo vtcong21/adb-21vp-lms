@@ -1,25 +1,19 @@
-import { AiOutlineMenuFold } from "react-icons/ai";
-import { FaCalendarDays } from "react-icons/fa6";
-import { FaBookMedical } from "react-icons/fa";
-import { FaFileMedical } from "react-icons/fa";
-import { ImProfile } from "react-icons/im";
-import { BsBook, BsCalendar2PlusFill, BsPerson } from "react-icons/bs";
-import { IoBook, IoPerson, IoStatsChart } from "react-icons/io5";
+import { IoBook, IoCreate, IoHome, IoPerson, IoStatsChart } from "react-icons/io5";
 
 const menuInstructor = [
   {
     name: "Home",
-    icon: <BsCalendar2PlusFill size={30} />,
+    icon: <IoHome size={22} />,
     path: "/",
   },
   {
     name: "Create a course",
-    icon: <BsCalendar2PlusFill size={30} />,
+    icon: <IoCreate size={22} />,
     path: "/instructor/create-course",
   },
   {
     name: "Profile",
-    icon: <BsCalendar2PlusFill size={30} />,
+    icon: <IoPerson size={22} />,
     path: "/instructor/profile",
   },
   {
