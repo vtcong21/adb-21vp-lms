@@ -14,7 +14,9 @@ import {
   viewOrders,
   viewOrderDetails,
   completeLesson,
-  getPaymentCards
+  getPaymentCards,
+  getLearnerProgressInCourse,
+  getLearnerEnrolledCourse
 } from "../controllers/learner.js";
 import { isLearner, requireSignin } from "../middlewares/index.js";
 
@@ -31,7 +33,7 @@ router.get("/learner/cart",
   // isLearner,
   getCartDetails);
 router.post("/learner/order",
-  // requireSignin,
+  // requireS ignin,
   // isLearner,
   makeOrder);
 router.get("/learner/order",
@@ -42,7 +44,7 @@ router.get("/learner/order/details",
   // requireSignin,
   // isLearner,
   viewOrderDetails);
-router.post("/learner/lesson/complete",
+router.put("/learner/lesson/complete", 
   // requireSignin,
   // isLearner,
   completeLesson);
@@ -51,7 +53,19 @@ router.get("/learner/payment-cards",
   // isLearner,
   getPaymentCards);
 
+router.get(
+    "/learner/course-progress",
+    // requireSignin,
+    // isLearner,
+    getLearnerProgressInCourse
+);
 
+router.get(
+  "/learner/course-enrolled",
+  // requireSignin,
+  // isLearner,
+  getLearnerEnrolledCourse
+);
 
 export default router;
 
