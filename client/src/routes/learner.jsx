@@ -15,6 +15,8 @@ const CourseDetail = lazy(() => import("../pages/public/CourseDetail"));
 const Cart = lazy(() => import("../pages/learner/Cart"));
 const OrdersPage = lazy(() => import("../pages/learner/OrdersPage"));
 const OrderDetailsPage = lazy(()=> import("../pages/learner/OrderDetailsPage"));
+const MyCourse = lazy(()=> import("../pages/learner/MyCourse"));
+
 
 const LearnerRouter = [{
   path: "/",
@@ -51,6 +53,11 @@ const LearnerRouter = [{
 {
   path: "/learnCourse/:courseId",
   component: LearnCourse,
+  Layout: DefaultLayout,
+},
+{
+  path: "/myCourse",
+  component: MyCourse,
   Layout: DefaultLayout,
 },
 ];
