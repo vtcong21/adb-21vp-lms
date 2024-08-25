@@ -179,7 +179,7 @@ const LearnerList = () => {
     }, [])
 
     return (
-        <Card>
+        <>
             <Title level={2}>
                 Learner List for Course {course.id}
             </Title>
@@ -191,7 +191,7 @@ const LearnerList = () => {
                 }}
                 rowKey='learnerId'
             />
-        </Card>
+        </>
     )
 }
 

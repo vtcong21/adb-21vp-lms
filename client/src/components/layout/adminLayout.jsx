@@ -88,9 +88,9 @@ const AdminLayout = ({ children }) => {
       <div className="flex min-h-screen ">
       <div
         className={`bg-slate-50 h-screen overflow-y-auto sticky top-0 transition-all duration-300 min-w-[${
-          sidebarCollapsed ? "80px]" : "200px]"
+          sidebarCollapsed ? "10px]" : "200px]"
         } ${
-          sidebarCollapsed ? "w-0" : "w-[50vw]"
+          sidebarCollapsed ? "w-[90px]" : "w-[50vw]"
         }`}
       >
           <Sidebar toggle={sidebarCollapsed} />

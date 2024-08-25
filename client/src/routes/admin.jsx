@@ -24,14 +24,14 @@ const AdminRouter = [
       Layout: AdminLayout,
     },
     {
-        path: "/admin/course/:courseId/learners",
-        component: LearnerList,
-        Layout: AdminLayout,
-    },
+      path: "/admin/instructors",
+      component: AdminCourses,
+      Layout: AdminLayout,
+  },
     {
-        path: "/admin/revenue",
-        component: Revenue,
-        Layout: AdminLayout,
+      path: "/admin/instructor/:instructorId",
+      component: ReviewCourse,
+      Layout: AdminLayout,
     },
   ];
   

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Line, Column, Pie } from '@ant-design/plots';
-import { Card, Col, Row, Space, Table, Typography } from 'antd';
+import { Card, Col, Row, Segmented, Space, Table, Typography } from 'antd';
 import styles from '../../assets/styles/Revenue.css?inline'
 
 const { Text, Title } = Typography;
@@ -96,7 +96,9 @@ const courseRevenueByMonth = []
 
 const Revenue = () => {
   const [activeTabKey, setActiveTabKey] = useState('graph');
-
+  const [revenueData, setRevenueData] = useState([])
+  const [revenueType, setRevenueType] = useState('monthly')
+  
   const data = [
     { year: '1991', value: 3 },
     { year: '1992', value: 4 },
@@ -169,8 +171,23 @@ const Revenue = () => {
   const onTabChange = (key) => {
     setActiveTabKey(key);
   };
+
   return (
     <div className='px-20'>
+      <Segmented 
+        value={revenueType}
+        onChange={(value) => setRevenueType(value)}
+        options={[
+          {
+              label: 'Monthly',
+              value: 'monthly'
+          },
+          {
+              label: 'Yearly',
+              value: 'yearly'
+          }
+        ]}
+      />
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={8} lg={8}>
           <Card title='Total revenue' bordered={false} style={{ textAlign: "right", display: "flex", flexDirection: "column", width: '100%', margin: '1em', justifyContent: 'center' }}>

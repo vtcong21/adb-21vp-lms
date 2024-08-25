@@ -3,6 +3,8 @@ import { Form, Card, Button, Input, Space, Modal } from "antd";
 import { useForm } from "antd/es/form/Form";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
+import LearnerList from "./LearnerList";
+import Revenue from "./Revenue";
 
 const courseDetails = {
     "id": 1,
@@ -42,6 +44,8 @@ const ReviewCourse = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
+    const [activeTabKey, setActiveTabKey] = useState('course_details');
+
     const showModal = () => {
         setIsModalOpen(true);
     }
@@ -60,6 +64,98 @@ const ReviewCourse = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     }
+    const onTabChange = (key) => {
+        setActiveTabKey(key);
+    }
+
+    const tabList = [
+        {
+            key: 'course_details',
+            tab: 'Course Details',
+        },
+        {
+            key: 'course_learners',
+            tab: 'Learners',
+        },
+        {
+            key: 'course_revenue',
+            tab: 'Revenue',
+        },
+    ]
+    
+    const contentList = {
+        course_details: 
+        <>
+            <Modal 
+                title='Submit Response' 
+                open={isModalOpen} 
+                onOk={handleSubmit} 
+                onCancel={handleCancel}
+                okText='Submit'
+                okButtonProps={{ disabled: isDisabledButton }}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    >
+                    <Form.Item
+                        label="Reason"
+                        required
+                        tooltip="Reason for your decision"
+                        validateStatus={textAreaStatus}
+                        help={textAreaHelp}
+                    >
+                        <TextArea 
+                            rows={4} 
+                            // status={textAreaStatus}
+                            placeholder="Because this course is ..." 
+                            onChange={(e) => setComment(e.target.value)} />
+                    </Form.Item>
+                </Form>
+            </Modal>
+            {/* <Course/> */}
+            {(courseDetails.state === 'public') ? (
+                    <div className="flex justify-end">
+                        <Space size='large'>
+                            <Button 
+                                type="primary" 
+                                danger
+                                onClick={handlePrivate}
+                            >
+                                Private the course
+                            </Button>
+                        </Space>
+                </div>
+                ) : (courseDetails.state === 'pendingReview' || courseDetails.state === 'public') ? (
+                    <div className="flex justify-end">
+                        <Space size='large'>
+                        <Button 
+                            type="primary" 
+                            danger
+                            onClick={handleRefuse}
+                        >
+                            Refuse
+                        </Button>
+                        <Button 
+                            type="primary"
+                            onClick={handleAccept}
+                        >
+                            Accept
+                        </Button>
+                        </Space>
+                    </div>
+                ) : (<></>)}
+        </>,
+        course_learners:
+        <>
+            <LearnerList/>
+        </>,
+        course_revenue:
+        <>
+            <Revenue />
+        </>
+    };
+    
 
     useEffect(() => {
         if (comment.length >= 1) {
@@ -109,66 +205,12 @@ const ReviewCourse = () => {
 
     return (
         <>
-            <Modal 
-                title='Submit Response' 
-                open={isModalOpen} 
-                onOk={handleSubmit} 
-                onCancel={handleCancel}
-                okText='Submit'
-                okButtonProps={{ disabled: isDisabledButton }}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    >
-                    <Form.Item
-                        label="Reason"
-                        required
-                        tooltip="Reason for your decision"
-                        validateStatus={textAreaStatus}
-                        help={textAreaHelp}
-                    >
-                        <TextArea 
-                            rows={4} 
-                            // status={textAreaStatus}
-                            placeholder="Because this course is ..." 
-                            onChange={(e) => setComment(e.target.value)} />
-                    </Form.Item>
-                </Form>
-            </Modal>
-            <Card>
-                {/* <Course/> */}
-                {(courseDetails.state === 'public') ? (
-                    <div className="flex justify-end">
-                        <Space size='large'>
-                            <Button 
-                                type="primary" 
-                                danger
-                                onClick={handlePrivate}
-                            >
-                                Private the course
-                            </Button>
-                        </Space>
-                </div>
-                ) : (courseDetails.state === 'pendingReview' || courseDetails.state === 'public') ? (
-                    <div className="flex justify-end">
-                        <Space size='large'>
-                        <Button 
-                            type="primary" 
-                            danger
-                            onClick={handleRefuse}
-                        >
-                            Refuse
-                        </Button>
-                        <Button 
-                            type="primary"
-                            onClick={handleAccept}
-                        >
-                            Accept
-                        </Button>
-                        </Space>
-                    </div>
-                ) : (<></>)}
+            <Card
+                tabList={tabList}
+                activeTabKey={activeTabKey}
+                onTabChange={onTabChange}    
+            > 
+                {contentList[activeTabKey]}
             </Card>
         </>
     )
