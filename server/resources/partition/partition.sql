@@ -46,8 +46,6 @@ as partition pf_yearlyPartition
 to ([primary], fg1, fg2)
 go
 
-
-
 -- Table instructor revenue by month
 IF OBJECT_ID('instructorRevenueByMonth', 'U') IS NOT NULL
     DROP TABLE [instructorRevenueByMonth]

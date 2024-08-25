@@ -1,0 +1,352 @@
+[
+    {
+        "courseId": 1,
+        "learnerId": "LN001",
+        "learnerName": "Alice Smith",
+        "learnerScore": 7.5,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 1,
+        "learnerId": "LN002",
+        "learnerName": "Bob Jones",
+        "learnerScore": 6.0,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 1,
+        "learnerId": "LN003",
+        "learnerName": "Carol Doe",
+        "learnerScore": 8.2,
+        "completionPercentInCourse": 90.00
+    },
+    {
+        "courseId": 1,
+        "learnerId": "LN004",
+        "learnerName": "David White",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 1,
+        "learnerId": "LN005",
+        "learnerName": "Eve Jackson",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 2,
+        "learnerId": "LN006",
+        "learnerName": "Frank Martin",
+        "learnerScore": 6.8,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 2,
+        "learnerId": "LN007",
+        "learnerName": "Grace Brown",
+        "learnerScore": 8.5,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 2,
+        "learnerId": "LN008",
+        "learnerName": "Henry Taylor",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 2,
+        "learnerId": "LN009",
+        "learnerName": "Irene Morris",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 65.00
+    },
+    {
+        "courseId": 2,
+        "learnerId": "LN010",
+        "learnerName": "Jackson Lee",
+        "learnerScore": 6.0,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 3,
+        "learnerId": "LN011",
+        "learnerName": "Karen Wilson",
+        "learnerScore": 7.5,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 3,
+        "learnerId": "LN012",
+        "learnerName": "Luke Kim",
+        "learnerScore": 6.0,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 3,
+        "learnerId": "LN013",
+        "learnerName": "Maria Garcia",
+        "learnerScore": 8.0,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 3,
+        "learnerId": "LN014",
+        "learnerName": "Nathan Clark",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 3,
+        "learnerId": "LN015",
+        "learnerName": "Olivia Rodriguez",
+        "learnerScore": 6.5,
+        "completionPercentInCourse": 65.00
+    },
+    {
+        "courseId": 4,
+        "learnerId": "LN016",
+        "learnerName": "Paul Lewis",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 4,
+        "learnerId": "LN017",
+        "learnerName": "Quinn Hall",
+        "learnerScore": 6.2,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 4,
+        "learnerId": "LN018",
+        "learnerName": "Rachel Young",
+        "learnerScore": 8.1,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 4,
+        "learnerId": "LN019",
+        "learnerName": "Samuel Allen",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 4,
+        "learnerId": "LN020",
+        "learnerName": "Tina King",
+        "learnerScore": 6.8,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 5,
+        "learnerId": "LN001",
+        "learnerName": "Alice Smith",
+        "learnerScore": 7.2,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 5,
+        "learnerId": "LN002",
+        "learnerName": "Bob Jones",
+        "learnerScore": 6.5,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 5,
+        "learnerId": "LN003",
+        "learnerName": "Carol Doe",
+        "learnerScore": 8.0,
+        "completionPercentInCourse": 90.00
+    },
+    {
+        "courseId": 5,
+        "learnerId": "LN004",
+        "learnerName": "David White",
+        "learnerScore": 5.0,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 5,
+        "learnerId": "LN005",
+        "learnerName": "Eve Jackson",
+        "learnerScore": 6.9,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 6,
+        "learnerId": "LN006",
+        "learnerName": "Frank Martin",
+        "learnerScore": 8.3,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 6,
+        "learnerId": "LN007",
+        "learnerName": "Grace Brown",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 6,
+        "learnerId": "LN008",
+        "learnerName": "Henry Taylor",
+        "learnerScore": 6.5,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 6,
+        "learnerId": "LN009",
+        "learnerName": "Irene Morris",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 65.00
+    },
+    {
+        "courseId": 6,
+        "learnerId": "LN010",
+        "learnerName": "Jackson Lee",
+        "learnerScore": 6.8,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 7,
+        "learnerId": "LN011",
+        "learnerName": "Karen Wilson",
+        "learnerScore": 7.5,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 7,
+        "learnerId": "LN012",
+        "learnerName": "Luke Kim",
+        "learnerScore": 6.0,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 7,
+        "learnerId": "LN013",
+        "learnerName": "Maria Garcia",
+        "learnerScore": 8.2,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 7,
+        "learnerId": "LN014",
+        "learnerName": "Nathan Clark",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 7,
+        "learnerId": "LN015",
+        "learnerName": "Olivia Rodriguez",
+        "learnerScore": 6.7,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 8,
+        "learnerId": "LN016",
+        "learnerName": "Paul Lewis",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 8,
+        "learnerId": "LN017",
+        "learnerName": "Quinn Hall",
+        "learnerScore": 6.2,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 8,
+        "learnerId": "LN018",
+        "learnerName": "Rachel Young",
+        "learnerScore": 8.0,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 8,
+        "learnerId": "LN019",
+        "learnerName": "Samuel Allen",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 8,
+        "learnerId": "LN020",
+        "learnerName": "Tina King",
+        "learnerScore": 6.8,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 9,
+        "learnerId": "LN001",
+        "learnerName": "Alice Smith",
+        "learnerScore": 6.8,
+        "completionPercentInCourse": 75.00
+    },
+    {
+        "courseId": 9,
+        "learnerId": "LN002",
+        "learnerName": "Bob Jones",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 9,
+        "learnerId": "LN003",
+        "learnerName": "Carol Doe",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 65.00
+    },
+    {
+        "courseId": 9,
+        "learnerId": "LN004",
+        "learnerName": "David White",
+        "learnerScore": 6.0,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 9,
+        "learnerId": "LN005",
+        "learnerName": "Eve Jackson",
+        "learnerScore": 8.1,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 10,
+        "learnerId": "LN006",
+        "learnerName": "Frank Martin",
+        "learnerScore": 7.0,
+        "completionPercentInCourse": 80.00
+    },
+    {
+        "courseId": 10,
+        "learnerId": "LN007",
+        "learnerName": "Grace Brown",
+        "learnerScore": 6.5,
+        "completionPercentInCourse": 70.00
+    },
+    {
+        "courseId": 10,
+        "learnerId": "LN008",
+        "learnerName": "Henry Taylor",
+        "learnerScore": 8.1,
+        "completionPercentInCourse": 85.00
+    },
+    {
+        "courseId": 10,
+        "learnerId": "LN009",
+        "learnerName": "Irene Morris",
+        "learnerScore": 5.5,
+        "completionPercentInCourse": 60.00
+    },
+    {
+        "courseId": 10,
+        "learnerId": "LN010",
+        "learnerName": "Jackson Lee",
+        "learnerScore": 6.9,
+        "completionPercentInCourse": 75.00
+    }
+]
