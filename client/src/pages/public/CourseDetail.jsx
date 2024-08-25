@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Row,
   Col,
@@ -19,6 +20,7 @@ import {
   FormOutlined,
 } from "@ant-design/icons";
 import GuestService from "../../services/public";
+import LearnerService from "../../services/learner";
 
 const { Title, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -31,9 +33,14 @@ function formatTime(totalHours) {
 }
 
 const CourseDetail = () => {
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+  const learnerId = user?.userId;
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
   const [learnerReviews, setLearnerReviews] = useState([]);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -46,8 +53,58 @@ const CourseDetail = () => {
       }
     };
 
+    const checkEnrollment = async () => {
+      if (!learnerId) return;
+      try {
+        const enrolledCourses = await LearnerService.getLearnerEnrolledCourse(
+          learnerId
+        );
+        const enrolled = enrolledCourses.some(
+          (course) => course.id === parseInt(courseId, 10)
+        );
+        setIsEnrolled(enrolled);
+      } catch (error) {
+        message.error("Cannot check enrollment status.");
+      }
+    };
+
+    const checkCart = async () => {
+      if (!learnerId) return;
+      try {
+        const cartDetails = await LearnerService.getCartDetails(learnerId);
+        const inCart = cartDetails.some(
+          (cartItem) => cartItem.courseId === parseInt(courseId, 10)
+        );
+        setIsInCart(inCart);
+      } catch (error) {
+        message.error("Cannot check cart status.");
+      }
+    };
+
     fetchCourseData();
-  }, [courseId]);
+    checkEnrollment();
+    checkCart();
+  }, [courseId, learnerId]);
+
+  const handleEnroll = async () => {
+    if (!learnerId) {
+      navigate("/signin"); // Redirect to login page if not logged in
+    } else {
+      if (!isEnrolled && !isInCart) {
+        try {
+          await LearnerService.addCourseToCart(learnerId, courseId);
+
+          message.success("Course added to cart successfully!");
+          setIsInCart(true); // Update the cart status
+          navigate("/cart"); // Redirect to cart page
+        } catch (error) {
+          message.error(
+            "An error occurred while adding the course to the cart."
+          );
+        }
+      }
+    }
+  };
 
   if (!course) return <p>Loading...</p>;
 
@@ -59,7 +116,6 @@ const CourseDetail = () => {
         style={{ padding: 16 }}
         className="bg-white"
       >
-        {/* Video Column */}
         <Col span={12}>
           <Card
             cover={
@@ -67,7 +123,7 @@ const CourseDetail = () => {
                 <iframe
                   width="100%"
                   height="400"
-                  src={course.video}
+                  src={`http://localhost:8000/api/files/${course.video}`}
                   title="Course Video"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -86,7 +142,6 @@ const CourseDetail = () => {
           />
         </Col>
 
-        {/* Course Info Column */}
         <Col span={12}>
           <Card
             style={{
@@ -153,22 +208,24 @@ const CourseDetail = () => {
             <Button
               type="primary"
               size="large"
-              style={{
-                width: "100%",
-                userSelect: "none",
-              }}
+              style={{ width: "100%", userSelect: "none" }}
+              disabled={isEnrolled || isInCart}
+              onClick={handleEnroll} // Trigger the enrollment check
             >
-              <b>ENROLL NOW</b>
+              <b>
+                {isEnrolled
+                  ? "ENROLLED"
+                  : isInCart
+                  ? "COURSE IN CART"
+                  : "ENROLL NOW"}
+              </b>
             </Button>
           </Card>
         </Col>
-
-        {/* Tabs Section */}
         <Tabs
           defaultActiveKey="1"
           style={{ padding: 16, userSelect: "none", width: "100%" }}
         >
-          {/* Course Objectives */}
           <TabPane tab="What You Will Learn" key="1">
             <List
               dataSource={
@@ -180,6 +237,7 @@ const CourseDetail = () => {
                     <CheckCircleOutlined
                       style={{ color: "#52c41a", marginRight: 8 }}
                     />
+
                     <Paragraph style={{ userSelect: "none", margin: 0 }}>
                       {item}
                     </Paragraph>
@@ -190,10 +248,10 @@ const CourseDetail = () => {
           </TabPane>
 
           <TabPane tab="Course Content" key="2">
-            {/* Course Requirements */}
             <Title level={3} style={{ fontWeight: "bold" }}>
               Requirements
             </Title>
+
             <List
               dataSource={
                 course.courseRequirements?.map((req) => req.requirement) || []
@@ -202,22 +260,23 @@ const CourseDetail = () => {
                 <List.Item style={{ padding: 0 }}>
                   <Paragraph style={{ margin: 0 }}>
                     <span style={{ marginRight: 8 }}>•</span>
+
                     {item}
                   </Paragraph>
                 </List.Item>
               )}
             />
 
-            {/* Course Description */}
             <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
               Description
             </Title>
+
             <Paragraph>{course.description || "Course description"}</Paragraph>
 
-            {/* Intended Learners */}
             <Title level={3} style={{ fontWeight: "bold" }}>
               This Course is For:
             </Title>
+
             <List
               dataSource={
                 course.courseIntendedLearners?.map(
@@ -228,13 +287,13 @@ const CourseDetail = () => {
                 <List.Item style={{ padding: 0 }}>
                   <Paragraph style={{ margin: 0 }}>
                     <span style={{ marginRight: 8 }}>•</span>
+
                     {item}
                   </Paragraph>
                 </List.Item>
               )}
             />
 
-            {/* Course Content */}
             <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
               Course Content
             </Title>
@@ -253,11 +312,14 @@ const CourseDetail = () => {
                     <div
                       style={{
                         display: "flex",
+
                         justifyContent: "space-between",
+
                         alignItems: "center",
                       }}
                     >
                       <span>{section.sectionTitle}</span>
+
                       <span>{`${
                         section.lectures ? section.lectures.length : 0
                       } lectures • ${formatTime(
@@ -275,44 +337,59 @@ const CourseDetail = () => {
                         key={lecture.lectureId}
                         style={{
                           display: "flex",
+
                           justifyContent: "space-between",
+
                           margin: "8px 0",
+
                           alignItems: "center",
                         }}
                       >
                         <p
                           style={{
                             margin: 0,
+
                             display: "flex",
+
                             alignItems: "center",
                           }}
                         >
                           <YoutubeOutlined style={{ marginRight: 6 }} />
+
                           {lecture.lectureTitle}
                         </p>
+
                         <span>{formatTime(lecture.lectureLearnTime || 0)}</span>
                       </div>
                     ))}
+
                     {section.exercises?.map((exercise) => (
                       <div
                         key={exercise.exerciseId}
                         style={{
                           display: "flex",
+
                           justifyContent: "space-between",
+
                           margin: "8px 0",
+
                           alignItems: "center",
                         }}
                       >
                         <p
                           style={{
                             margin: 0,
+
                             display: "flex",
+
                             alignItems: "center",
                           }}
                         >
                           <FormOutlined style={{ marginRight: 6 }} />
+
                           {exercise.exerciseTitle}
                         </p>
+
                         <span>
                           {formatTime(exercise.exerciseLearnTime || 0)}
                         </span>
@@ -336,21 +413,27 @@ const CourseDetail = () => {
                     <List.Item
                       style={{
                         display: "flex",
+
                         justifyContent: "space-between",
+
                         alignItems: "center",
+
                         padding: "8px 0",
                       }}
                     >
                       <List.Item.Meta
                         avatar={
                           item.profilePhoto ? (
-                            <img
-                              src={item.profilePhoto}
+                            <img 
+                              src= {`http://localhost:8000/api/files/${item.profilePhoto}`}
                               alt={item.name || "Profile"}
                               style={{
                                 width: 40,
+
                                 height: 40,
+
                                 borderRadius: "50%",
+
                                 objectFit: "cover",
                               }}
                             />
@@ -360,6 +443,7 @@ const CourseDetail = () => {
                         description={item.review || "No review content"}
                         style={{ flex: 1 }}
                       />
+
                       <Rate
                         disabled
                         defaultValue={item.rating || 0}
