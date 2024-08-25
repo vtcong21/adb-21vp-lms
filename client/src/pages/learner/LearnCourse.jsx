@@ -13,7 +13,7 @@ const { Panel } = Collapse;
 const LearnCourse = () => {
   const { courseId } = useParams();
   const user = useSelector((state) => state.user);
-  const learnerId = "learner000021";
+  const learnerId = user?.userId;
   const [course, setCourse] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState({});

@@ -39,6 +39,36 @@ const LearnerService = {
     }
     return res;
   },
+  getOrders: async (userId) => {
+    const res = await Axios.get(`/api/learner/order`, { userId });
+    if (res.status == 400) {
+      message.error(res.message || res.error);
+    }
+    return res;
+  },
+  getOrderDetails: async (userId, orderId) => {
+    const res = await Axios.get(`/api/learner/order/details`, { userId, orderId});
+    if (res.status == 400) {
+      message.error(res.message || res.error);
+    }
+    return res;
+  },
+
+  getPaymentCards: async (userId) => {
+    const res = await Axios.get(`/api/learner/payment-cards`, { userId });
+    if (res.status == 400) {
+      message.error(res.message || res.error);
+    }
+    return res;
+
+  },
+  removeCorseFromCart: async (userId, courseId) => {
+    const res = await Axios.delete(`/api/learner/cart/course`, { userId, courseId });
+    if (res.status == 400 || res.status === 404) {
+      message.error(res.message || res.error);
+    }
+    return res;
+  },
   addCourseToCart: async (userId, courseId) => {
     const res = await Axios.post("/api/learner/cart/course", { userId, courseId });
     if (res.status == 400) {
