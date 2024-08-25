@@ -2,10 +2,8 @@ import { lazy } from "react";
 import AdminLayout from "../components/layout/AdminLayout";
 
 const AdminPage = lazy(() => import("~/pages/admin"));
-const Revenue = lazy(() => import("../pages/admin/CourseRevenue"));
 const AdminCourses = lazy(() => import("../pages/admin/AdminCourses"));
 const ReviewCourse = lazy(() => import("../pages/admin/ReviewCourse"));
-const LearnerList = lazy(() => import("../pages/admin/LearnerList"));
 
 const AdminRouter = [
     {
@@ -27,7 +25,7 @@ const AdminRouter = [
       path: "/admin/instructors",
       component: AdminCourses,
       Layout: AdminLayout,
-  },
+    },
     {
       path: "/admin/instructor/:instructorId",
       component: ReviewCourse,

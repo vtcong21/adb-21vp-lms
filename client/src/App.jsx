@@ -26,7 +26,7 @@ function App() {
       case "INS":
         return InstructorRouter;
       default:
-        return AdminRouter;
+        return PublicRouter;
     }
   };
 

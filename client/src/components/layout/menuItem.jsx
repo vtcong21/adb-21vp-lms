@@ -22,6 +22,16 @@ const menuInstructor = [
     icon: <BsCalendar2PlusFill size={30} />,
     path: "/profile",
   },
+  {
+    name: "Courses",
+    icon: < IoBook size={22} />,
+    path: "/instructor/courses",
+  },
+  {
+    name: "Revenue",
+    icon: < IoStatsChart size={22} />,
+    path: "/instructor/revenue",
+  },
 ];
 
 const menuAdmin = [
@@ -34,11 +44,6 @@ const menuAdmin = [
     name: "Courses",
     icon: < IoBook size={22} />,
     path: "/admin/courses",
-  },
-  {
-    name: "Revenue",
-    icon: < IoStatsChart size={22} />,
-    path: "/admin/revenue",
   },
 ];
 export { menuInstructor, menuAdmin};

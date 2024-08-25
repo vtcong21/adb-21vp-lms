@@ -7,7 +7,7 @@ import LearnerList from "../../components/course/LearnerList";
 import Revenue from "../../components/course/CourseRevenue";
 import CourseDetail from "../public/CourseDetail"
 
-const ReviewCourse = () => {
+const ViewCourse = () => {
     const [form] = useForm();
     const [comment, setComment] = useState('');
     const [reviewState, setReviewState] = useState('');
@@ -65,65 +65,6 @@ const ReviewCourse = () => {
         course_details: 
         <>
             <CourseDetail />
-            <Modal 
-                title='Submit Response' 
-                open={isModalOpen} 
-                onOk={handleSubmit} 
-                onCancel={handleCancel}
-                okText='Submit'
-                okButtonProps={{ disabled: isDisabledButton }}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    >
-                    <Form.Item
-                        label="Reason"
-                        required
-                        tooltip="Reason for your decision"
-                        validateStatus={textAreaStatus}
-                        help={textAreaHelp}
-                    >
-                        <TextArea 
-                            rows={4} 
-                            // status={textAreaStatus}
-                            placeholder="Because this course is ..." 
-                            onChange={(e) => setComment(e.target.value)} />
-                    </Form.Item>
-                </Form>
-            </Modal>
-            {/* <Course/> */}
-            {(courseDetails.state === 'public') ? (
-                    <div className="flex justify-end">
-                        <Space size='large'>
-                            <Button 
-                                type="primary" 
-                                danger
-                                onClick={handlePrivate}
-                            >
-                                Private the course
-                            </Button>
-                        </Space>
-                </div>
-                ) : (courseDetails.state === 'pendingReview' || courseDetails.state === 'public') ? (
-                    <div className="flex justify-end">
-                        <Space size='large'>
-                        <Button 
-                            type="primary" 
-                            danger
-                            onClick={handleRefuse}
-                        >
-                            Refuse
-                        </Button>
-                        <Button 
-                            type="primary"
-                            onClick={handleAccept}
-                        >
-                            Accept
-                        </Button>
-                        </Space>
-                    </div>
-                ) : (<></>)}
         </>,
         course_learners:
         <>
@@ -195,4 +136,4 @@ const ReviewCourse = () => {
     )
 }
 
-export default ReviewCourse;
+export default ViewCourse;

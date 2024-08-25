@@ -2,6 +2,8 @@ import { Table, Space, Progress, Input, Button, Typography, Card } from "antd";
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import React, { useState, useEffect, useRef } from "react";
+import AdminService from "../../services/admin";
+import { useParams } from "react-router-dom";
 
 // {
 //     "courseId": 1,
@@ -36,6 +38,7 @@ const course = {
 };
 
 const LearnerList = () => {
+    const {courseId} = useParams();
     const [learners, setLearners] = useState([]);
 
     // search button
@@ -146,21 +149,18 @@ const LearnerList = () => {
         ),
     });
     useEffect(() => {
-        // const fetchLearnerList = async ( searchText, state ) => {
-        //     try {
-        //         const res = await OnlineService.getCourseByName( searchText , state )
-        //         const resWithState = await res.map((data, row) => ({
-        //         ...data,
-        //         key: row,
-        //         state: state
-        //         }));
-        //         setCourse(course => [...course, ...resWithState])
-        //     } catch (error) {
-        //         message.error("Cannot load course revenue data.");
-        //     }
-        // };
-        // fetch
-    })
+        const fetchLearnerList = async () => {
+            try {
+                console.log(courseId);
+                const res = await AdminService.getLearnerInCourse( courseId );
+                console.log(res);
+                setLearners(res);
+            } catch (error) {
+                message.error("Cannot load course revenue data.");
+            }
+        };
+        fetchLearnerList();
+    }, []);
     // table
     const columns = [
         {
@@ -186,13 +186,6 @@ const LearnerList = () => {
             render: (value) => <Progress percent={value} />
         },
       ];
-    
-    useEffect(() => {
-        fetch('./json/tmp_learnerEnrollCourse.json')
-        .then(response => response.json())
-        .then(data => setLearners(data))
-        .catch(error => console.error('Error displaying Admin/Instructor\'s Course Learner list: ', error))
-    }, [])
 
     return (
         <>
