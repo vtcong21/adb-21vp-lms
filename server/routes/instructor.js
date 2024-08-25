@@ -1,5 +1,5 @@
 import express from "express";
-import { isAdmin, isAdminOrInstructor, isInstructor, requireSignin } from "../middlewares";
+import { isAdmin, isAdminOrInstructor, isInstructor, requireSignin } from "../middlewares/index.js";
 
 
 const router = express.Router();
@@ -12,7 +12,7 @@ import {
     getAunnualRevenueForInstructor,
     sendTaxForm,
     updateInstructorPaymentCard
-} from "../controllers/instructor";
+} from "../controllers/instructor.js";
 
 router.get("/instructor/profile",
     getInstructorProfile);

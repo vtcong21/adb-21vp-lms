@@ -5,7 +5,7 @@ import {
   isAdminOrInstructor,
   isInstructor,
   requireSignin,
-} from "../middlewares";
+} from "../middlewares/index.js";
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ import {
   getAdminResponseInACourse,
   getLearnerInCourse,
   getTopHotCategories
-} from "../controllers/course";
+} from "../controllers/course.js";
 
 router.get("/course/category", getCourseByCategoryId);
 router.get("/course/name", getCourseByName);

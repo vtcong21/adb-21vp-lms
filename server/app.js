@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { readdirSync } from "fs";
 import csrf from "csurf";
 import cookieParser from "cookie-parser";
-const morgan = require("morgan");
-require("dotenv").config();
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import multer from "multer";
+
+dotenv.config();
 
 // const csrfProtection = csrf({ cookie: true });
 
@@ -16,25 +18,45 @@ const app = express();
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders:[
-    "Content-Type",
-    "Authorization, Origin, X-Requested-With, Accept",
-    "X-HTTP-Method-Override",
-    "x-access-token",
-    "x-custom-header"
-  ]
+  allowedHeaders: "*"
 }));
 app.use(express.json({ limit: "200mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
-//import learnerRouter from "./routes/learner";
+import authRouter from "./routes/auth.js";
+import learnerRouter from "./routes/learner.js";
+import courseRouter from "./routes/course.js";
+import couponRouter from "./routes/coupon.js";
+import instructorRouter from "./routes/instructor.js";
+import userRouter from "./routes/user.js";
+import uploadRouter from "./routes/upload.js";
 // route
-readdirSync("./routes").forEach((file) => {
-    const route = require(`./routes/${file}`);
-    app.use("/api", route.default || route);
-  });
+app.use('/api', authRouter);
+app.use('/api', learnerRouter);
+app.use('/api', courseRouter);
+app.use('/api', couponRouter);
+app.use('/api', instructorRouter);
+app.use('/api', userRouter);
+app.use('/api', uploadRouter);
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+      
+      switch (err.code) {
+          case 'LIMIT_FILE_SIZE':
+              return res.status(400).json({ error: 'File is too large. Please upload a smaller file.' });
+          case 'LIMIT_UNEXPECTED_FILE':
+              return res.status(400).json({ error: 'Unexpected file type. Please upload the correct file type.' });
+          default:
+              return res.status(400).json({ error: `Multer error: ${err.message}` });
+      }
+  } else if (err) {
+      
+      return res.status(400).json({ error: err.message });
+  }
+  next();
+});
 
 // // csrf
 // app.use(csrfProtection);

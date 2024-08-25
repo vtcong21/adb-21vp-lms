@@ -1,155 +1,186 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Row, Col, Table, Divider, Statistic, Button, Typography, Modal, Form, Select, message } from 'antd';
+import { Layout, Row, Col, Button, Typography, Divider, Statistic, message } from 'antd';
 import { CreditCardOutlined, DeleteOutlined, GiftOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
 import LearnerService from '../../services/learner';
+import PublicService from '../../services/public';
+
+import CartTable from "../../components/cart/CartTable";
+import CouponModal from "../../components/cart/CouponModal";
+import PaymentModal from "../../components/cart/PaymentModal";
 
 const { Content } = Layout;
 const { Title } = Typography;
-const { Option } = Select;
 
+import { useSelector } from 'react-redux';
 const Cart = () => {
-  const user = useSelector((state) => state.user); 
+  const user = useSelector((state) => state.user);
   const [cartData, setCartData] = useState([]);
   const [total, setTotal] = useState(0);
-  const [originalTotal, setOriginalTotal] = useState(0); 
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [originalTotal, setOriginalTotal] = useState(0);
+  const [isCouponModalVisible, setIsCouponModalVisible] = useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [coupon, setCoupon] = useState(null);
-  const [appliedCoupon, setAppliedCoupon] = useState(null); 
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [paymentCards, setPaymentCards] = useState([]);
+  const [selectedCard, setSelectedCard] = useState(null);
 
   useEffect(() => {
-    LearnerService.getCartDetails()
+    LearnerService.getCartDetails(user.userId)
       .then((data) => {
         setCartData(data);
         const totalPrice = data.reduce((acc, item) => acc + item.price, 0);
         setOriginalTotal(totalPrice);
         setTotal(totalPrice);
       })
-      .catch(error => {
-        console.error('Failed to fetch cart details:', error);
-      });
+      .catch(error => console.error('Failed to fetch cart details:', error));
+
+    PublicService.getCoupons(true)
+      .then((data) => setAvailableCoupons(data))
+      .catch(error => console.error('Failed to fetch coupons:', error));
   }, [user.userId]);
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-      render: (text) => `$${text.toFixed(2)}`,
-    },
-  ];
-
-  const showModal = () => {
-    setIsModalVisible(true);
+  const handleRemoveCourse = (courseId) => {
+    LearnerService.removeCorseFromCart(user.userId, courseId)
+      .then(() => {
+        // Update cart data locally after removal
+        const updatedCartData = cartData.filter(item => item.courseId !== courseId);
+        const totalPrice = updatedCartData.reduce((acc, item) => acc + item.price, 0);
+        setCartData(updatedCartData);
+        setOriginalTotal(totalPrice);
+        setTotal(totalPrice);
+      })
+      .catch((error) => {
+        console.error('Failed to remove course from cart:', error);
+        message.error('Failed to remove course from cart');
+      });
   };
 
+  const showCouponModal = () => setIsCouponModalVisible(true);
   const handleApplyCoupon = () => {
     if (coupon) {
-      const discountPercent = parseFloat(coupon) / 100;
-      const discountedTotal = originalTotal - (originalTotal * discountPercent);
+      const selectedCoupon = availableCoupons.find(c => c.code === coupon);
+      if (selectedCoupon) {
+        const discountPercent = selectedCoupon.discountPercent / 100;
+        const discountedTotal = originalTotal - (originalTotal * discountPercent);
 
-      setTotal(discountedTotal);
-      setAppliedCoupon(coupon);
-      message.success('Coupon applied successfully');
-      setIsModalVisible(false);
+        setTotal(discountedTotal);
+        setAppliedCoupon(coupon);
+        message.success('Coupon applied successfully');
+        setIsCouponModalVisible(false);
+      }
     } else {
       message.error('Please select a coupon');
     }
   };
-
   const handleCancelCoupon = () => {
     setTotal(originalTotal);
     setAppliedCoupon(null);
     message.info('Coupon removed');
   };
+  const handleCancelCouponModal = () => setIsCouponModalVisible(false);
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  const showPaymentModal = () => {
+    LearnerService.getPaymentCards(user.userId)
+      .then((data) => {
+        setPaymentCards(data);
+        setIsPaymentModalVisible(true);
+      })
+      .catch(error => {
+        console.error('Failed to fetch payment cards:', error);
+        message.error('Failed to load payment cards');
+      });
   };
+  const handlePayNow = () => {
+    if (selectedCard) {
+      message.success(`Payment processed with card ending in ${selectedCard.number.slice(-4)}`);
+      setIsPaymentModalVisible(false);
+      // Continue with payment processing logic using the selected card
+    } else {
+      message.error('Please select a payment card');
+    }
+  };
+  const handleCancelPaymentModal = () => setIsPaymentModalVisible(false);
 
   return (
-    <Layout style={{ padding: '24px', backgroundColor: '#fff' }}>
-      <Content className="content-wrapper">
-        <Title level={2}>Your Shopping Cart</Title>
-        
-        <Row justify="end">
-          <Col>
-            <Button type="danger">
-              <DeleteOutlined />
-              &nbsp; Delete Cart
-            </Button>
-          </Col>
-        </Row>
-        
-        <Divider />
-
-        <Table columns={columns} dataSource={cartData} pagination={false} />
-        
-        <Row justify="end" style={{ marginTop: 16 }}>
-          <Col>
-            <Button type="default" onClick={showModal} icon={<GiftOutlined />}>
-              Apply Coupon
-            </Button>
-            {appliedCoupon && (
-              <Button
-                type="link"
-                onClick={handleCancelCoupon}
-                style={{ marginLeft: 16, color: 'red' }}
-                icon={<CloseCircleOutlined />}
-              >
-                Remove Coupon
-              </Button>
-            )}
-            <Divider />
-            {originalTotal > total && (
-              <div>
-                <div style={{ textDecoration: 'line-through', color: 'gray' }}>
-                  Original Price: ${originalTotal.toFixed(2)}
+    // <Layout style={{ padding: '24px', backgroundColor: '#fff' }}>
+    <div className="bg-white p-4 mx-4 sm:px-15 md:px-25 lg:px-40 shadow-xl rounded-2xl pb-3">
+      {/* <Content className="content-wrapper"> */}
+      <Title level={2}>Your Shopping Cart</Title>
+      <Divider />
+      <CartTable
+        cartData={cartData}
+        onRemoveCourse={handleRemoveCourse}
+      />
+      {cartData.length >0 &&
+        (<>
+          <Row justify="end" style={{ marginTop: 16 }}>
+            <Col>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  {originalTotal > total && (
+                    <div>
+                      <div style={{ textDecoration: 'line-through', color: 'gray' }}>
+                        Original Price: ${originalTotal.toFixed(2)}
+                      </div>
+                      <div style={{ color: 'red' }}>
+                        Discounted Price: ${total.toFixed(2)}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div style={{ color: 'red' }}>
-                  Discounted Price: ${total.toFixed(2)}
+                <div>
+                  <Statistic
+                    title="Total (tax incl.)"
+                    value={`$${total.toFixed(2)}`}
+                    precision={2}
+                  />
                 </div>
               </div>
-            )}
-            <Statistic
-              title="Total (tax incl.)"
-              value={`$${total.toFixed(2)}`}
-              precision={2}
-              style={{ marginTop: 16 }}
-            />
-            <Button style={{ marginTop: 16 }} type="primary">
-              Pay Now <CreditCardOutlined />
-            </Button>
-          </Col>
-        </Row>
-      </Content>
+              {appliedCoupon && (
+                <Button
+                  type="link"
+                  onClick={handleCancelCoupon}
+                  style={{ marginLeft: 16, color: 'red' }}
+                  icon={<CloseCircleOutlined />}
+                >
+                  Remove Coupon
+                </Button>
+              )}
+              <Button type="default" onClick={showCouponModal} icon={<GiftOutlined />}>
+                Apply Coupon
+              </Button>
 
-      <Modal
-        title="Apply Coupon"
-        visible={isModalVisible}
-        onOk={handleApplyCoupon}
-        onCancel={handleCancel}
-      >
-        <Form layout="vertical">
-          <Form.Item label="Select Coupon">
-            <Select
-              placeholder="Select a coupon"
-              onChange={value => setCoupon(value)}
-            >
-              <Option value="10">10% Off</Option>
-              <Option value="20">20% Off</Option>
-              <Option value="30">30% Off</Option>
-              
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Layout>
+              <Row justify="end" style={{ marginTop: 16 }}>
+                <Col>
+                  <Button type="primary" onClick={showPaymentModal}>
+                    Pay Now <CreditCardOutlined />
+                  </Button>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </>)
+      }
+      {/* </Content> */}
+
+      <CouponModal
+        isVisible={isCouponModalVisible}
+        availableCoupons={availableCoupons}
+        setCoupon={setCoupon}
+        handleApplyCoupon={handleApplyCoupon}
+        handleCancel={handleCancelCouponModal}
+      />
+
+      <PaymentModal
+        isVisible={isPaymentModalVisible}
+        paymentCards={paymentCards}
+        setSelectedCard={setSelectedCard}
+        handlePayNow={handlePayNow}
+        handleCancel={handleCancelPaymentModal}
+      />
+    </div>
+    // </Layout>
   );
 };
 

@@ -8,6 +8,7 @@ const Axios = {
       if (res.status === 500) {
         message.error("Thất bại");
       }
+      
       return res.data;
     } catch (err) {
       console.log(err);
