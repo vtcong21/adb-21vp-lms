@@ -1,19 +1,20 @@
-import React from 'react';
-import { Card, Rate, Carousel } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Rate, Carousel, message } from 'antd';
 import 'antd/dist/reset.css';
 import '../../assets/styles/carousel.css'
+import OnlineService from '../../services/public/'
 
-const top50Courses = [
-    { title: 'Python for Beginners', rating: 4.5, students: 12345 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
-    // Add more courses here
-  ];
+// const top50Courses = [
+//     { title: 'Python for Beginners', rating: 4.5, students: 12345 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     { title: 'Web Development Bootcamp', rating: 4.7, students: 23456 },
+//     // Add more courses here
+//   ];
 
 const chunkArray = (array, size) => {
     return array.reduce((result, item, index) => {
@@ -27,6 +28,28 @@ const chunkArray = (array, size) => {
 };
 
 const HomePage = () => {
+    const [top50Courses, setTop50Courses] = useState([]);
+
+    useEffect(() => {
+        const fetchCourseData = async () => {
+            try {
+                const res = await OnlineService.getTop50Courses();
+                console.log(res);
+                const resFormatted = await res.map((data, row) => ({
+                ...data,
+                key: row,
+                rating: Math.min(5, Math.floor(Math.random() * (5 - 3 + 1)) + 3 + Math.floor(Math.random() * (9 - 0 + 1)) / 10),
+                students: Math.floor(Math.random() * (10000 - 100 + 1)) + 100 
+                }));
+                setTop50Courses(resFormatted);
+            } catch (error) {
+                message.error("Cannot load course data." + error);
+            }
+            };
+    
+            fetchCourseData();
+    }, []);
+
     const coursesInChunks = chunkArray(top50Courses, 3);
     return (
         <Card>
@@ -57,7 +80,7 @@ const HomePage = () => {
                                 description={`Rating: ${course.rating}`}
                                 />
                                 <div className="mt-2">
-                                <Rate disabled defaultValue={course.rating} />
+                                <Rate disabled value={course.rating} />
                                 <p className="text-gray-600">{course.students.toLocaleString()} students</p>
                                 </div>
                             </Card>

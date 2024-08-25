@@ -36,7 +36,15 @@ const OnlineService = {
     }
     return res;
   },
-
+  getTop50Courses: async () => {
+    const res = await Axios.get("/api/course/top-50", {});
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+    }
+    return res;
+  },
   getCourseByName: async (courseName, courseState) => {
     const res = await Axios.get("/api/course/name", {
       courseName,
@@ -59,6 +67,14 @@ const OnlineService = {
     }
     return res;
   },
-
+  getFile: async (fileName) => {
+    const res = await Axios.get(`/api/files/${fileName}`);
+    if (res && res.response) {
+      if (res.response.status === 400) {
+        message.error(res.response.data.error);
+      }
+    }
+    return res;
+  },
 };
 export default OnlineService;
