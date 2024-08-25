@@ -1,13 +1,213 @@
 import "../../assets/styles/instructor.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input, Button, Divider, Form, Select, Upload, message, Anchor } from "antd";
-import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import InstructorService from '../../services/instructor';
+import { useSelector } from 'react-redux';
 
 const placeholderStyle = {
   fontSize: '18px', 
   color: 'black',
 };
+
+const categories = [
+  { id: 8, name: 'Business & Management' },
+  { id: 3, name: 'Cloud Computing & IoT' },
+  { id: 4, name: 'Cybersecurity' },
+  { id: 5, name: 'Data Engineering & Analytics' },
+  { id: 1, name: 'Data Science' },
+  { id: 9, name: 'Economics' },
+  { id: 11, name: 'Education' },
+  { id: 13, name: 'Environmental Science' },
+  { id: 12, name: 'Health and Wellness' },
+  { id: 2, name: 'Machine Learning & AI' },
+  { id: 7, name: 'Networking & Systems' },
+  { id: 14, name: 'Psychology' },
+  { id: 10, name: 'Sociology' },
+  { id: 6, name: 'Software Development & Programming' }
+];
+
+
+const subcategories = [
+  { id: 15, idParent: 14, name: 'Abnormal Psychology' },
+  { id: 10, idParent: 11, name: 'Adult Education' },
+  { id: 12, idParent: 2, name: 'Advanced Computational Techniques' },
+  { id: 6, idParent: 6, name: 'Advanced Programming' },
+  { id: 2, idParent: 13, name: 'Agricultural Analytics' },
+  { id: 18, idParent: 9, name: 'Agricultural Economics' },
+  { id: 10, idParent: 2, name: 'AI in Healthcare' },
+  { id: 13, idParent: 2, name: 'AI in Robotics' },
+  { id: 9, idParent: 2, name: 'AI-driven Decision Making' },
+  { id: 7, idParent: 6, name: 'Algorithm Design' },
+  { id: 2, idParent: 2, name: 'Artificial Intelligence' },
+  { id: 6, idParent: 2, name: 'Artificial Neural Networks' },
+  { id: 1, idParent: 6, name: 'Augmented Reality' },
+  { id: 9, idParent: 9, name: 'Behavioral Economics' },
+  { id: 4, idParent: 14, name: 'Behavioral Psychology' },
+  { id: 2, idParent: 5, name: 'Big Data' },
+  { id: 1, idParent: 4, name: 'Bioinformatics' },
+  { id: 3, idParent: 6, name: 'Blockchain' },
+  { id: 1, idParent: 8, name: 'Business Analysis' },
+  { id: 6, idParent: 5, name: 'Business Intelligence' },
+  { id: 4, idParent: 8, name: 'Business Process Management' },
+  { id: 4, idParent: 13, name: 'Climate Change' },
+  { id: 3, idParent: 14, name: 'Clinical Psychology' },
+  { id: 12, idParent: 12, name: 'Clinical Research' },
+  { id: 1, idParent: 3, name: 'Cloud Computing' },
+  { id: 2, idParent: 3, name: 'Cloud Security' },
+  { id: 3, idParent: 3, name: 'Cloud Storage Solutions' },
+  { id: 1, idParent: 14, name: 'Cognitive Psychology' },
+  { id: 25, idParent: 10, name: 'Community Studies' },
+  { id: 10, idParent: 13, name: 'Conservation Biology' },
+  { id: 2, idParent: 9, name: 'Content Management Systems' },
+  { id: 14, idParent: 14, name: 'Counseling Psychology' },
+  { id: 7, idParent: 10, name: 'Criminal Sociology' },
+  { id: 5, idParent: 10, name: 'Cultural Sociology' },
+  { id: 3, idParent: 11, name: 'Curriculum Development' },
+  { id: 5, idParent: 8, name: 'Customer Relationship Management' },
+  { id: 2, idParent: 4, name: 'Cybersecurity' },
+  { id: 1, idParent: 1, name: 'Data Analysis' },
+  { id: 2, idParent: 1, name: 'Data Analytics' },
+  { id: 5, idParent: 1, name: 'Data Engineering' },
+  { id: 8, idParent: 1, name: 'Data Governance' },
+  { id: 4, idParent: 1, name: 'Data Mining' },
+  { id: 7, idParent: 1, name: 'Data Privacy' },
+  { id: 6, idParent: 1, name: 'Data Science' },
+  { id: 3, idParent: 1, name: 'Data Visualization' },
+  { id: 9, idParent: 1, name: 'Data Warehousing' },
+  { id: 5, idParent: 7, name: 'Database Management' },
+  { id: 5, idParent: 4, name: 'Database Security' },
+  { id: 3, idParent: 2, name: 'Deep Learning' },
+  { id: 8, idParent: 9, name: 'Development Economics' },
+  { id: 2, idParent: 14, name: 'Developmental Psychology' },
+  { id: 17, idParent: 10, name: 'Deviance and Social Control' },
+  { id: 3, idParent: 9, name: 'Digital Marketing' },
+  { id: 31, idParent: 10, name: 'Digital Sociology' },
+  { id: 8, idParent: 11, name: 'Early Childhood Education' },
+  { id: 6, idParent: 13, name: 'Ecology' },
+  { id: 4, idParent: 9, name: 'E-commerce Analytics' },
+  { id: 15, idParent: 9, name: 'Econometrics' },
+  { id: 21, idParent: 10, name: 'Economic Sociology' },
+  { id: 5, idParent: 9, name: 'Economic Theory' },
+  { id: 6, idParent: 11, name: 'Education Policy' },
+  { id: 1, idParent: 11, name: 'Educational Data Mining' },
+  { id: 11, idParent: 11, name: 'Educational Leadership' },
+  { id: 2, idParent: 11, name: 'Educational Psychology' },
+  { id: 1, idParent: 13, name: 'Energy Management' },
+  { id: 13, idParent: 13, name: 'Environmental Chemistry' },
+  { id: 11, idParent: 1, name: 'Environmental Data Analysis' },
+  { id: 14, idParent: 9, name: 'Environmental Economics' },
+  { id: 7, idParent: 13, name: 'Environmental Policy' },
+  { id: 17, idParent: 14, name: 'Environmental Psychology' },
+  { id: 3, idParent: 13, name: 'Environmental Science' },
+  { id: 2, idParent: 12, name: 'Epidemiology' },
+  { id: 11, idParent: 2, name: 'Ethical AI Practices' },
+  { id: 3, idParent: 4, name: 'Ethical Hacking' },
+  { id: 15, idParent: 10, name: 'Ethnography' },
+  { id: 16, idParent: 14, name: 'Experimental Psychology' },
+  { id: 11, idParent: 10, name: 'Family Sociology' },
+  { id: 7, idParent: 5, name: 'Financial Analytics' },
+  { id: 11, idParent: 9, name: 'Financial Economics' },
+  { id: 8, idParent: 5, name: 'Financial Modeling' },
+  { id: 8, idParent: 14, name: 'Forensic Psychology' },
+  { id: 8, idParent: 2, name: 'Fuzzy Logic' },
+  { id: 10, idParent: 10, name: 'Gender Studies' },
+  { id: 7, idParent: 2, name: 'Genetic Algorithms' },
+  { id: 4, idParent: 12, name: 'Global Health' },
+  { id: 13, idParent: 10, name: 'Globalization Studies' },
+  { id: 26, idParent: 10, name: 'Health and Society' },
+  { id: 10, idParent: 1, name: 'Health Data Analysis' },
+  { id: 17, idParent: 9, name: 'Health Economics' },
+  { id: 11, idParent: 12, name: 'Health Informatics' },
+  { id: 3, idParent: 12, name: 'Health Policy' },
+  { id: 7, idParent: 12, name: 'Health Promotion' },
+  { id: 9, idParent: 14, name: 'Health Psychology' },
+  { id: 9, idParent: 12, name: 'Healthcare Ethics' },
+  { id: 6, idParent: 12, name: 'Healthcare Management' },
+  { id: 13, idParent: 12, name: 'Healthcare Technology' },
+  { id: 7, idParent: 11, name: 'Higher Education' },
+  { id: 16, idParent: 9, name: 'Industrial Organization' },
+  { id: 11, idParent: 14, name: 'Industrial-Organizational Psychology' },
+  { id: 6, idParent: 4, name: 'Information Retrieval' },
+  { id: 4, idParent: 11, name: 'Instructional Design' },
+  { id: 10, idParent: 9, name: 'International Trade' },
+  { id: 5, idParent: 3, name: 'IoT Applications' },
+  { id: 4, idParent: 3, name: 'IoT Security' },
+  { id: 3, idParent: 7, name: 'IT Infrastructure' },
+  { id: 13, idParent: 9, name: 'Labor Economics' },
+  { id: 6, idParent: 8, name: 'Logistics Management' },
+  { id: 1, idParent: 2, name: 'Machine Learning' },
+  { id: 12, idParent: 6, name: 'Machine Vision' },
+  { id: 6, idParent: 9, name: 'Macroeconomics' },
+  { id: 11, idParent: 13, name: 'Marine Biology' },
+  { id: 14, idParent: 12, name: 'Medical Sociology' },
+  { id: 5, idParent: 12, name: 'Mental Health' },
+  { id: 7, idParent: 9, name: 'Microeconomics' },
+  { id: 19, idParent: 10, name: 'Migration Studies' },
+  { id: 9, idParent: 13, name: 'Natural Resource Management' },
+  { id: 4, idParent: 4, name: 'Network Security' },
+  { id: 1, idParent: 7, name: 'Networking' },
+  { id: 5, idParent: 14, name: 'Neuroscience' },
+  { id: 8, idParent: 12, name: 'Nutrition and Wellness' },
+  { id: 8, idParent: 6, name: 'Optimization' },
+  { id: 9, idParent: 6, name: 'Optimization Techniques' },
+  { id: 5, idParent: 11, name: 'Pedagogical Methods' },
+  { id: 12, idParent: 14, name: 'Personality Psychology' },
+  { id: 10, idParent: 12, name: 'Pharmaceutical Sciences' },
+  { id: 8, idParent: 10, name: 'Political Sociology' },
+  { id: 10, idParent: 14, name: 'Positive Psychology' },
+  { id: 4, idParent: 2, name: 'Predictive Analytics' },
+  { id: 3, idParent: 5, name: 'Predictive Modeling' },
+  { id: 5, idParent: 6, name: 'Programming' },
+  { id: 2, idParent: 8, name: 'Project Management' },
+  { id: 6, idParent: 14, name: 'Psychological Assessment' },
+  { id: 7, idParent: 14, name: 'Psychotherapy' },
+  { id: 12, idParent: 9, name: 'Public Economics' },
+  { id: 1, idParent: 12, name: 'Public Health' },
+  { id: 5, idParent: 5, name: 'Quantitative Analysis' },
+  { id: 29, idParent: 10, name: 'Race and Ethnicity Studies' },
+  { id: 9, idParent: 3, name: 'Real-Time Data Processing' },
+  { id: 15, idParent: 12, name: 'Rehabilitation Sciences' },
+  { id: 5, idParent: 2, name: 'Reinforcement Learning' },
+  { id: 8, idParent: 13, name: 'Renewable Energy' },
+  { id: 1, idParent: 9, name: 'Retail Analytics' },
+  { id: 1, idParent: 10, name: 'Sentiment Analysis' },
+  { id: 6, idParent: 3, name: 'Smart Cities' },
+  { id: 7, idParent: 3, name: 'Smart Technologies' },
+  { id: 30, idParent: 10, name: 'Social Capital' },
+  { id: 14, idParent: 10, name: 'Social Change' },
+  { id: 27, idParent: 10, name: 'Social Impact Assessment' },
+  { id: 24, idParent: 10, name: 'Social Inequality' },
+  { id: 20, idParent: 10, name: 'Social Movements' },
+  { id: 2, idParent: 10, name: 'Social Network Analysis' },
+  { id: 16, idParent: 10, name: 'Social Networks' },
+  { id: 18, idParent: 10, name: 'Social Policy' },
+  { id: 22, idParent: 10, name: 'Social Psychology' },
+  { id: 9, idParent: 10, name: 'Social Stratification' },
+  { id: 3, idParent: 10, name: 'Social Theory' },
+  { id: 4, idParent: 10, name: 'Sociological Research Methods' },
+  { id: 12, idParent: 10, name: 'Sociology of Education' },
+  { id: 23, idParent: 10, name: 'Sociology of Religion' },
+  { id: 32, idParent: 10, name: 'Sociology of the Family' },
+  { id: 28, idParent: 10, name: 'Sociology of Work' },
+  { id: 4, idParent: 6, name: 'Software Development' },
+  { id: 1, idParent: 5, name: 'Spatial Data Analysis' },
+  { id: 9, idParent: 11, name: 'Special Education' },
+  { id: 13, idParent: 14, name: 'Sports Psychology' },
+  { id: 4, idParent: 5, name: 'Statistical Methods' },
+  { id: 3, idParent: 8, name: 'Supply Chain Management' },
+  { id: 5, idParent: 13, name: 'Sustainability Studies' },
+  { id: 4, idParent: 7, name: 'System Integration' },
+  { id: 2, idParent: 7, name: 'Systems Analysis' },
+  { id: 10, idParent: 6, name: 'Text Mining' },
+  { id: 11, idParent: 6, name: 'Time Series Analysis' },
+  { id: 12, idParent: 13, name: 'Urban Ecology' },
+  { id: 19, idParent: 9, name: 'Urban Economics' },
+  { id: 6, idParent: 10, name: 'Urban Sociology' },
+  { id: 2, idParent: 6, name: 'Virtual Reality' },
+  { id: 8, idParent: 3, name: 'Virtualization Technologies' }
+];
+
 
 const handleClick = (e, link) => {
   e.preventDefault();
@@ -68,14 +268,14 @@ const IntendedLearners = ({ form }) => {
         {learners.map((learner, index) => (
           <Form.Item
             key={index}
-            name={`learner-${index}`}
+            name={`learners[${index}]`}  // Đảm bảo `name` đúng với cách truy xuất dữ liệu
             rules={[{ required: true, message: 'Please enter a description for the learner.' }]}
           >
             <div className="flex items-center">
               <Input
                 value={learner}
                 placeholder={`Learner description ${index + 1}`}
-                style={placeholderStyle}
+                style={{ placeholderStyle }}
                 onChange={(e) => handleLearnerChange(index, e.target.value)}
                 className="flex-grow mr-2 border-black"
               />
@@ -231,7 +431,7 @@ const CourseObjectives = ({ form }) => {
 
 const { Option } = Select;
 
-const Curriculum = () => {
+const Curriculum = ({ form }) => {
   const [sections, setSections] = useState([{ title: '', lessons: [] }]);
 
   const addSection = () => {
@@ -367,9 +567,19 @@ const Curriculum = () => {
 
 const { TextArea } = Input;
 
-const CourseLandingPage = () => {
-  const [form] = Form.useForm();
-  
+const CourseLandingPage = ({ form }) => {
+
+  const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+  const [isSubcategoryDisabled, setIsSubcategoryDisabled] = useState(true);
+
+  const handleCategoryChange = (categoryId) => {
+    const filteredSubcategories = subcategories.filter(
+      (subcat) => subcat.idParent === categoryId
+    );
+    setSubcategoryOptions(filteredSubcategories);
+    setIsSubcategoryDisabled(false); // Enable subcategory dropdown
+  };
+
   const handleFormSubmit = (values) => {
     console.log('Form Submitted:', values);
   };
@@ -444,39 +654,38 @@ const CourseLandingPage = () => {
 
         {/* Category Dropdown */}
         <Form.Item
-          label={<span style={{ fontSize: '18px' }}>Category</span>}
           name="category"
-          rules={[{ required: true, message: 'Please enter a course category.' }]}
+          label={<span style={{ fontSize: '18px' }}>Category</span>}
+          rules={[{ required: true, message: 'Please select a course category.' }]}
         >
-        <Select placeholder="Select a category" style={placeholderStyle} className="border rounded-md">
-          <Option value="8">Business & Management</Option>
-          <Option value="3">Cloud Computing & IoT</Option>
-          <Option value="4">Cybersecurity</Option>
-          <Option value="5">Data Engineering & Analytics</Option>
-          <Option value="1">Data Science</Option>
-          <Option value="9">Economics</Option>
-          <Option value="11">Education</Option>
-          <Option value="13">Environmental Science</Option>
-          <Option value="12">Health and Wellness</Option>
-          <Option value="2">Machine Learning & AI</Option>
-          <Option value="7">Networking & Systems</Option>
-          <Option value="14">Psychology</Option>
-          <Option value="10">Sociology</Option>
-          <Option value="6">Software Development & Programming</Option>
-        </Select>
+          <Select
+            placeholder="Select a category"
+            onChange={handleCategoryChange}
+            style={{ width: '100%' }}
+          >
+            {categories.map((cat) => (
+              <Option key={cat.id} value={cat.id}>
+                {cat.name}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
 
-        {/* Subcategory Dropdown */}
         <Form.Item
-          label={<span style={{ fontSize: '18px' }}>Subcategory</span>}
           name="subcategory"
-          rules={[{ required: true, message: 'Please enter a course subCategory.' }]}
+          label={<span style={{ fontSize: '18px' }}>Subcategory</span>}
+          rules={[{ required: true, message: 'Please select a subcategory.' }]}
         >
-          <Select placeholder="Select a subcategory" style={placeholderStyle} className="border rounded-md">
-            <Option value="webDevelopment">Web Development</Option>
-            <Option value="graphicDesign">Graphic Design</Option>
-            <Option value="marketing">Marketing</Option>
-            {/* Add more subcategories as needed */}
+          <Select
+            placeholder="Select a subcategory"
+            disabled={isSubcategoryDisabled}
+            style={{ width: '100%' }}
+          >
+            {subcategoryOptions.map((subcat) => (
+              <Option key={subcat.id} value={subcat.id}>
+                {subcat.name}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
 
@@ -574,43 +783,41 @@ const CreateCourse = () => {
   const [landingPageForm] = Form.useForm();
   const [pricingForm] = Form.useForm();
 
-  const handleSubmit = () => {
-    const forms = [
-      intendedLearnersForm,
-      requirementsForm,
-      objectivesForm,
-      curriculumForm,
-      landingPageForm,
-      pricingForm,
-    ];
+  const userId = useSelector((state) => state.user.userId);
 
-    Promise.all(forms.map((form) => form.validateFields()))
-      .then((values) => {
-        const allValues = values.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-        console.log('All forms validated:', allValues);
-        // Submit all data here
-      })
-      .catch((errorInfo) => {
-        console.error('Validation failed:', errorInfo);
-      });
-  };
-
-  const [loading, setLoading] = useState(false);
-
-  const handleCreateCourse = async (values) => {
-    setLoading(true);
+  const handleSubmit = async () => {
     try {
-      const { instructorId1, instructorId2, title, subTitle, description, image, video, subCategoryId, categoryId, language, price } = values;
-      const courseId = await InstructorService.createCourse(instructorId1, NULL, title, subTitle, description, image, video, subCategoryId, categoryId, language, price);
+      // Validate each form separately if needed
+      const intendedLearnersValues = await intendedLearnersForm.validateFields();
+      const requirementsValues = await requirementsForm.validateFields();
+      const objectivesValues = await objectivesForm.validateFields();
+      // const curriculumValues = await curriculumForm.validateFields();
+      const landingPageValues = await landingPageForm.validateFields();
+      const pricingValues = await pricingForm.validateFields();
+      console.log(landingPageValues.video);
 
-      if (courseId) {
-        message.success("Course created successfully!");
-        form.resetFields();
-      }
+      const courseData = {
+        title: landingPageValues.title,
+        subtitle: landingPageValues.subtitle,
+        description: landingPageValues.description,
+        language: landingPageValues.language,
+        category: landingPageValues.category, 
+        subcategory: 1,//landingPageValues.subcategory,
+        price: pricingValues.coursePriceType === 'paid' ? pricingValues.courseSpecificPrice : 'Free',
+        // image: landingPageValues.image ? landingPageValues.image.fileList[0].originFileObj : null,
+        // video: landingPageValues.video ? landingPageValues.video.fileList[0].originFileObj : null,
+        // learners: intendedLearnersValues.learners, // Assuming you have learners data gathered from the form
+        // requirements: requirementsValues.requirements, // Assuming you have requirements data gathered from the form
+        // objectives: objectivesValues.objectives, // Assuming you have objectives data gathered from the form
+        // curriculum: curriculumValues.sections, // Assuming you have curriculum data gathered from the form
+        instructorId1: userId // Adding userId to course data
+      };
+
+      await InstructorService.createCourse(courseData);
+      message.success("Course submitted successfully!");
     } catch (error) {
-      message.error("Failed to create course.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to submit course:", error);
+      message.error("Failed to submit course. Please try again.");
     }
   };
 

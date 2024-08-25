@@ -76,6 +76,22 @@ const InstructorService = {
       message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
   },
+  createCourseObjective: async (courseId, objective) => {
+    try {
+      const res = await Axios.post("/api/course/objective", {
+        courseId,
+        objective
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      } else {
+        message.error(res.data.message || "Error adding course objective.");
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
+  },
   createSection: async (courseId, title) => {
     try {
       const res = await Axios.post("/api/section", {
