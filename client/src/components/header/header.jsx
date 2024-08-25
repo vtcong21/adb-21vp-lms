@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteRole } from "~/redux/features/userSlice";
-import { UserOutlined, SearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { UserOutlined, SearchOutlined } from "@ant-design/icons";
 import { Avatar, Space, Button, Tag, Dropdown, Input, Drawer } from "antd";
 import { useState } from "react";
-import { IoMenuSharp } from "react-icons/io5";
+import { IoCart, IoCartOutline, IoMenuSharp } from "react-icons/io5";
 
 
 const Account = () => {
@@ -66,22 +66,7 @@ const Header = () => {
 
   return (
     <>
-      <Drawer 
-        title="Menu" 
-        placement="left"
-        closable={false}
-        onClose={closeMenu} 
-        open={isOpenedMenu}
-        className="bg-slate-950"
-        >
-        <p>Hey</p>
-      </Drawer>
       <div className="bg-radial-gradient bg-cover bg-center w-full h-16 flex gap-1  justify-end  px-5 drop-shadow-lg z-50">
-        <div className="flex my-auto">
-          <Button type="link" onClick={showMenu}>
-            < IoMenuSharp size={30} color="white"/>
-          </Button>
-        </div>
         <div className=" h-full text-center  flex mr-auto ml-4">
           <h1 className="my-auto mr-3 text-white text-xl font-sans font-bold tracking-widest">
               Udemy
@@ -96,9 +81,14 @@ const Header = () => {
           />
         </div>
 
-        <div className="flex-2 mx-4 my-auto">
-          <Button type="text" icon={<ShoppingCartOutlined />}></Button>
+        <div className="flex-2 my-auto">
+          <Button
+            type="text"
+            icon={<IoCartOutline className="text-white text-3xl" size={22} />}
+            className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center"
+          />
         </div>
+
 
         {user.role === "public" ? (
           <div className="flex">
