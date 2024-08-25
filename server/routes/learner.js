@@ -33,7 +33,7 @@ router.get("/learner/cart",
   // isLearner,
   getCartDetails);
 router.post("/learner/order",
-  // requireSignin,
+  // requireS ignin,
   // isLearner,
   makeOrder);
 router.get("/learner/order",

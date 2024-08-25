@@ -75,7 +75,7 @@ export const getCartDetails = async (req, res) => {
 
 export const makeOrder = async (req, res) => {
   try {
-    const { userId, paymentCardNumber, couponCode } = req.query;
+    const { userId, paymentCardNumber, couponCode } = req.body;
     const pool = getPool('LMS');
 
     if (!pool) {
