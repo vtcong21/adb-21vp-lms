@@ -1,12 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { readdirSync } from "fs";
 import csrf from "csurf";
 import cookieParser from "cookie-parser";
-import { createRouteHandler } from "uploadthing/express";
-import { ourFileRouter } from "./uploadthing/core.js";
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import multer from "multer";
 
 dotenv.config();
 
@@ -33,6 +31,7 @@ import courseRouter from "./routes/course.js";
 import couponRouter from "./routes/coupon.js";
 import instructorRouter from "./routes/instructor.js";
 import userRouter from "./routes/user.js";
+import uploadRouter from "./routes/upload.js";
 // route
 app.use('/api', authRouter);
 app.use('/api', learnerRouter);
@@ -40,20 +39,24 @@ app.use('/api', courseRouter);
 app.use('/api', couponRouter);
 app.use('/api', instructorRouter);
 app.use('/api', userRouter);
-import "dotenv/config";
-app.use(
-  "/api/uploadthing",
-  createRouteHandler({
-    router: ourFileRouter,
-    config: {
-      uploadthingId: process.env.UPLOADTHING_APP_ID,
-      uploadthingSecret: process.env.UPLOADTHING_SECRET,
-      //logLevel: "trace"
-    }
-    //secret: process.env.UPLOADTHING_SECRET,
-  }),
-);
-
+app.use('/api', uploadRouter);
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+      
+      switch (err.code) {
+          case 'LIMIT_FILE_SIZE':
+              return res.status(400).json({ error: 'File is too large. Please upload a smaller file.' });
+          case 'LIMIT_UNEXPECTED_FILE':
+              return res.status(400).json({ error: 'Unexpected file type. Please upload the correct file type.' });
+          default:
+              return res.status(400).json({ error: `Multer error: ${err.message}` });
+      }
+  } else if (err) {
+      
+      return res.status(400).json({ error: err.message });
+  }
+  next();
+});
 
 // // csrf
 // app.use(csrfProtection);
