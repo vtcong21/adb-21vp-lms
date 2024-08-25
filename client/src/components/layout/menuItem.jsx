@@ -15,12 +15,12 @@ const menuInstructor = [
   {
     name: "Create a course",
     icon: <BsCalendar2PlusFill size={30} />,
-    path: "/createCourse",
+    path: "/instructor/create-course",
   },
   {
     name: "Profile",
     icon: <BsCalendar2PlusFill size={30} />,
-    path: "/profile",
+    path: "/instructor/profile",
   },
   {
     name: "Courses",

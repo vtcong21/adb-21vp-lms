@@ -25,10 +25,10 @@ const CourseCard = ({
 
     if (e.button === 1) {
       // Middle mouse button
-      window.open(`/learnCourse/${courseId}`, "_blank", "noopener,noreferrer");
+      window.open(`/learner/learn-course/${courseId}`, "_blank", "noopener,noreferrer");
     } else if (e.button === 0) {
       // Left mouse button
-      navigate(`/learnCourse/${courseId}`);
+      navigate(`/learner/learn-course/${courseId}`);
     }
   };
 
@@ -39,7 +39,7 @@ const CourseCard = ({
       onClick={(e) => {
         if (e.button === 0) {
           // Left mouse button
-          navigate(`/learnCourse/${courseId}`);
+          navigate(`/learner/learn-course/${courseId}`);
         }
       }}
     >

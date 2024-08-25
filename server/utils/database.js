@@ -62,6 +62,7 @@ const createPool = async (loginType) => {
             try {
                 const result = await request.execute(procedureName);
                 
+                
                 if (result.recordset && Array.isArray(result.recordset)) {
                     const recordset = result.recordset;
                     if (recordset.length > 0) {

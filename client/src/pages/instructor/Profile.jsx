@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Input } from "antd";
-import DentistService from "../../services/dentist";
+// import DentistService from "../../services/dentist";
 import { useSelector } from "react-redux";
 import { ButtonBlue } from "~/components/button";
 const ProfileNS = () => {

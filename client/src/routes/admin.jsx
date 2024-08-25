@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import AdminLayout from "../components/layout/AdminLayout";
+import AdminLayout from "../components/layout/adminLayout";
 
 const AdminPage = lazy(() => import("~/pages/admin"));
 const AdminCourses = lazy(() => import("../pages/admin/AdminCourses"));
@@ -27,7 +27,7 @@ const AdminRouter = [
       Layout: AdminLayout,
     },
     {
-      path: "/admin/instructor/:instructorId",
+      path: "/admin/instructors/:instructorId",
       component: ReviewCourse,
       Layout: AdminLayout,
     },

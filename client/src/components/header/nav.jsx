@@ -6,20 +6,31 @@ const learnerItems = [
     path: "/",
   },
   {
+    name: 'Search',
+    path:"/course-filter"
+  },
+  {
     name: `Cart`,
-    path: "/cart",
+    path: "/learner/cart",
   },
   {
     name: `Orders`,
-    path: "/orders",
+    path: "/learner/orders",
   },
-
+  {
+    name: "My courses",
+    path: "/learner/my-course"
+  },
 ];
 
 const publicItems = [
   {
     name: "Home",
     path: "/",
+  },
+  {
+    name: 'Search',
+    path:"/course-filter"
   },
   
 ];

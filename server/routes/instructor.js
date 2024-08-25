@@ -20,7 +20,7 @@ router.get("/instructor/revenue/monthly",
     // requireSignin,
     // isAdminOrInstructor,
     getMonthlyRevenueForInstructor);
-router.get("/instructor/profile/annual",
+router.get("/instructor/revenue/annual",
     // requireSignin,
     // isAdminOrInstructor,
     getAunnualRevenueForInstructor);

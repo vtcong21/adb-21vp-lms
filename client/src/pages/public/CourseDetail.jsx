@@ -96,7 +96,7 @@ const CourseDetail = () => {
 
           message.success("Course added to cart successfully!");
           setIsInCart(true); // Update the cart status
-          navigate("/cart"); // Redirect to cart page
+          navigate("/learner/cart"); // Redirect to cart page
         } catch (error) {
           message.error(
             "An error occurred while adding the course to the cart."
@@ -299,7 +299,7 @@ const CourseDetail = () => {
                       avatar={
                         item.profilePhoto ? (
                           <img
-                            src={item.profilePhoto}
+                            src={`http://localhost:8000/api/files/${item.profilePhoto}`}
                             alt={item.name || "Profile"}
                             style={{
                               width: 40,
