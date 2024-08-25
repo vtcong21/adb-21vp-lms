@@ -177,7 +177,7 @@ const CourseCard = ({
         <Col span={5} style={{ textAlign: "right" }}>
           <img
             alt="course"
-            src={image}
+            src={`http://localhost:8000/api/files/${image}`}
             style={{ width: 150, height: 150, objectFit: "cover" }}
           />
         </Col>
