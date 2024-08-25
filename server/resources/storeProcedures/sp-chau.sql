@@ -559,7 +559,7 @@ GO
 
 
 -- finished and tested
-CREATE OR ALTER PROC sp_LN_GetLearnerPaymentCard (
+CREATE OR ALTER PROC sp_LN_GetLearnerPaymentCards(
 	@learnerId NVARCHAR(128)
 )
 AS
@@ -567,18 +567,18 @@ BEGIN TRAN
 	SET XACT_ABORT ON;
 	SET NOCOUNT ON;
 	BEGIN TRY
-		IF (@learnerId IS NULL)
-		BEGIN;
-			THROW 51000, 'Learner Id is required.', 1;
-		END;
-		IF NOT EXISTS (SELECT 1 FROM [learner] WHERE id = @learnerId)
-		BEGIN;
-			THROW 51000, 'Learner not found.', 1;
-		END;
-		
-		SELECT paymentCardNumber
-		FROM [learnerPaymentCard]
-		FOR JSON PATH;
+		SELECT
+            pc.number,
+            pc.type,
+            pc.name,
+            pc.CVC,
+            pc.expireDate
+        FROM
+            [paymentCard] pc
+            JOIN [learnerPaymentCard] lc ON pc.number = lc.paymentCardNumber
+        WHERE
+            lc.learnerId = @learnerId
+        FOR JSON PATH, INCLUDE_NULL_VALUES;
 	END TRY
 	BEGIN CATCH
 		ROLLBACK TRAN;

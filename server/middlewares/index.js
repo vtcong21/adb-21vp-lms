@@ -1,5 +1,6 @@
 import { expressjwt } from "express-jwt";
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const requireSignin = [
   expressjwt({

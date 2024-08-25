@@ -1,4 +1,4 @@
-import getPool from "../utils/database";
+import getPool from "../utils/database.js";
 
 export const createCoupon = async (req, res) => {
   try {
