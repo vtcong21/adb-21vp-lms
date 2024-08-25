@@ -6,7 +6,7 @@ const Axios = {
     try {
       const res = await instance.get(url, { params });
       if (res.status === 500) {
-        message.error("Thất bại");
+        // message.error("Thất bại");
       }
       
       return res.data;
@@ -19,7 +19,7 @@ const Axios = {
     try {
       const res = await instance.post(url, data);
       if (res.status === 200 || res.status === 201) {
-        message.success("Thành công");
+        // message.success("Thành công");
       }
       return res.data;
     } catch (err) {
@@ -32,7 +32,7 @@ const Axios = {
     try {
       const res = await instance.put(url, data);
       if (res.status === 200 || res.status === 201) {
-        message.success("Thành công");
+        // message.success("Thành công");
       }
       return res.data;
     } catch (err) {
@@ -45,7 +45,7 @@ const Axios = {
     try {
       const res = await instance.patch(url, data);
       if (res.status === 200 || res.status === 201) {
-        message.success("Thành công");
+        // message.success("Thành công");
       }
       return res.data;
     } catch (err) {
@@ -60,7 +60,7 @@ const Axios = {
         data: data,
       });
       if (res.status === 200 || res.status === 201) {
-        message.success("Thành công");
+        // message.success("Thành công");
       }
       return res.data;
     } catch (err) {

@@ -3308,3 +3308,46 @@ BEGIN TRAN
 	END CATCH
 COMMIT TRAN
 GO
+
+--10 Xem tiến độ 1 khóa học
+IF OBJECT_ID('sp_LN_GetLearnerProgressInCourse', 'P') IS NOT NULL
+    DROP PROCEDURE sp_LN_GetLearnerProgressInCourse
+GO
+	
+CREATE PROCEDURE sp_LN_GetLearnerProgressInCourse
+	@learnerId NVARCHAR(128),
+	@courseId VARCHAR(128)
+AS
+BEGIN TRAN
+	BEGIN TRY
+		SET NOCOUNT ON;
+		SELECT (	
+					SELECT lps.sectionId, lps.completionPercentSection,
+							(	
+							SELECT lpl.lessonId, lpl.isCompletedLesson,
+									(	
+									SELECT laq.questionId, laq.learnerAnswer
+									FROM [learnerAnswerQuestion] laq
+									WHERE laq.courseId = lpl.courseId AND laq.sectionId = lpl.sectionId
+										AND laq.exerciseId = lpl.lessonId AND laq.learnerId = @learnerId
+									FOR JSON PATH, INCLUDE_NULL_VALUES
+									) AS LearnerAnswer
+							FROM [learnerParticipateLesson] lpl
+							WHERE lpl.courseId = lps.courseId AND lpl.sectionId = lps.sectionId
+								AND lpl.learnerId = @learnerId
+							FOR JSON PATH, INCLUDE_NULL_VALUES
+							) AS LessonProgress
+					FROM [learnerParticipateSection] lps
+					WHERE lps.courseId = c.id AND lps.learnerId = @learnerId
+					FOR JSON PATH, INCLUDE_NULL_VALUES
+				) AS SectionProgress
+		FROM [course] c
+		WHERE c.id = @courseId
+	END TRY
+	BEGIN CATCH
+		DECLARE @errorMessage NVARCHAR(200) = ERROR_MESSAGE();
+		THROW 51000, @errorMessage, 1;
+		RETURN
+	END CATCH
+COMMIT TRAN
+GO
