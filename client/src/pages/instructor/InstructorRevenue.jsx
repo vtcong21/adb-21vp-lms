@@ -67,8 +67,9 @@ const InstructorRevenue = () => {
             }));
             setRevenueData(resFormatted);
             }
-            console.log(res);
+            //console.log(res);
         } catch (error) {
+            console.log(error);
             message.error("Cannot load course revenue data.");
         }
         };
