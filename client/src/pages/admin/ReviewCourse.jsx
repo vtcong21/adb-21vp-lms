@@ -6,9 +6,12 @@ import { useEffect, useState } from "react";
 import LearnerList from "../../components/course/LearnerList";
 import Revenue from "../../components/course/CourseRevenue";
 import CourseDetail from "../public/CourseDetail"
+import { useLocation } from "react-router-dom";
 
 const ReviewCourse = () => {
     const [form] = useForm();
+    const location = useLocation();
+    const courseDetails = location.state || {};
     const [comment, setComment] = useState('');
     const [reviewState, setReviewState] = useState('');
 

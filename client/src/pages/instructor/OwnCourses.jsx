@@ -48,7 +48,7 @@ const OwnCourses = () => {
             }));
             setCourse(resFormatted);
         } catch (error) {
-            message.error("Cannot load course data.");
+            message.error("Cannot load course data. ");
         }
         };
 

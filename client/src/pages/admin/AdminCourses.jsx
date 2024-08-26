@@ -29,8 +29,8 @@ const AdminCourses = () => {
     clearFilters();
     setSearchText('');
   };
-  const handleEditCourse = (courseId) => {
-    navigate(`${courseId}`)
+  const handleEditCourse = (record) => {
+    navigate(`${record.courseId}`, { state: { 'courseId': record.courseId, 'state': record.state, } })
   } 
 
   useEffect(() => {
@@ -53,6 +53,7 @@ const AdminCourses = () => {
     states.map(state => {
       fetchCourseData((searchText === '') ? 'advanced' : searchText, state );
     })
+    console.log(course);
   }, [searchText]);
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -227,7 +228,7 @@ const AdminCourses = () => {
         <Space type='middle'>
           <Button 
           icon={<EditOutlined/>}
-          onClick={() => handleEditCourse(record.courseId)}
+          onClick={() => handleEditCourse(record)}
           />
         </Space>
       ),

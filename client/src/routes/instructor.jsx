@@ -10,7 +10,7 @@ const Profile = lazy(() => import("../pages/instructor/Profile"));
 
 const InstructorRouter = [{
     path: "/",
-    component: InstructorPage,
+    component: OwnCourses,
     Layout: AdminLayout
   }, 
   {

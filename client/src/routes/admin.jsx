@@ -8,7 +8,7 @@ const ReviewCourse = lazy(() => import("../pages/admin/ReviewCourse"));
 const AdminRouter = [
     {
       path: "/",
-      component: AdminPage,
+      component: AdminCourses,
       Layout: AdminLayout,
     },
     {

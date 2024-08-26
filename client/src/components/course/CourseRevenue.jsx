@@ -4,7 +4,7 @@ import { Line, Column, Pie } from '@ant-design/plots';
 import { Card, Col, message, Row, Segmented, Space, Table, Typography } from 'antd';
 import styles from '../../assets/styles/Revenue.css?inline'
 import AdminService from '../../services/admin';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 const { Text, Title } = Typography;
 
@@ -13,6 +13,7 @@ const courses = []
 const courseRevenueByMonth = []
 
 const Revenue = () => {
+  const location = useLocation();
   const {courseId} = useParams();
   const [duration, setDuration] = useState(36);
   const [revenueData, setRevenueData] = useState([])
@@ -69,9 +70,8 @@ const Revenue = () => {
           }));
           setRevenueData(resFormatted);
         }
-        console.log(res);
       } catch (error) {
-        message.error("Cannot load course revenue data.");
+        message.error("Cannot load course revenue data." + error);
       }
     };
 
