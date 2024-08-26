@@ -30,7 +30,7 @@ const AdminCourses = () => {
     setSearchText('');
   };
   const handleEditCourse = (record) => {
-    navigate(`${record.courseId}`, { state: { 'courseId': record.courseId, 'state': record.state, } })
+    navigate(`/admin/courses/${record.courseId}`, { state: { 'courseId': record.courseId, 'state': record.state, } })
   } 
 
   useEffect(() => {
