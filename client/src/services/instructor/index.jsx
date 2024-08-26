@@ -49,12 +49,6 @@ const InstructorService = {
         courseId,
         requirement
       });
-
-      if (res.status === 200) {
-        return res.data;
-      } else {
-        message.error(res.data.message || "Error adding course requirement.");
-      }
     } catch (error) {
       message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
@@ -66,11 +60,6 @@ const InstructorService = {
         objective
       });
 
-      if (res.status === 200) {
-        return res.data;
-      } else {
-        // message.error(res.data?.message || "Error adding course objective.");
-      }
     } catch (error) {
       console.log(error);
       // message.error(error.response?.data?.message || "An unexpected error occurred.");

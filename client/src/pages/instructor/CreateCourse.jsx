@@ -433,52 +433,57 @@ const CourseObjectives = ({ form }) => {
 const { Option } = Select;
 
 const Curriculum = ({ form }) => {
-  const [sections, setSections] = useState([{ title: '', lessons: [] }]);
+  const { getFieldValue, setFieldsValue, validateFields } = form;
+
+  // Helper functions to manage sections and lessons
+  const getSections = () => getFieldValue('sections') || [];
+  const setSections = (sections) => setFieldsValue({ sections });
 
   const addSection = () => {
+    const sections = getSections();
     setSections([...sections, { title: '', lessons: [] }]);
   };
 
   const handleSectionTitleChange = (index, value) => {
-    const updatedSections = [...sections];
-    updatedSections[index].title = value;
-    setSections(updatedSections);
+    const sections = getSections();
+    sections[index].title = value;
+    setSections(sections);
   };
 
   const removeSection = (index) => {
+    const sections = getSections();
     if (sections.length > 1) {
-      const updatedSections = sections.filter((_, i) => i !== index);
-      setSections(updatedSections);
+      setSections(sections.filter((_, i) => i !== index));
     }
   };
 
   const removeLesson = (sectionIndex, lessonIndex) => {
-    const updatedSections = [...sections];
-    if (updatedSections[sectionIndex].lessons.length > 1) {
-      updatedSections[sectionIndex].lessons = updatedSections[sectionIndex].lessons.filter((_, i) => i !== lessonIndex);
-      setSections(updatedSections);
+    const sections = getSections();
+    if (sections[sectionIndex].lessons.length > 1) {
+      sections[sectionIndex].lessons = sections[sectionIndex].lessons.filter((_, i) => i !== lessonIndex);
+      setSections(sections);
     }
   };
 
   const addLesson = (sectionIndex, type) => {
-    const updatedSections = [...sections];
+    const sections = getSections();
     const newLesson = { type, title: '', content: '' };
-    updatedSections[sectionIndex].lessons.push(newLesson);
-    setSections(updatedSections);
+    sections[sectionIndex].lessons.push(newLesson);
+    setSections(sections);
   };
 
   const handleLessonTitleChange = (sectionIndex, lessonIndex, value) => {
-    const updatedSections = [...sections];
-    updatedSections[sectionIndex].lessons[lessonIndex].title = value;
-    setSections(updatedSections);
+    const sections = getSections();
+    sections[sectionIndex].lessons[lessonIndex].title = value;
+    setSections(sections);
   };
 
   const handleUpload = (sectionIndex, lessonIndex, info) => {
     if (info.file.status === 'done') {
       message.success(`${info.file.name} file uploaded successfully`);
-      const updatedSections = [...sections];
-      updatedSections[sectionIndex].lessons[lessonIndex].content = info.file.name; // store uploaded file name as content
-      setSections(updatedSections);
+      const sections = getSections();
+      sections[sectionIndex].lessons[lessonIndex].content = info.file.name; // store uploaded file name as content
+      setSections(sections);
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
@@ -492,17 +497,17 @@ const Curriculum = ({ form }) => {
           Start putting together your course by creating sections, lectures, and practice activities.
         </p>
 
-        {sections.map((section, sectionIndex) => (
+        {getSections().map((section, sectionIndex) => (
           <div key={sectionIndex} className="mb-4 p-4 border rounded-md" style={{ borderColor: 'black' }}>
             <div className="flex justify-between items-center mb-2">
               <Input
                 placeholder="Section title"
-                style={placeholderStyle}
+                style={{ width: '80%' }}
                 value={section.title}
                 onChange={(e) => handleSectionTitleChange(sectionIndex, e.target.value)}
                 className="flex-grow mr-2 border-black"
               />
-              {sections.length > 1 && (
+              {getSections().length > 1 && (
                 <MinusCircleOutlined
                   onClick={() => removeSection(sectionIndex)}
                   style={{ fontSize: '20px', color: 'red' }}
@@ -515,7 +520,7 @@ const Curriculum = ({ form }) => {
                 <div className="flex justify-between items-center mb-2">
                   <Input
                     placeholder={`${lesson.type === 'lecture' ? 'Lecture' : 'Quiz'} title`}
-                    style={placeholderStyle}
+                    style={{ width: '80%' }}
                     value={lesson.title}
                     onChange={(e) => handleLessonTitleChange(sectionIndex, lessonIndex, e.target.value)}
                     className="flex-grow border-black"
@@ -794,7 +799,8 @@ const CreateCourse = () => {
       const objectivesValues = await objectivesForm.validateFields();
       const landingPageValues = await landingPageForm.validateFields();
       const pricingValues = await pricingForm.validateFields();
-      console.log(objectivesValues);
+      const curriculumValues = await curriculumForm.validateFields();
+
       // Prepare course data
       const courseData = {
         instructorId1: userId,
@@ -811,38 +817,45 @@ const CreateCourse = () => {
       };
     
       // Call the service
-      const courseIdString = await InstructorService.createCourse(
-        courseData.instructorId1,
-        courseData.instructorId2,
-        courseData.title,
-        courseData.subTitle,
-        courseData.description,
-        courseData.image,
-        courseData.video,
-        courseData.subCategoryId,
-        courseData.categoryId,
-        courseData.language,
-        courseData.price
-      );
+      // const courseIdString = await InstructorService.createCourse(
+      //   courseData.instructorId1,
+      //   courseData.instructorId2,
+      //   courseData.title,
+      //   courseData.subTitle,
+      //   courseData.description,
+      //   courseData.image,
+      //   courseData.video,
+      //   courseData.subCategoryId,
+      //   courseData.categoryId,
+      //   courseData.language,
+      //   courseData.price
+      // );
 
-      let courseIdObject = JSON.parse(courseIdString);
-      let courseId = courseIdObject.courseId;
-      console.log("courseid : " + courseId);
+      // let courseIdObject = JSON.parse(courseIdString);
+      // let courseId = courseIdObject.courseId;
+      // console.log("courseid : " + courseId);
 
-      // Check if courseId was obtained
-      if (!courseId) {
-        throw new Error("Failed to create course");
-      }
+      // // Check if courseId was obtained
+      // if (!courseId) {
+      //   throw new Error("Failed to create course");
+      // }
       
-      // Iterate over objectives and create each one
-      const objectives = Object.values(objectivesValues);
-      for (const objective of objectives) {
-        await InstructorService.createCourseObjective(courseId, objective);
-      }
+      // // Iterate over objectives and create each one
+      // const objectives = Object.values(objectivesValues);
+      // for (const objective of objectives) {
+      //   await InstructorService.createCourseObjective(courseId, objective);
+      // }
 
-      const requirements = Object.values(requirementsValues);
-      for (const requirement of requirements) {
-        await InstructorService.createCourseRequirement(courseId, requirement);
+      // const requirements = Object.values(requirementsValues);
+      // for (const requirement of requirements) {
+      //   await InstructorService.createCourseRequirement(courseId, requirement);
+      // }
+      console.log("hi");
+      const sections = Object.values(curriculumValues);
+      console.log("hiii "+ curriculumValues);
+      for (const section of sections) {
+        console.log("hi" + section);
+        // await InstructorService.createCourseRequirement(courseId, requirement);
       }
  
     } catch (error) {

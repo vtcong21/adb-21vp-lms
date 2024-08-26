@@ -321,6 +321,32 @@ export const createCourseRequirement = async (req, res) => {
   }
 };
 
+export const createCourseSection = async (req, res) => {
+  try {
+    const { courseId, title } = req.body;
+
+    if (!courseId || !title) {
+      return res.status(400).json({ message: "courseId and title are required." });
+    }
+
+    const pool = await sql.connect(config);
+
+    const result = await pool.request()
+      .input('courseId', sql.Int, courseId)
+      .input('title', sql.NVarChar(256), title)
+      .execute('sp_INS_CreateSection');
+
+    res.status(200).json(result.recordset[0]);
+
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+
+    sql.close();
+  }
+};
+
 export const getAdminResponseInACourse = async (req, res) => {
   try {
     const { courseId } = req.query;

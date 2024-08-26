@@ -23,6 +23,7 @@ import {
   createCourse,
   createCourseObjective,
   createCourseRequirement,
+  createCourseSection,
   getAdminResponseInACourse,
   getLearnerInCourse,
   getTopHotCategories
@@ -85,6 +86,12 @@ router.post(
   // requireSignin,
   // isInstructor,
   createCourseRequirement
+);
+router.post(
+  "/course/section",
+  // requireSignin,
+  // isInstructor,
+  createCourseSection
 );
 router
 router.get(
