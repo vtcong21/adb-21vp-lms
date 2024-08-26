@@ -3,29 +3,28 @@ import { message } from "antd";
 
 const InstructorService = {
   createCourse: async (instructorId1, instructorId2, title, subTitle, description, image, video, subCategoryId, categoryId, language, price) => {
-    try {
-      const res = await Axios.post("/api/instructor/course", {
-        instructorId1,
-        instructorId2,
-        title,
-        subTitle,
-        description,
-        image,
-        video,
-        subCategoryId,
-        categoryId,
-        language,
-        price
-      });
-
-      if (res.status === 200) {
-        return res.data.courseId;
-      } else {
-        message.error(res.data.message || "Error creating course.");
-      }
-    } catch (error) {
-      message.error(error.response?.data?.message || "An unexpected error occurred.");
-    }
+    
+    const res = await Axios.post("/api/course", {
+      instructorId1,
+      instructorId2,
+      title,
+      subTitle,
+      description,
+      image,
+      video,
+      subCategoryId,
+      categoryId,
+      language,
+      price
+    });
+    console.log("serviceee : " + res);
+    return res;
+    // if (res.response.status === 200) {
+    //   console.log("serviceeee : " + res);
+    //   return res;
+    // } else {
+    //   message.error(res.data|| "Error creating course.");
+    // }
   },
   createInstructorOwnCourse: async (courseId, instructorId, percentageInCome) => {
     try {
@@ -70,26 +69,11 @@ const InstructorService = {
       if (res.status === 200) {
         return res.data;
       } else {
-        message.error(res.data.message || "Error adding course objective.");
+        // message.error(res.data?.message || "Error adding course objective.");
       }
     } catch (error) {
-      message.error(error.response?.data?.message || "An unexpected error occurred.");
-    }
-  },
-  createCourseObjective: async (courseId, objective) => {
-    try {
-      const res = await Axios.post("/api/course/objective", {
-        courseId,
-        objective
-      });
-
-      if (res.status === 200) {
-        return res.data;
-      } else {
-        message.error(res.data.message || "Error adding course objective.");
-      }
-    } catch (error) {
-      message.error(error.response?.data?.message || "An unexpected error occurred.");
+      console.log(error);
+      // message.error(error.response?.data?.message || "An unexpected error occurred.");
     }
   },
   createSection: async (courseId, title) => {
@@ -102,7 +86,7 @@ const InstructorService = {
       if (res.status === 200) {
         return res.data.sectionId;
       } else {
-        message.error(res.data.message || "Error adding section.");
+        message.error(res.data?.message || "Error adding section.");
       }
     } catch (error) {
       message.error(error.response?.data?.message || "An unexpected error occurred.");

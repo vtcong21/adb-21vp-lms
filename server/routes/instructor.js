@@ -12,6 +12,7 @@ import {
     getAunnualRevenueForInstructor,
     sendTaxForm,
     updateInstructorPaymentCard
+
 } from "../controllers/instructor.js";
 
 router.get("/instructor/profile",
@@ -36,7 +37,7 @@ router.post("/instructor/payment-card",
     // requireSignin,
     // isInstructor,
     updateInstructorPaymentCard);
-    
+
 
 
 export default router;

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Input, Button, Divider, Form, Select, Upload, message, Anchor } from "antd";
 import { MinusCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import InstructorService from '../../services/instructor';
+import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const placeholderStyle = {
@@ -791,33 +792,62 @@ const CreateCourse = () => {
       const intendedLearnersValues = await intendedLearnersForm.validateFields();
       const requirementsValues = await requirementsForm.validateFields();
       const objectivesValues = await objectivesForm.validateFields();
-      // const curriculumValues = await curriculumForm.validateFields();
       const landingPageValues = await landingPageForm.validateFields();
       const pricingValues = await pricingForm.validateFields();
-      console.log(landingPageValues.video);
-
+      console.log(objectivesValues);
+      // Prepare course data
       const courseData = {
+        instructorId1: userId,
+        instructorId2: null,
         title: landingPageValues.title,
-        subtitle: landingPageValues.subtitle,
+        subTitle: landingPageValues.subtitle,
         description: landingPageValues.description,
+        image: landingPageValues.image.fileList[0].originFileObj,
+        video: landingPageValues.video.fileList[0].originFileObj,
         language: landingPageValues.language,
-        category: landingPageValues.category, 
-        subcategory: 1,//landingPageValues.subcategory,
-        price: pricingValues.coursePriceType === 'paid' ? pricingValues.courseSpecificPrice : 'Free',
-        // image: landingPageValues.image ? landingPageValues.image.fileList[0].originFileObj : null,
-        // video: landingPageValues.video ? landingPageValues.video.fileList[0].originFileObj : null,
-        // learners: intendedLearnersValues.learners, // Assuming you have learners data gathered from the form
-        // requirements: requirementsValues.requirements, // Assuming you have requirements data gathered from the form
-        // objectives: objectivesValues.objectives, // Assuming you have objectives data gathered from the form
-        // curriculum: curriculumValues.sections, // Assuming you have curriculum data gathered from the form
-        instructorId1: userId // Adding userId to course data
+        subCategoryId: landingPageValues.subcategory,
+        categoryId: landingPageValues.category,
+        price: pricingValues.coursePriceType === 'paid' ? pricingValues.courseSpecificPrice : 0,
       };
+    
+      // Call the service
+      const courseIdString = await InstructorService.createCourse(
+        courseData.instructorId1,
+        courseData.instructorId2,
+        courseData.title,
+        courseData.subTitle,
+        courseData.description,
+        courseData.image,
+        courseData.video,
+        courseData.subCategoryId,
+        courseData.categoryId,
+        courseData.language,
+        courseData.price
+      );
 
-      await InstructorService.createCourse(courseData);
-      message.success("Course submitted successfully!");
+      let courseIdObject = JSON.parse(courseIdString);
+      let courseId = courseIdObject.courseId;
+      console.log("courseid : " + courseId);
+
+      // Check if courseId was obtained
+      if (!courseId) {
+        throw new Error("Failed to create course");
+      }
+      
+      // Iterate over objectives and create each one
+      const objectives = Object.values(objectivesValues);
+      for (const objective of objectives) {
+        await InstructorService.createCourseObjective(courseId, objective);
+      }
+
+      const requirements = Object.values(requirementsValues);
+      for (const requirement of requirements) {
+        await InstructorService.createCourseRequirement(courseId, requirement);
+      }
+ 
     } catch (error) {
       console.error("Failed to submit course:", error);
-      message.error("Failed to submit course. Please try again.");
+      // message.error("Failed to submit course. Please try again.");
     }
   };
 
