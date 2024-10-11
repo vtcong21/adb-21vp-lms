@@ -21,6 +21,9 @@ import {
   getTop50CoursesByRevenue,
   getOwnCourses,
   createCourse,
+  createCourseObjective,
+  createCourseRequirement,
+  createCourseSection,
   getAdminResponseInACourse,
   getLearnerInCourse,
   getTopHotCategories,
@@ -72,6 +75,25 @@ router.post(
   // isInstructor,
   createCourse
 );
+router.post(
+  "/course/objective",
+  // requireSignin,
+  // isInstructor,
+  createCourseObjective
+);
+router.post(
+  "/course/requirement",
+  // requireSignin,
+  // isInstructor,
+  createCourseRequirement
+);
+router.post(
+  "/course/section",
+  // requireSignin,
+  // isInstructor,
+  createCourseSection
+);
+router
 router.get(
   "/course/admin-responses",
   // requireSignin,

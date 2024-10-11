@@ -1,0 +1,8 @@
+.ant-select-selection-placeholder, .placeholder {
+    font-size: 18px;
+    color: black;
+}
+  .ant-select-selector {
+    height: 117% !important;
+    border: 0.5px solid black !important;
+}

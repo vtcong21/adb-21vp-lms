@@ -229,6 +229,7 @@ export const createCourse = async (req, res) => {
       image,
       video,
       subCategoryId,
+      categoryId,
       language,
       price
     } = req.body;
@@ -244,7 +245,7 @@ export const createCourse = async (req, res) => {
     ) {
       return res.status(400).json({ message: "All field except instructorId2 and price are required" });
     }
-    await pool.executeSP('sp_INS_CreateCourse', {
+    const jsonResult = await pool.executeSP('sp_INS_CreateCourse', {
       instructorId1,
       instructorId2,
       title,
@@ -253,11 +254,12 @@ export const createCourse = async (req, res) => {
       image,
       video,
       subCategoryId,
+      categoryId,
       language,
       price
     });
 
-    return res.status(200).json({ message: "Create course successfully" });
+    return res.status(200).json(JSON.stringify(jsonResult));
 
   } catch (err) {
     console.log("ERR ", err);
@@ -265,6 +267,85 @@ export const createCourse = async (req, res) => {
   }
 }
 
+export const createCourseObjective = async (req, res) => {
+  try {
+    const { courseId, objective } = req.body;
+
+    if (!courseId || !objective) {
+      return res.status(400).json({ message: 'Both courseId and objective are required' });
+    }
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: 'Database pool is not available' });
+    }
+
+    await pool.executeSP('sp_INS_CreateCourseObjective', {
+      courseId,
+      objective
+    });
+
+    return res.status(200).json({ message: 'Course objective created successfully' });
+
+  } catch (err) {
+    console.error('Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const createCourseRequirement = async (req, res) => {
+  try {
+    const { courseId, requirement } = req.body;
+
+    if (!courseId || !requirement) {
+      return res.status(400).json({ message: 'Both courseId and objective are required' });
+    }
+
+    const pool = getPool('LMS');
+
+    if (!pool) {
+      return res.status(500).json({ message: 'Database pool is not available' });
+    }
+
+    await pool.executeSP('sp_INS_CreateCourseRequirement', {
+      courseId,
+      requirement
+    });
+
+    return res.status(200).json({ message: 'Course requirement created successfully' });
+
+  } catch (err) {
+    console.error('Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const createCourseSection = async (req, res) => {
+  try {
+    const { courseId, title } = req.body;
+
+    if (!courseId || !title) {
+      return res.status(400).json({ message: "courseId and title are required." });
+    }
+
+    const pool = await sql.connect(config);
+
+    const result = await pool.request()
+      .input('courseId', sql.Int, courseId)
+      .input('title', sql.NVarChar(256), title)
+      .execute('sp_INS_CreateSection');
+
+    res.status(200).json(result.recordset[0]);
+
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+
+    sql.close();
+  }
+};
 
 export const getAdminResponseInACourse = async (req, res) => {
   try {
