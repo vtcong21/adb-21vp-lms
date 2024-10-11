@@ -28,7 +28,7 @@ BEGIN
             -- Calculate base revenue (10 times the course price)
             SET @revenue = 10 * @price;
             
-            -- Introduce a random variation in revenue (e.g., ±20%)
+            -- Introduce a random variation in revenue (e.g., ï¿½20%)
             SET @revenue = @revenue * (0.8 + (RAND(CHECKSUM(NEWID())) * 0.4));
             
             -- Insert into courseRevenueByMonth
@@ -84,3 +84,4 @@ END;
 
 CLOSE course_cursor;
 DEALLOCATE course_cursor;
+

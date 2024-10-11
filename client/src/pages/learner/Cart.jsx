@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout, Row, Col, Button, Typography, Divider, Statistic, message } from 'antd';
 import { CreditCardOutlined, DeleteOutlined, GiftOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import LearnerService from '../../services/learner';
 import PublicService from '../../services/public';
-
 import CartTable from "../../components/cart/CartTable";
 import CouponModal from "../../components/cart/CouponModal";
 import PaymentModal from "../../components/cart/PaymentModal";
@@ -14,6 +14,7 @@ const { Title } = Typography;
 import { useSelector } from 'react-redux';
 const Cart = () => {
   const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
   const [cartData, setCartData] = useState([]);
   const [total, setTotal] = useState(0);
   const [originalTotal, setOriginalTotal] = useState(0);
@@ -24,6 +25,7 @@ const Cart = () => {
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [paymentCards, setPaymentCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
     LearnerService.getCartDetails(user.userId)
@@ -91,11 +93,25 @@ const Cart = () => {
         message.error('Failed to load payment cards');
       });
   };
-  const handlePayNow = () => {
+  const handlePayNow = async () => {
     if (selectedCard) {
-      message.success(`Payment processed with card ending in ${selectedCard.number.slice(-4)}`);
-      setIsPaymentModalVisible(false);
-      // Continue with payment processing logic using the selected card
+      setIsPaying(true);
+      try {
+        const res = await LearnerService.makeOrder(user.userId, selectedCard.number, appliedCoupon);
+
+        message.success(`Payment processed with card ending in ${selectedCard.number.slice(-4)}`);
+        setIsPaymentModalVisible(false);
+
+        // Wait for 3 seconds before navigating to "/"
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+
+      } catch (error) {
+        message.error('Failed to process payment. Please try again later.');
+        console.error(error);
+        setIsPaying(false);
+      }
     } else {
       message.error('Please select a payment card');
     }
@@ -112,7 +128,7 @@ const Cart = () => {
         cartData={cartData}
         onRemoveCourse={handleRemoveCourse}
       />
-      {cartData.length >0 &&
+      {cartData.length > 0 &&
         (<>
           <Row justify="end" style={{ marginTop: 16 }}>
             <Col>
@@ -153,7 +169,7 @@ const Cart = () => {
 
               <Row justify="end" style={{ marginTop: 16 }}>
                 <Col>
-                  <Button type="primary" onClick={showPaymentModal}>
+                  <Button type="primary" onClick={showPaymentModal} disabled={isPaying}>
                     Pay Now <CreditCardOutlined />
                   </Button>
                 </Col>

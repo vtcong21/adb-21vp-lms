@@ -17,7 +17,7 @@ import {
   changeStateOfCourse,
   getMonthlyRevenueForCourse,
   getDailyRevenueForCourse,
-  getAunnualRevenueOfACourse,
+  getAnnualRevenueOfACourse,
   getTop50CoursesByRevenue,
   getOwnCourses,
   createCourse,
@@ -26,7 +26,7 @@ import {
   createCourseSection,
   getAdminResponseInACourse,
   getLearnerInCourse,
-  getTopHotCategories
+  getTopHotCategories,
 } from "../controllers/course.js";
 
 router.get("/course/category", getCourseByCategoryId);
@@ -52,10 +52,10 @@ router.get(
   getMonthlyRevenueForCourse
 );
 router.get(
-  "/course/profile/annual",
+  "/course/revenue/annual",
   // requireSignin,
   // isAdminOrInstructor,
-  getAunnualRevenueOfACourse
+  getAnnualRevenueOfACourse
 );
 router.get(
   "/course/top-50",

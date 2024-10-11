@@ -1,40 +1,43 @@
-import { AiOutlineMenuFold } from "react-icons/ai";
-import { FaCalendarDays } from "react-icons/fa6";
-import { FaBookMedical } from "react-icons/fa";
-import { FaFileMedical } from "react-icons/fa";
-import { ImProfile } from "react-icons/im";
-import { BsCalendar2PlusFill } from "react-icons/bs";
+import { IoBook, IoCreate, IoHome, IoPerson, IoStatsChart } from "react-icons/io5";
 
 const menuInstructor = [
   {
     name: "Home",
-    icon: <BsCalendar2PlusFill size={30} />,
+    icon: <IoHome size={22} />,
     path: "/",
   },
   {
     name: "Create a course",
-    icon: <BsCalendar2PlusFill size={30} />,
-    path: "/createCourse",
+    icon: <IoCreate size={22} />,
+    path: "/instructor/create-course",
   },
   {
     name: "Profile",
-    icon: <BsCalendar2PlusFill size={30} />,
-    path: "/profile",
+    icon: <IoPerson size={22} />,
+    path: "/instructor/profile",
+  },
+  {
+    name: "Courses",
+    icon: < IoBook size={22} />,
+    path: "/instructor/courses",
+  },
+  {
+    name: "Revenue",
+    icon: < IoStatsChart size={22} />,
+    path: "/instructor/revenue",
   },
 ];
-import { GiMedicines } from "react-icons/gi";
-import { FaHospital } from "react-icons/fa";
-import { HiUserGroup } from "react-icons/hi";
-import { FaUserDoctor } from "react-icons/fa6";
-import { MdShoppingCart } from "react-icons/md";
-import { GrUserAdmin } from "react-icons/gr";
-import { TbPasswordUser } from "react-icons/tb";
 
 const menuAdmin = [
   {
-    name: "do-st",
-    icon: <GiMedicines size={30} />,
-    path: "/admin/do-st",
+    name: "Instructors",
+    icon: < IoPerson size={22} />,
+    path: "/admin/instructors",
+  },
+  {
+    name: "Courses",
+    icon: < IoBook size={22} />,
+    path: "/admin/courses",
   },
 ];
 export { menuInstructor, menuAdmin};

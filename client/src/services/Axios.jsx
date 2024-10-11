@@ -25,7 +25,7 @@ const Axios = {
     } catch (err) {
       // message.error("Error");
       console.log(err);
-      return err
+      return err;
     }
   },
   put: async (url, data) => {

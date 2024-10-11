@@ -25,7 +25,7 @@ const OrdersPage = () => {
   }, [user.userId]);
 
   const handleViewDetails = (orderId) => {
-    navigate(`/order-details/${orderId}`); 
+    navigate(`/learner/order-details/${orderId}`); 
   };
 
   return (

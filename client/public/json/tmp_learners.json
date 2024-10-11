@@ -1,0 +1,162 @@
+[
+    {
+        "id": "LN001",
+        "email": "alice.smith@example.com",
+        "name": "Alice Smith",
+        "password": "password1",
+        "profilePhoto": "https://example.com/photos/alice.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN002",
+        "email": "bob.jones@example.com",
+        "name": "Bob Jones",
+        "password": "password2",
+        "profilePhoto": "https://example.com/photos/bob.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN003",
+        "email": "carol.doe@example.com",
+        "name": "Carol Doe",
+        "password": "password3",
+        "profilePhoto": "https://example.com/photos/carol.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN004",
+        "email": "david.white@example.com",
+        "name": "David White",
+        "password": "password4",
+        "profilePhoto": "https://example.com/photos/david.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN005",
+        "email": "eve.jackson@example.com",
+        "name": "Eve Jackson",
+        "password": "password5",
+        "profilePhoto": "https://example.com/photos/eve.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN006",
+        "email": "frank.martin@example.com",
+        "name": "Frank Martin",
+        "password": "password6",
+        "profilePhoto": "https://example.com/photos/frank.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN007",
+        "email": "grace.brown@example.com",
+        "name": "Grace Brown",
+        "password": "password7",
+        "profilePhoto": "https://example.com/photos/grace.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN008",
+        "email": "henry.taylor@example.com",
+        "name": "Henry Taylor",
+        "password": "password8",
+        "profilePhoto": "https://example.com/photos/henry.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN009",
+        "email": "irene.morris@example.com",
+        "name": "Irene Morris",
+        "password": "password9",
+        "profilePhoto": "https://example.com/photos/irene.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN010",
+        "email": "jackson.lee@example.com",
+        "name": "Jackson Lee",
+        "password": "password10",
+        "profilePhoto": "https://example.com/photos/jackson.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN011",
+        "email": "karen.wilson@example.com",
+        "name": "Karen Wilson",
+        "password": "password11",
+        "profilePhoto": "https://example.com/photos/karen.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN012",
+        "email": "luke.kim@example.com",
+        "name": "Luke Kim",
+        "password": "password12",
+        "profilePhoto": "https://example.com/photos/luke.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN013",
+        "email": "maria.garcia@example.com",
+        "name": "Maria Garcia",
+        "password": "password13",
+        "profilePhoto": "https://example.com/photos/maria.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN014",
+        "email": "nathan.clark@example.com",
+        "name": "Nathan Clark",
+        "password": "password14",
+        "profilePhoto": "https://example.com/photos/nathan.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN015",
+        "email": "olivia.rodriguez@example.com",
+        "name": "Olivia Rodriguez",
+        "password": "password15",
+        "profilePhoto": "https://example.com/photos/olivia.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN016",
+        "email": "paul.lewis@example.com",
+        "name": "Paul Lewis",
+        "password": "password16",
+        "profilePhoto": "https://example.com/photos/paul.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN017",
+        "email": "quinn.hall@example.com",
+        "name": "Quinn Hall",
+        "password": "password17",
+        "profilePhoto": "https://example.com/photos/quinn.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN018",
+        "email": "rachel.young@example.com",
+        "name": "Rachel Young",
+        "password": "password18",
+        "profilePhoto": "https://example.com/photos/rachel.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN019",
+        "email": "samuel.allen@example.com",
+        "name": "Samuel Allen",
+        "password": "password19",
+        "profilePhoto": "https://example.com/photos/samuel.jpg",
+        "role": "LN"
+    },
+    {
+        "id": "LN020",
+        "email": "tina.king@example.com",
+        "name": "Tina King",
+        "password": "password20",
+        "profilePhoto": "https://example.com/photos/tina.jpg",
+        "role": "LN"
+    }
+]

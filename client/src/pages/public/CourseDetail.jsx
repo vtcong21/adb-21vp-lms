@@ -96,7 +96,7 @@ const CourseDetail = () => {
 
           message.success("Course added to cart successfully!");
           setIsInCart(true); // Update the cart status
-          navigate("/cart"); // Redirect to cart page
+          navigate("/learner/cart"); // Redirect to cart page
         } catch (error) {
           message.error(
             "An error occurred while adding the course to the cart."
@@ -107,6 +107,229 @@ const CourseDetail = () => {
   };
 
   if (!course) return <p>Loading...</p>;
+  const tabPanes = [
+    {
+      key: '1',
+      label: "What You Will Learn",
+      children: (
+        <>
+          <List
+              dataSource={
+                course.courseObjectives?.map((obj) => obj.objective) || []
+              }
+              renderItem={(item) => (
+                <List.Item style={{ userSelect: "none" }}>
+                  <div style={{ display: "inline-flex" }}>
+                    <CheckCircleOutlined
+                      style={{ color: "#52c41a", marginRight: 8 }}
+                    />
+
+                    <Paragraph style={{ userSelect: "none", margin: 0 }}>
+                      {item}
+                    </Paragraph>
+                  </div>
+                </List.Item>
+              )}
+            />
+        </>
+      )
+    },
+    {
+      key: '2',
+      label: 'Course Content',
+      children: (
+        <>
+          {/* Course Requirements */}
+          <Title level={3} style={{ fontWeight: "bold" }}>
+            Requirements
+          </Title>
+          <List
+            dataSource={
+              course.courseRequirements?.map((req) => req.requirement) || []
+            }
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0 }}>
+                <Paragraph style={{ margin: 0 }}>
+                  <span style={{ marginRight: 8 }}>•</span>
+                  {item}
+                </Paragraph>
+              </List.Item>
+            )}
+          />
+  
+          {/* Course Description */}
+          <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
+            Description
+          </Title>
+          <Paragraph>{course.description || "Course description"}</Paragraph>
+  
+          {/* Intended Learners */}
+          <Title level={3} style={{ fontWeight: "bold" }}>
+            This Course is For:
+          </Title>
+          <List
+            dataSource={
+              course.courseIntendedLearners?.map(
+                (learner) => learner.intendedLearner
+              ) || []
+            }
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0 }}>
+                <Paragraph style={{ margin: 0 }}>
+                  <span style={{ marginRight: 8 }}>•</span>
+                  {item}
+                </Paragraph>
+              </List.Item>
+            )}
+          />
+  
+          {/* Course Content */}
+          <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
+            Course Content
+          </Title>
+  
+          <Collapse
+            defaultActiveKey={
+              course.sections?.length > 0
+                ? [course.sections[0].sectionId.toString()]
+                : []
+            }
+            style={{ borderRadius: 0 }}
+          >
+            {course.sections?.map((section) => (
+              <Panel
+                header={
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{section.sectionTitle}</span>
+                    <span>{`${
+                      section.lectures ? section.lectures.length : 0
+                    } lectures • ${formatTime(
+                      section.sectionLearnTime || 0
+                    )}`}</span>
+                  </div>
+                }
+                key={section.sectionId}
+                style={{ borderRadius: 0 }}
+                className="bg-gray-50"
+              >
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {section.lectures?.map((lecture) => (
+                    <div
+                      key={lecture.lectureId}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        margin: "8px 0",
+                        alignItems: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          margin: 0,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <YoutubeOutlined style={{ marginRight: 6 }} />
+                        {lecture.lectureTitle}
+                      </p>
+                      <span>{formatTime(lecture.lectureLearnTime || 0)}</span>
+                    </div>
+                  ))}
+                  {section.exercises?.map((exercise) => (
+                    <div
+                      key={exercise.exerciseId}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        margin: "8px 0",
+                        alignItems: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          margin: 0,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <FormOutlined style={{ marginRight: 6 }} />
+                        {exercise.exerciseTitle}
+                      </p>
+                      <span>
+                        {formatTime(exercise.exerciseLearnTime || 0)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ))}
+          </Collapse>
+        </>
+      )
+    },
+    {
+      key: '3',
+      label: 'Reviews',
+      children: (
+        <>
+          <div style={{ minHeight: "200px" }}>
+            {" "}
+            {/* Adjust minHeight as needed */}
+            {learnerReviews.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={learnerReviews}
+                renderItem={(item) => (
+                  <List.Item
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 0",
+                    }}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        item.profilePhoto ? (
+                          <img
+                            src={`http://localhost:8000/api/files/${item.profilePhoto}`}
+                            alt={item.name || "Profile"}
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : null
+                      }
+                      title={item.name || "Anonymous"}
+                      description={item.review || "No review content"}
+                      style={{ flex: 1 }}
+                    />
+                    <Rate
+                      disabled
+                      defaultValue={item.rating || 0}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <p>No reviews yet.</p>
+            )}
+          </div>
+        </>
+      )
+    }
+  ];
 
   return (
     <>
@@ -225,242 +448,12 @@ const CourseDetail = () => {
         <Tabs
           defaultActiveKey="1"
           style={{ padding: 16, userSelect: "none", width: "100%" }}
-        >
-          <TabPane tab="What You Will Learn" key="1">
-            <List
-              dataSource={
-                course.courseObjectives?.map((obj) => obj.objective) || []
-              }
-              renderItem={(item) => (
-                <List.Item style={{ userSelect: "none" }}>
-                  <div style={{ display: "inline-flex" }}>
-                    <CheckCircleOutlined
-                      style={{ color: "#52c41a", marginRight: 8 }}
-                    />
-
-                    <Paragraph style={{ userSelect: "none", margin: 0 }}>
-                      {item}
-                    </Paragraph>
-                  </div>
-                </List.Item>
-              )}
-            />
-          </TabPane>
-
-          <TabPane tab="Course Content" key="2">
-            <Title level={3} style={{ fontWeight: "bold" }}>
-              Requirements
-            </Title>
-
-            <List
-              dataSource={
-                course.courseRequirements?.map((req) => req.requirement) || []
-              }
-              renderItem={(item) => (
-                <List.Item style={{ padding: 0 }}>
-                  <Paragraph style={{ margin: 0 }}>
-                    <span style={{ marginRight: 8 }}>•</span>
-
-                    {item}
-                  </Paragraph>
-                </List.Item>
-              )}
-            />
-
-            <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
-              Description
-            </Title>
-
-            <Paragraph>{course.description || "Course description"}</Paragraph>
-
-            <Title level={3} style={{ fontWeight: "bold" }}>
-              This Course is For:
-            </Title>
-
-            <List
-              dataSource={
-                course.courseIntendedLearners?.map(
-                  (learner) => learner.intendedLearner
-                ) || []
-              }
-              renderItem={(item) => (
-                <List.Item style={{ padding: 0 }}>
-                  <Paragraph style={{ margin: 0 }}>
-                    <span style={{ marginRight: 8 }}>•</span>
-
-                    {item}
-                  </Paragraph>
-                </List.Item>
-              )}
-            />
-
-            <Title level={3} style={{ fontWeight: "bold", marginTop: 35 }}>
-              Course Content
-            </Title>
-
-            <Collapse
-              defaultActiveKey={
-                course.sections?.length > 0
-                  ? [course.sections[0].sectionId.toString()]
-                  : []
-              }
-              style={{ borderRadius: 0 }}
-            >
-              {course.sections?.map((section) => (
-                <Panel
-                  header={
-                    <div
-                      style={{
-                        display: "flex",
-
-                        justifyContent: "space-between",
-
-                        alignItems: "center",
-                      }}
-                    >
-                      <span>{section.sectionTitle}</span>
-
-                      <span>{`${
-                        section.lectures ? section.lectures.length : 0
-                      } lectures • ${formatTime(
-                        section.sectionLearnTime || 0
-                      )}`}</span>
-                    </div>
-                  }
-                  key={section.sectionId}
-                  style={{ borderRadius: 0 }}
-                  className="bg-gray-50"
-                >
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    {section.lectures?.map((lecture) => (
-                      <div
-                        key={lecture.lectureId}
-                        style={{
-                          display: "flex",
-
-                          justifyContent: "space-between",
-
-                          margin: "8px 0",
-
-                          alignItems: "center",
-                        }}
-                      >
-                        <p
-                          style={{
-                            margin: 0,
-
-                            display: "flex",
-
-                            alignItems: "center",
-                          }}
-                        >
-                          <YoutubeOutlined style={{ marginRight: 6 }} />
-
-                          {lecture.lectureTitle}
-                        </p>
-
-                        <span>{formatTime(lecture.lectureLearnTime || 0)}</span>
-                      </div>
-                    ))}
-
-                    {section.exercises?.map((exercise) => (
-                      <div
-                        key={exercise.exerciseId}
-                        style={{
-                          display: "flex",
-
-                          justifyContent: "space-between",
-
-                          margin: "8px 0",
-
-                          alignItems: "center",
-                        }}
-                      >
-                        <p
-                          style={{
-                            margin: 0,
-
-                            display: "flex",
-
-                            alignItems: "center",
-                          }}
-                        >
-                          <FormOutlined style={{ marginRight: 6 }} />
-
-                          {exercise.exerciseTitle}
-                        </p>
-
-                        <span>
-                          {formatTime(exercise.exerciseLearnTime || 0)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Panel>
-              ))}
-            </Collapse>
-          </TabPane>
-
-          <TabPane tab="Reviews" key="3">
-            <div style={{ minHeight: "200px" }}>
-              {" "}
-              {/* Adjust minHeight as needed */}
-              {learnerReviews.length > 0 ? (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={learnerReviews}
-                  renderItem={(item) => (
-                    <List.Item
-                      style={{
-                        display: "flex",
-
-                        justifyContent: "space-between",
-
-                        alignItems: "center",
-
-                        padding: "8px 0",
-                      }}
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          item.profilePhoto ? (
-                            <img 
-                              src= {`http://localhost:8000/api/files/${item.profilePhoto}`}
-                              alt={item.name || "Profile"}
-                              style={{
-                                width: 40,
-
-                                height: 40,
-
-                                borderRadius: "50%",
-
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : null
-                        }
-                        title={item.name || "Anonymous"}
-                        description={item.review || "No review content"}
-                        style={{ flex: 1 }}
-                      />
-
-                      <Rate
-                        disabled
-                        defaultValue={item.rating || 0}
-                        style={{ fontSize: "12px" }}
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <p>No reviews yet.</p>
-              )}
-            </div>
-          </TabPane>
-        </Tabs>
+          items={tabPanes}
+        />
       </Row>
     </>
   );
+
 };
 
 export default CourseDetail;

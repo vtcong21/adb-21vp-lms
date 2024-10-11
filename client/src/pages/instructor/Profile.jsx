@@ -1,5 +1,17 @@
+<<<<<<< HEAD
 import React from 'react';
 import { Card, Avatar, Typography, Row, Col } from 'antd';
+=======
+import React, { useState } from "react";
+import { Form, Input } from "antd";
+// import DentistService from "../../services/dentist";
+import { useSelector } from "react-redux";
+import { ButtonBlue } from "~/components/button";
+const ProfileNS = () => {
+  const user = useSelector((state) => state.user);
+  const { ROLE, HOTEN, PHAI, MANS } = user;
+  const [form] = Form.useForm();
+>>>>>>> main
 
 const { Title, Text } = Typography;
 

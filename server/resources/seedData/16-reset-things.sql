@@ -257,3 +257,9 @@ INNER JOIN (
 
 EXEC sp_columns @table_name = 'section';
 
+
+UPDATE [user] SET password = (select password from [user] where id = 'learner000001') where [user].role = 'LN'
+
+UPDATE [user] SET password = (select password from [user] where id = 'admin000001') where [user].role = 'AD'
+
+UPDATE [user] SET password = (select password from [user] where id = 'instructor000001') where [user].role = 'INS'
